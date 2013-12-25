@@ -50,7 +50,7 @@ public class TerranSupplyDepot {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			return false;
 		}
-		
+
 		// ### VERSION ### Expansion with cannons
 		if (BotStrategyManager.isExpandWithBunkers()) {
 			if (depots == 0 && (workers >= 9 || xvr.canAfford(92))) {
@@ -90,7 +90,7 @@ public class TerranSupplyDepot {
 		boolean shouldBuild = ((depots == 0 && total <= 9 && free <= 3)
 				|| (total >= 10 && total <= 17 && free <= 4 && depots <= 1)
 				|| (total >= 18 && total <= 25 && free <= 7)
-				|| (total > 25 && total <= 45 && free <= 11) || (total > 45 && free <= 16) || (total > 90
+				|| (total > 25 && total <= 45 && free <= 8) || (total > 45 && free <= 16) || (total > 90
 				&& total < 200 && free <= 20));
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, shouldBuild);
@@ -246,9 +246,9 @@ public class TerranSupplyDepot {
 	public static int getNumberOfUnits() {
 		return UnitCounter.getNumberOfUnits(buildingType);
 	}
-	
+
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
 	}
-	
+
 }

@@ -21,6 +21,7 @@ public class TerranSiegeTank {
 
 	public static void act(Unit unit) {
 		_properPlace = unit.getProperPlaceToBe();
+		updateProperPlaceToBeForTank(unit);
 		_isUnitWhereItShouldBe = _properPlace == null || _properPlace.distanceTo(unit) <= 2;
 		_nearestEnemy = xvr.getNearestEnemy(unit);
 		_nearestEnemyDist = _nearestEnemy != null ? _nearestEnemy.distanceTo(unit) : -1;
@@ -29,6 +30,13 @@ public class TerranSiegeTank {
 			actWhenSieged(unit);
 		} else {
 			actWhenInNormalMode(unit);
+		}
+	}
+
+	private static void updateProperPlaceToBeForTank(Unit unit) {
+		Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit, xvr.getUnitsArmyNonTanks());
+		if (nearestArmyUnit != null) {
+			_properPlace = nearestArmyUnit;
 		}
 	}
 
