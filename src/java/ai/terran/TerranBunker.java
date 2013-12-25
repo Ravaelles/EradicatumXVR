@@ -1,0 +1,381 @@
+package ai.terran;
+
+import java.util.ArrayList;
+
+import jnibwapi.model.ChokePoint;
+import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType;
+import jnibwapi.types.UnitType.UnitTypes;
+import ai.core.XVR;
+import ai.handling.map.MapExploration;
+import ai.handling.map.MapPoint;
+import ai.handling.map.MapPointInstance;
+import ai.handling.units.UnitCounter;
+import ai.managers.BotStrategyManager;
+import ai.managers.constructing.Constructing;
+import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.units.UnitManager;
+
+public class TerranBunker {
+
+	private static final UnitTypes buildingType = UnitTypes.Terran_Bunker;
+	private static XVR xvr = XVR.getInstance();
+
+	private static final double MAX_DIST_FROM_CHOKE_POINT_MODIFIER = 1.8;
+	public static final int MAX_STACK = 1;
+
+	private static MapPoint _placeToReinforceWithCannon = null;
+
+	public static boolean shouldBuild() {
+		if (UnitCounter.weHaveBuilding(TerranBarracks.getBuildingType())) {
+			int maxCannonStack = calculateMaxBunkerStack();
+
+			int bunkers = UnitCounter.getNumberOfUnits(buildingType);
+			// int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
+			int depots = UnitCounter.getNumberOfUnits(UnitTypes.Protoss_Pylon);
+			// int battleUnits = UnitCounter.getNumberOfBattleUnits();
+
+			if (depots == 1) {
+				if (!xvr.canAfford(300)) {
+					return false;
+				}
+			}
+
+			// If main base isn't protected at all, build some cannons
+			if (shouldBuildNearMainBase()) {
+				return true;
+			}
+
+			if (bunkers <= maxCannonStack
+					&& TerranSupplyDepot.calculateExistingPylonsStrength() >= 1.35
+					&& calculateExistingBunkersStrength() < maxCannonStack) {
+				// System.out.println("FIRST CASE");
+				return true;
+			}
+
+			// Select one place to reinforce
+			for (MapPoint base : getPlacesToReinforce()) {
+				if (UnitCounter.getNumberOfUnits(UnitManager.BASE) == 1) {
+					if (shouldBuildFor((MapPoint) base)) {
+						// System.out.println("#SECOND");
+						return true;
+					}
+				}
+			}
+
+			// If reached here, then check if build cannon at next base
+			MapPoint tileForNextBase = TerranCommandCenter.getTileForNextBase(false);
+			if (shouldBuildFor(tileForNextBase)) {
+				if (xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Protoss_Pylon, 12, tileForNextBase,
+						true) > 0) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean shouldBuildNearMainBase() {
+		if (xvr.getTimeSeconds() < 200) {
+			return false;
+		}
+
+		// If main base isn't protected at all, build some cannons
+		int bunkers = UnitCounter.getNumberOfUnits(buildingType);
+		int bunkersNearMainBase = xvr.countUnitsOfGivenTypeInRadius(buildingType, 7,
+				xvr.getFirstBase(), true);
+		if (bunkers >= TerranBunker.MAX_STACK
+				&& UnitCounter.getNumberOfUnits(UnitManager.BARRACKS) >= 2
+				&& bunkersNearMainBase == 0) {
+			return true;
+		}
+		return false;
+	}
+
+	private static double calculateExistingBunkersStrength() {
+		double result = 0;
+		UnitType type = UnitType.getUnitTypeByID(buildingType.ordinal());
+		int maxHitPoints = type.getMaxShields() + type.getMaxHitPoints();
+
+		for (Unit cannon : xvr.getUnitsOfType(buildingType)) {
+			double cannonTotalHP = (double) (cannon.getShields() + cannon.getHitPoints())
+					/ maxHitPoints;
+			if (!cannon.isCompleted()) {
+				cannonTotalHP = Math.sqrt(cannonTotalHP);
+			}
+			result += cannonTotalHP;
+		}
+
+		return result;
+	}
+
+	private static boolean shouldBuildFor(MapPoint base) {
+		if (base == null) {
+			return false;
+		}
+
+		// Build just at second base
+		if (base.equals(xvr.getFirstBase())) {
+			return false;
+		}
+
+		// Build at first base
+		// if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
+		// if (base.equals(xvr.getFirstBase())) {
+		// return false;
+		// }
+		// }
+
+		// Get the nearest choke point to base
+		ChokePoint chokePoint = MapExploration.getImportantChokePointNear(base);
+
+		// // If this is new base, try to force building of cannon here.
+		// if (!base.equals(xvr.getFirstBase())) {
+		// _placeToReinforceWithCannon = base;
+		// return true;
+		// }
+
+		// If in the neighborhood of choke point there's too many cannons, don't
+		// build next one.
+		if (shouldBuildFor(chokePoint)) {
+			_placeToReinforceWithCannon = chokePoint;
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static void buildIfNecessary() {
+		if (shouldBuild()) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			for (MapPoint base : getPlacesToReinforce()) {
+				tryToBuildFor(base);
+			}
+		}
+		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+	}
+
+	private static ArrayList<MapPoint> getPlacesToReinforce() {
+		ArrayList<MapPoint> placesToReinforce = new ArrayList<>();
+
+		// Second base should be one huge defensive bunker.
+		placesToReinforce.add(TerranCommandCenter.getSecondBaseLocation());
+
+		// Add bases from newest, to the oldest (I guess?)
+		ArrayList<Unit> bases = TerranCommandCenter.getBases();
+		for (int i = bases.size() - 1; i >= 0; i--) {
+			Unit base = bases.get(i);
+			ChokePoint chokePoint = MapExploration.getImportantChokePointNear(base);
+			placesToReinforce.add(chokePoint);
+		}
+
+		return placesToReinforce;
+	}
+
+	private static void tryToBuildFor(MapPoint base) {
+		if (shouldBuildFor(base)) {
+			Constructing.construct(xvr, buildingType);
+		}
+	}
+
+	private static boolean shouldBuildFor(ChokePoint chokePoint) {
+		// return findTileForCannon() != null;
+		if (chokePoint.isDisabled()) {
+			return false;
+		}
+
+		int numberOfCannonsNearby = calculateBunkersNearby(chokePoint);
+
+		int bonus = 0;
+		if (xvr.getDistanceBetween(TerranCommandCenter.getSecondBaseLocation(), chokePoint) < 14) {
+			// if (!xvr.getFirstBase().equals(
+			// ProtossNexus.getNearestBaseForUnit(chokePoint))) {
+			bonus = 1;
+		}
+
+		// If there isn't too many cannons defending this choke point
+		if (numberOfCannonsNearby < calculateMaxBunkerStack() + bonus) {
+			return true;
+		}
+
+		// No, there's too many cannons. Don't build next one.
+		else {
+			// System.out.println("TOO MANY CANNONS NEARBY");
+			return false;
+		}
+	}
+
+	public static int calculateMaxBunkerStack() {
+		return BotStrategyManager.isExpandWithBunkers() ? MAX_STACK : (UnitCounter
+				.getNumberOfBattleUnits() >= 8 ? 1 : MAX_STACK);
+	}
+
+	private static int calculateBunkersNearby(MapPoint mapPoint) {
+		int radius;
+
+		ChokePoint choke = null;
+		if (mapPoint instanceof ChokePoint) {
+			choke = (ChokePoint) mapPoint;
+			radius = (int) choke.getRadius() / 32;
+		} else {
+			radius = 8;
+		}
+
+		int searchInDistance = (int) (1.5 * MAX_DIST_FROM_CHOKE_POINT_MODIFIER * radius);
+		if (searchInDistance < 9) {
+			searchInDistance = 9;
+		}
+
+		ArrayList<Unit> cannonsNearby = xvr.getUnitsOfGivenTypeInRadius(buildingType,
+				searchInDistance, mapPoint, true);
+
+		double result = 0;
+		double maxCannonHP = 200;
+		for (Unit cannon : cannonsNearby) {
+			// if (!cannon.isCompleted()) {
+			// result -= 1;
+			// }
+			result += (cannon.getHitPoints() + cannon.getShields()) / maxCannonHP;
+		}
+
+		return (int) result;
+	}
+
+	private static MapPoint findProperBuildTile(MapPoint mapPoint) {
+
+		// Define approximate tile for cannon
+		MapPointInstance initialBuildTile = new MapPointInstance(mapPoint.getX(), mapPoint.getY());
+
+		// Define random worker, for technical reasons
+		Unit workerUnit = xvr.getRandomWorker();
+
+		// ================================
+		// Define maximum distance from a choke point for a cannon
+		int minimumDistance = 1;
+		int numberOfCannonsNearby = calculateBunkersNearby(mapPoint);
+		if (mapPoint instanceof ChokePoint) {
+			ChokePoint choke = (ChokePoint) mapPoint;
+			if (choke.getRadius() / 32 >= 8) {
+				minimumDistance = 3;
+			}
+		}
+		int maximumDistance = minimumDistance + (10 / Math.max(1, numberOfCannonsNearby));
+
+		// ================================
+		// Find proper build tile
+		MapPoint properBuildTile = Constructing.getLegitTileToBuildNear(workerUnit, buildingType,
+				initialBuildTile, minimumDistance, maximumDistance);
+
+		return properBuildTile;
+	}
+
+	public static MapPoint findTileForBunker() {
+		MapPoint tileForCannon = null;
+
+		// Protected main base
+		if (shouldBuildNearMainBase()) {
+			tileForCannon = findBuildTileNearMainNexus();
+		} else {
+
+			if (getNumberOfUnits() == 0) {
+				tileForCannon = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());
+			} else {
+
+				// return findProperBuildTile(_chokePointToReinforce, true);
+				if (_placeToReinforceWithCannon == null) {
+					_placeToReinforceWithCannon = MapExploration
+							.getNearestChokePointFor(getInitialPlaceToReinforce());
+				}
+
+				// Try to find normal tile.
+				tileForCannon = findProperBuildTile(_placeToReinforceWithCannon);
+			}
+
+		}
+		if (tileForCannon != null) {
+			return tileForCannon;
+		}
+
+		// ===================
+		// If we're here it can mean we should build cannons at position of the
+		// next base
+		MapPoint tileForNextBase = TerranCommandCenter.getTileForNextBase(false);
+		if (shouldBuildFor(tileForNextBase)) {
+			tileForCannon = findProperBuildTile(tileForNextBase);
+			if (tileForCannon != null) {
+				return tileForCannon;
+			}
+		}
+
+		return null;
+	}
+
+	private static MapPoint findTileAtBase(MapPoint base) {
+		if (base == null) {
+			return null;
+		}
+
+		// Change first base to second base.
+		// base = ProtossNexus.findTileForBase(true);
+		base = TerranCommandCenter.getSecondBaseLocation();
+		if (base == null) {
+			return null;
+		}
+
+		// Find point being in the middle of way second base<->nearest choke
+		// point.
+		ChokePoint choke = MapExploration.getNearestChokePointFor(base);
+		if (choke == null) {
+			return null;
+		}
+
+		// MapPointInstance location = new MapPointInstance(
+		// (base.getX() + 2 * choke.getX()) / 3,
+		// (base.getY() + 2 * choke.getY()) / 3);
+		MapPointInstance location = MapPointInstance.getMiddlePointBetween(base, choke);
+
+		// Find place for pylon between choke point and the second base.
+		return Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), buildingType, location,
+				0, 100);
+	}
+
+	private static MapPoint findBuildTileNearMainNexus() {
+
+		// ===================
+		// If main base isn't protected at all, build some cannons
+		Unit firstBase = xvr.getFirstBase();
+		MapPoint point = firstBase;
+
+		MapPoint tileForCannon = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
+				buildingType, point, 0, 10);
+
+		// Debug.message(xvr, "## Build cannon for main base ##");
+		// System.out.println(" ################################ ");
+		// System.out.println(" ################################ PROTECTED THE BASE");
+		// System.out.println(" ################################ ");
+		// System.out.println(tileForCannon);
+		// System.out.println();
+
+		if (tileForCannon != null) {
+			return tileForCannon;
+		}
+		return null;
+	}
+
+	private static MapPoint getInitialPlaceToReinforce() {
+		return TerranCommandCenter.getSecondBaseLocation();
+	}
+
+	public static UnitTypes getBuildingType() {
+		return buildingType;
+	}
+
+	public static int getNumberOfUnits() {
+		return UnitCounter.getNumberOfUnits(buildingType);
+	}
+
+	public static int getNumberOfUnitsCompleted() {
+		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
+	}
+
+}
