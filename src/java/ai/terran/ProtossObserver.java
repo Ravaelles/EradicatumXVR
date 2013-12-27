@@ -34,7 +34,7 @@ public class ProtossObserver {
 	}
 
 	public static void tryToScanUnit(Unit enemy) {
-		if (enemy == null || enemy.getType().isTerranMine()
+		if (enemy == null || enemy.getType().isSpiderMine()
 				|| enemy.getType().isObserver()) {
 			return;
 		}

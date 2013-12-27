@@ -261,7 +261,7 @@ public class TerranCommandCenter {
 	}
 
 	/** Find building tile for new base. */
-	public static MapPoint getTileForNextBase(boolean forceNewSolution) {
+	public static MapPoint findTileForNextBase(boolean forceNewSolution) {
 
 		// Try to get cached value
 		if (_cachedNextBaseTile != null && !forceNewSolution) {
@@ -380,7 +380,7 @@ public class TerranCommandCenter {
 			}
 		}
 
-		if (workers < MIN_WORKERS) {
+		if (workers < MIN_WORKERS && xvr.canAfford(58)) {
 			return true;
 		}
 
@@ -614,19 +614,19 @@ public class TerranCommandCenter {
 		if (_secondBase != null) {
 			return _secondBase;
 		} else {
-			_secondBase = TerranCommandCenter.getTileForNextBase(true);
+			_secondBase = TerranCommandCenter.findTileForNextBase(true);
 			return _secondBase;
 		}
 	}
 
 	public static void updateNextBaseToExpand() {
-		getTileForNextBase(true);
+		findTileForNextBase(true);
 	}
-	
+
 	public static int getNumberOfUnits() {
 		return UnitCounter.getNumberOfUnits(buildingType);
 	}
-	
+
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
 	}

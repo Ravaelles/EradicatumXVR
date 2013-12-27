@@ -1,24 +1,34 @@
 package ai.terran;
 
+import jnibwapi.model.Unit;
+import jnibwapi.types.TechType.TechTypes;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.map.MapExploration;
+import ai.handling.map.MapPoint;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.AddOn;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType.UnitTypes;
 
 public class TerranComsatStation {
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Comsat_Station;
 	private static XVR xvr = XVR.getInstance();
 
+	private static int lastTimeScannedSecondEnemyBase = -1;
+
+	public static void act(Unit unit) {
+		if (unit.getEnergy() >= 199) {
+			tryRandomScan(unit);
+		}
+	}
+
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			Constructing.constructAddOn(
-					AddOn.getBuildingWithNoAddOn(UnitTypes.Terran_Command_Center),
-					buildingType);
+					AddOn.getBuildingWithNoAddOn(UnitTypes.Terran_Command_Center), buildingType);
 			return;
 		}
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -56,6 +66,64 @@ public class TerranComsatStation {
 
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
+	}
+
+	// ==============================================================
+
+	private static void tryRandomScan(Unit comsat) {
+		if (shouldScanSecondEnemyBaseLocation()) {
+			scanSecondEnemyBaseLocation(comsat);
+		} else {
+			scanFullyRandomPlace(comsat);
+		}
+	}
+
+	private static void scanFullyRandomPlace(Unit comsat) {
+		scan(comsat, MapExploration.getRandomKnownEnemyBase());
+	}
+
+	private static void scanSecondEnemyBaseLocation(Unit comsat) {
+		scan(comsat, MapExploration.getNearestEnemyBase());
+	}
+
+	private static boolean shouldScanSecondEnemyBaseLocation() {
+		return lastTimeScannedSecondEnemyBase == -1
+				|| (xvr.getTimeSeconds() - lastTimeScannedSecondEnemyBase > 600);
+	}
+
+	public static void tryToScanPoint(MapPoint point) {
+		if (!UnitCounter.weHaveBuildingFinished(UnitTypes.Terran_Comsat_Station)) {
+			return;
+		}
+
+		Unit comsat = getOneWithMostEnergy();
+		if (comsat != null) {
+			scan(comsat, point);
+		}
+	}
+
+	private static void scan(Unit comsat, MapPoint point) {
+		xvr.getBwapi().useTech(comsat.getID(), TechTypes.Scanner_Sweep.ordinal(), point.getX(),
+				point.getY());
+	}
+
+	private static Unit getOneWithMostEnergy() {
+		int maxEnergy = -1;
+		Unit bestObject = null;
+		for (Unit unit : xvr.getUnitsOfType(UnitTypes.Terran_Comsat_Station)) {
+			if (unit.getEnergy() > maxEnergy) {
+				maxEnergy = unit.getEnergy();
+				bestObject = unit;
+			}
+		}
+
+		return bestObject;
+	}
+
+	public static void hiddenUnitDetected(Unit unit) {
+		if (UnitCounter.weHaveBuilding(UnitTypes.Terran_Comsat_Station)) {
+			tryToScanPoint(unit);
+		}
 	}
 
 }

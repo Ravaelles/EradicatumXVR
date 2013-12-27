@@ -12,8 +12,6 @@ public class TerranAcademy {
 	private static final UnitTypes buildingType = UnitTypes.Terran_Academy;
 	private static XVR xvr = XVR.getInstance();
 
-	private static boolean forcedShouldBuild = false;
-
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -24,15 +22,12 @@ public class TerranAcademy {
 
 	public static boolean shouldBuild() {
 		// int battleUnits = UnitCounter.getNumberOfBattleUnits();
-		int barracks = UnitCounter.getNumberOfUnitsCompleted(buildingType);
+		int barracks = TerranBarracks.getNumberOfUnits();
+		int academies = getNumberOfUnits();
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 
-		if (forcedShouldBuild && !weAreBuilding) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
-		}
-
-		if (barracks >= 1 && !weAreBuilding && UnitCounter.getNumberOfInfantryUnits() >= 4) {
+		if (academies == 0 && barracks >= 2 && !weAreBuilding) {
+			// UnitCounter.getNumberOfInfantryUnits() >= 4) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
@@ -52,10 +47,6 @@ public class TerranAcademy {
 
 	public static UnitTypes getBuildingType() {
 		return buildingType;
-	}
-
-	public static void forceShouldBuild() {
-		forcedShouldBuild = true;
 	}
 
 	public static int getNumberOfUnits() {

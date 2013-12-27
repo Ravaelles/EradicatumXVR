@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import jnibwapi.JNIBWAPI;
+import jnibwapi.model.Map;
 import jnibwapi.model.Player;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
@@ -190,6 +191,10 @@ public class XVR {
 
 	public JNIBWAPI getBwapi() {
 		return bwapi;
+	}
+
+	public Map getMap() {
+		return bwapi.getMap();
 	}
 
 	// =========================================================
@@ -436,7 +441,7 @@ public class XVR {
 		return true;
 	}
 
-	public int countUnitsOfGivenTypeInRadius(UnitTypes type, int tileRadius, MapPoint point,
+	public int countUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, MapPoint point,
 			boolean onlyMyUnits) {
 		if (point == null) {
 			return -1;
@@ -445,7 +450,20 @@ public class XVR {
 				onlyMyUnits);
 	}
 
-	public int countUnitsOfGivenTypeInRadius(UnitTypes type, int tileRadius, int x, int y,
+	public int countUnitsEnemyOfGivenTypeInRadius(UnitTypes type, int tileRadius, MapPoint point) {
+		if (point == null) {
+			return -1;
+		}
+		int result = 0;
+		for (Unit unit : bwapi.getEnemyUnits()) {
+			if (type.ordinal() == unit.getTypeID() && getDistanceBetween(unit, point) <= tileRadius) {
+				result++;
+			}
+		}
+		return result;
+	}
+
+	public int countUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, int x, int y,
 			boolean onlyMyUnits) {
 		int result = 0;
 		Collection<Unit> unitsList = onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits();
@@ -485,6 +503,14 @@ public class XVR {
 
 	public int countUnitsInRadius(MapPoint point, int tileRadius, boolean onlyMyUnits) {
 		return countUnitsInRadius(point.getX(), point.getY(), tileRadius, onlyMyUnits);
+	}
+
+	public int countUnitsOursInRadius(MapPoint point, int tileRadius) {
+		return countUnitsInRadius(point, tileRadius, bwapi.getMyUnits());
+	}
+
+	public int countUnitsEnemyInRadius(MapPoint point, int tileRadius) {
+		return countUnitsInRadius(point, tileRadius, bwapi.getEnemyUnits());
 	}
 
 	public int countUnitsInRadius(int x, int y, int tileRadius, boolean onlyMyUnits) {
@@ -547,18 +573,32 @@ public class XVR {
 	}
 
 	public Unit getUnitNearestFromList(MapPoint location, Collection<Unit> units) {
+		return getUnitNearestFromList(location, units, true, true);
+	}
+
+	public Unit getUnitNearestFromList(MapPoint location, Collection<Unit> units,
+			boolean includeGroundUnits, boolean includeAirUnits) {
 		if (location == null) {
 			return null;
 		}
-		return getUnitNearestFromList(location.getX(), location.getY(), units);
+		return getUnitNearestFromList(location.getX(), location.getY(), units, includeGroundUnits,
+				includeAirUnits);
 	}
 
-	public Unit getUnitNearestFromList(int x, int y, Collection<Unit> units) {
+	public Unit getUnitNearestFromList(int x, int y, Collection<Unit> units,
+			boolean includeGroundUnits, boolean includeAirUnits) {
 		double nearestDistance = 999999;
 		Unit nearestUnit = null;
 
 		for (Unit otherUnit : units) {
 			if (!otherUnit.isCompleted()) {
+				continue;
+			}
+
+			boolean isAirUnit = otherUnit.getType().isFlyer();
+			if (isAirUnit && !includeAirUnits) {
+				continue;
+			} else if (!isAirUnit && !includeGroundUnits) {
 				continue;
 			}
 
@@ -621,6 +661,27 @@ public class XVR {
 			}
 		}
 		return armyUnits;
+	}
+
+	public Collection<Unit> getUnitsOurOfTypes(UnitTypes... types) {
+
+		// Create set object containing all allowed types of units to return
+		ArrayList<UnitTypes> typesList = new ArrayList<UnitTypes>();
+		for (UnitTypes unitTypes : types) {
+			typesList.add(unitTypes);
+		}
+
+		// Iterate through enemy units and check if they're types match
+		ArrayList<Unit> units = new ArrayList<Unit>();
+		for (UnitTypes type : types) {
+			for (Unit unit : getBwapi().getMyUnits()) {
+				// for (Unit enemy : MapExploration.getEnemyUnitsDiscovered()) {
+				if (type.getID() == unit.getType().getID()) {
+					units.add(unit);
+				}
+			}
+		}
+		return units;
 	}
 
 	public Unit getEnemyUnitOfType(UnitTypes... types) {
@@ -752,7 +813,7 @@ public class XVR {
 		}
 
 		// Return the closest builder to the tile
-		return getUnitNearestFromList(buildTile, freeWorkers);
+		return getUnitNearestFromList(buildTile, freeWorkers, true, false);
 	}
 
 	public boolean isEnemyDetectorNear(int x, int y) {
@@ -894,7 +955,8 @@ public class XVR {
 		if (nearestEnemyBase == null) {
 			return getLastBase();
 		} else {
-			Unit base = getUnitNearestFromList(nearestEnemyBase, TerranCommandCenter.getBases());
+			Unit base = getUnitNearestFromList(nearestEnemyBase, TerranCommandCenter.getBases(),
+					true, false);
 			if (base.equals(getFirstBase())) {
 				base = getLastBase();
 			}
@@ -907,20 +969,49 @@ public class XVR {
 				getEnemyUnitsVisible()) > 0;
 	}
 
-	public Unit getNearestEnemyInRadius(MapPoint point, int tileRadius) {
-		Unit enemy = getUnitNearestFromList(point, bwapi.getEnemyUnits());
+	public Unit getNearestEnemyInRadius(MapPoint point, int tileRadius, boolean includeGroundUnits,
+			boolean includeAirUnits) {
+		Unit enemy = getUnitNearestFromList(point, bwapi.getEnemyUnits(), includeGroundUnits,
+				includeAirUnits);
 		if (enemy == null || getDistanceBetween(enemy, point) > tileRadius) {
 			return null;
 		}
 		return enemy;
 	}
 
-	public Unit getNearestEnemy(MapPoint point) {
-		return getUnitNearestFromList(point, bwapi.getEnemyUnits());
+	public Unit getNearestGroundEnemy(MapPoint point) {
+		return getUnitNearestFromList(point, getEnemyUnitsVisible(), true, false);
 	}
 
-	public double getNearestEnemyDistance(MapPoint point) {
-		Unit nearestEnemy = getUnitNearestFromList(point, bwapi.getEnemyUnits());
+	// private Collection<Unit> getEnemyGroundUnits() {
+	// List<Unit> enemyUnits = bwapi.getEnemyUnits();
+	// for (Iterator<Unit> iterator = enemyUnits.iterator();
+	// iterator.hasNext();) {
+	// Unit unit = (Unit) iterator.next();
+	// if (unit.getType().isFlyer()) {
+	// iterator.remove();
+	// }
+	// }
+	// return enemyUnits;
+	// }
+	//
+	// @SuppressWarnings("unused")
+	// private Collection<Unit> getEnemyAirUnits() {
+	// List<Unit> enemyUnits = bwapi.getEnemyUnits();
+	// for (Iterator<Unit> iterator = enemyUnits.iterator();
+	// iterator.hasNext();) {
+	// Unit unit = (Unit) iterator.next();
+	// if (!unit.getType().isFlyer()) {
+	// iterator.remove();
+	// }
+	// }
+	// return enemyUnits;
+	// }
+
+	public double getNearestEnemyDistance(MapPoint point, boolean includeGroundUnits,
+			boolean includeAirUnits) {
+		Unit nearestEnemy = getUnitNearestFromList(point, bwapi.getEnemyUnits(),
+				includeGroundUnits, includeAirUnits);
 		if (nearestEnemy == null) {
 			return -1;
 		} else {
@@ -1017,6 +1108,36 @@ public class XVR {
 			}
 		}
 		return result;
+	}
+
+	public Unit getNearestTankTo(Unit unit) {
+		Unit nearestNonSiege = getUnitOfTypeNearestTo(UnitTypes.Terran_Siege_Tank_Tank_Mode, unit);
+		Unit nearestSiege = getUnitOfTypeNearestTo(UnitTypes.Terran_Siege_Tank_Siege_Mode, unit);
+		if (nearestNonSiege == null && nearestSiege == null) {
+			return null;
+		}
+		if (nearestNonSiege == null) {
+			return nearestSiege;
+		}
+		if (nearestSiege == null) {
+			return nearestNonSiege;
+		}
+		return (nearestNonSiege.distanceTo(unit) < nearestSiege.distanceTo(unit) ? nearestNonSiege
+				: nearestSiege);
+	}
+
+	public double getNearestTankDistance(Unit unit) {
+		Unit nearestTank = getNearestTankTo(unit);
+		if (nearestTank == null) {
+			return -1;
+		} else {
+			return nearestTank.distanceTo(unit);
+		}
+	}
+
+	public Collection<Unit> getUnitsPossibleToHeal() {
+		return getUnitsOurOfTypes(UnitTypes.Terran_Marine, UnitTypes.Terran_Firebat,
+				UnitTypes.Terran_Medic, UnitTypes.Terran_Ghost, UnitTypes.Terran_SCV);
 	}
 
 }

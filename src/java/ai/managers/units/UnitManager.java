@@ -54,6 +54,10 @@ public class UnitManager {
 			// place properly (Strategy phase)
 			UnitBasicBehavior.act(unit);
 
+			if (type.isBuilding()) {
+				continue;
+			}
+
 			// Don't interrupt shooting units
 			if (unit.isStartingAttack()) {
 				continue;
@@ -61,29 +65,39 @@ public class UnitManager {
 
 			// ===============
 			// Attack close targets (Tactics phase)
-			actTryAttackingCloseEnemyUnits(unit);
+			if (!type.isTank() && !type.isMedic()) {
+				actTryAttackingCloseEnemyUnits(unit);
+			}
+			if (type.isVulture()) {
+				actVulture(unit);
+			}
 
 			// Don't interrupt dark templars in killing spree
-			if (type.isDarkTemplar()) {
-				continue;
-			}
+			// if (type.isDarkTemplar()) {
+			// continue;
+			// }
+
+			// If enemy has got very close near to us, move away
+			UnitBasicBehavior.runFromCloseOpponents(unit);
 
 			// Run from lurkers etc
 			avoidHiddenUnitsIfNecessary(unit);
 
-			// ======================================
-			// Try to load infantry inside bunkers if possible
-			if (type.isTerranInfantry()) {
-				handleInteractionWithBunkers(unit);
-			}
 			// ======================================
 
 			// Wounded units should avoid being killed if possible
 			handleWoundedUnitBehaviourIfNecessary(unit);
 
 			// If units is jammed and is attacked, attack back
-			handleAntiStuckCode(unit);
+			// handleAntiStuckCode(unit);
 
+			// ======================================
+			// Try to load infantry inside bunkers if possible
+			if (type.isTerranInfantry()) {
+				handleInteractionWithBunkers(unit);
+			}
+
+			// ======================================
 			// Increase unit counter, so we can know which unit in order it was.
 			_unitCounter++;
 		}
@@ -92,6 +106,13 @@ public class UnitManager {
 		// Reset variables
 		_unitCounter = 0;
 		CallForHelp.clearOldOnes();
+	}
+
+	private static void actVulture(Unit unit) {
+		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		if (nearestEnemy != null && nearestEnemy.distanceTo(unit) <= 5) {
+			UnitActions.moveToSafePlace(unit);
+		}
 	}
 
 	protected static void handleAntiStuckCode(Unit unit) {
@@ -103,7 +124,7 @@ public class UnitManager {
 
 		// If unit is stuck, attack.
 		if (unit.isStuck() || unit.isUnderAttack() || unit.isMoving()) {
-			Unit nearestEnemy = xvr.getNearestEnemyInRadius(unit, 1);
+			Unit nearestEnemy = xvr.getNearestEnemyInRadius(unit, 1, true, true);
 			shouldFightBack = nearestEnemy != null && nearestEnemy.isDetected();
 
 			// && xvr.getUnitsInRadius(unit, 2, xvr.getUnitsNonWorker())
@@ -149,29 +170,24 @@ public class UnitManager {
 				continue;
 			}
 
-			// Don't interrupt dark templars in killing spree
-			if (type.isDarkTemplar()) {
-				continue;
-			}
+			// // Don't interrupt dark templars in killing spree
+			// if (type.isDarkTemplar()) {
+			// continue;
+			// }
 
-			// Some units have special orders
-			if (type.isHighTemplar() || type.isObserver()) {
-				continue;
-			}
+			// // Some units have special orders
+			// if (type.isHighTemplar() || type.isObserver()) {
+			// continue;
+			// }
 
 			// ============================
-			if (!type.isReaver()) {
-				decideSkirmishIfToFightOrRetreat(unit);
-			}
-
-			handleAntiStuckCode(unit);
+			decideSkirmishIfToFightOrRetreat(unit);
+			// handleAntiStuckCode(unit);
 		}
 	}
 
 	protected static void handleWoundedUnitBehaviourIfNecessary(Unit unit) {
-		UnitType type = unit.getType();
-
-		if (unit.getHitPoints() <= 30 || unit.getShields() <= type.getMaxShields() / 2) {
+		if (unit.getHP() <= 31) {
 
 			// Now, it doesn't make sense to run away if we're close to some
 			// bunker or cannon and we're lonely. In this case it's better to
@@ -181,8 +197,8 @@ public class UnitManager {
 			}
 
 			// If there are tanks nearby, DON'T RUN. Rather die first!
-			if (xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 15, unit,
-					false) > 0) {
+			if (xvr.countUnitsEnemyOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 15,
+					unit) > 0) {
 				return;
 			}
 
@@ -200,7 +216,7 @@ public class UnitManager {
 	}
 
 	protected static boolean isInSuicideShouldFightPosition(Unit unit) {
-		if (!unit.getType().isDarkTemplar()) {
+		if (!unit.getType().isVulture()) {
 			return false;
 		}
 
@@ -249,11 +265,11 @@ public class UnitManager {
 		// return;
 		// }
 
-		if (unit.getType().isDarkTemplar() || unit.getType().isObserver()) {
-			if (!unit.isDetected()) {
-				return;
-			}
-		}
+		// if (unit.getType().isDarkTemplar() || unit.getType().isObserver()) {
+		// if (!unit.isDetected()) {
+		// return;
+		// }
+		// }
 
 		// Don't interrupt shooting units
 		// if (type.isDragoon() || type.isReaver()) {
@@ -268,21 +284,25 @@ public class UnitManager {
 			return;
 		}
 
-		// If there's tank nearby, DON't retreat
-		if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 20, unit, false)
-				.size() > 0) {
-			return;
-		}
+		// // If there's tank nearby, DON't retreat
+		// if
+		// (xvr.countUnitsEnemyOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
+		// 17, unit) > 0) {
+		// return;
+		// }
 
-		// If there's bunker
-		if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 3, unit, false).size() > 0) {
-			return;
-		}
-
-		// If there's enemy cannon
-		if (xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3, unit, false).size() > 0) {
-			return;
-		}
+		// // If there's ENEMY BUNKER
+		// if (xvr.countUnitsEnemyOfGivenTypeInRadius(UnitTypes.Terran_Bunker,
+		// 3, unit) > 0) {
+		// return;
+		// }
+		//
+		// // If there's ENEMY CANNON
+		// if
+		// (xvr.countUnitsEnemyOfGivenTypeInRadius(TerranBunker.getBuildingType(),
+		// 3, unit) > 0) {
+		// return;
+		// }
 
 		// If there's our first base nearby
 		if (unit.distanceTo(xvr.getFirstBase()) <= 19) {
@@ -295,33 +315,36 @@ public class UnitManager {
 			return;
 		}
 
-		// If there's enemy CANNON
-		if (xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 4, unit, false).size() > 0) {
-			return;
-		}
+		// // If there's enemy CANNON
+		// if (xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(),
+		// 4, unit, false).size() > 0) {
+		// return;
+		// }
 
-		// If there's OUR CANNON
+		// If there's OUR BUNKER
 		if (xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 4, unit, true).size() > 0) {
 			return;
 		}
 
-		// If there's sunken
-		if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Zerg_Sunken_Colony, 3, unit, false).size() > 0) {
-			return;
-		}
+		// // If there's sunken
+		// if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Zerg_Sunken_Colony, 3,
+		// unit, false).size() > 0) {
+		// return;
+		// }
 
-		// Attack Probes if possible
-		if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Protoss_Probe, 10, unit, false).size() > 2) {
-			return;
-		}
+		// // Attack Probes if possible
+		// if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Protoss_Probe, 10,
+		// unit, false).size() > 2) {
+		// return;
+		// }
 
 		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
-			UnitActions.moveTo(unit, xvr.getLastBase());
+			UnitActions.moveToSafePlace(unit);
 		}
 	}
 
 	protected static void actTryAttackingCloseEnemyUnits(Unit unit) {
-		if (unit.getType().isObserver()) {
+		if (unit.getType().isMedic()) {
 			return;
 		}
 
@@ -359,7 +382,7 @@ public class UnitManager {
 
 		// Disallow wounded units to attack distant targets.
 		if (XVR.isEnemyTerran() && xvr.getTimeSeconds() > 600) {
-			if ((unit.getShields() < 15 || (unit.getShields() < 40 && unit.getHitPoints() < 40))) {
+			if ((unit.getShields() < 15 || (unit.getShields() < 40 && unit.getHP() < 40))) {
 				return;
 			}
 		}
@@ -372,7 +395,7 @@ public class UnitManager {
 				.getEnemyUnitsVisible(groundAttackCapable, airAttackCapable);
 
 		if (importantEnemyUnitNearby != null && importantEnemyUnitNearby.isDetected()) {
-			if (!importantEnemyUnitNearby.getType().isTerranMine()
+			if (!importantEnemyUnitNearby.getType().isSpiderMine()
 					|| (unit.getType().getGroundWeapon().getMaxRange() / 32) >= 2)
 				enemyToAttack = importantEnemyUnitNearby;
 		}
@@ -558,7 +581,7 @@ public class UnitManager {
 		}
 
 		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
-			UnitActions.moveToMainBase(unit);
+			UnitActions.moveToSafePlace(unit);
 		}
 	}
 
@@ -579,11 +602,11 @@ public class UnitManager {
 
 	protected static void handleInteractionWithBunkers(Unit unit) {
 		boolean isUnitInsideBunker = unit.isLoaded();
+		boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 11, true, true) != null;
 
 		// If unit should be inside bunker, try to load it inside.
 		// if (shouldRunToBunker) {
 		if (!isUnitInsideBunker) {
-			boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 11) != null;
 			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending()) {
 				return;
 			}
@@ -593,16 +616,22 @@ public class UnitManager {
 
 		// Unit shouldn't be inside a bunker, unload it if it's inside.
 		else {
-			Unit bunker = unit.getBunkerThatsIsLoadedInto();
-			if (bunker != null && bunker.getNumLoadedUnits() > 1
-					&& StrategyManager.isAnyAttackFormPending()) {
-				unit.unload();
+			if (!enemyIsNearby) {
+				Unit bunker = unit.getBunkerThatsIsLoadedInto();
+				if (bunker != null && bunker.getNumLoadedUnits() > 1
+						&& StrategyManager.isAnyAttackFormPending()) {
+					unit.unload();
+				}
 			}
 		}
 	}
 
 	protected static void loadIntoBunkerNearbyIfPossible(Unit unit) {
 		final int MAX_DIST_TO_BUNKER_TO_LOAD_INTO_IT = 12;
+
+		if (unit.getType().isMedic()) {
+			return;
+		}
 
 		// Define what is the nearest bunker to this unit
 		Unit nearestBunker = xvr.getUnitOfTypeNearestTo(UnitTypes.Terran_Bunker, unit);

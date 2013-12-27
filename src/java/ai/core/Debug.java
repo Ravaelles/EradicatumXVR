@@ -18,6 +18,7 @@ import ai.managers.ArmyCreationManager;
 import ai.managers.StrategyManager;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
+import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 
 public class Debug {
@@ -93,16 +94,49 @@ public class Debug {
 	private static void paintValuesOverUnits(XVR xvr) {
 		JNIBWAPI bwapi = xvr.getBwapi();
 		String text;
+		String cooldown;
 		double strength;
-		for (Unit unit : bwapi.getMyUnits()) {
-			strength = StrengthEvaluator.calculateStrengthRatioFor(unit);
 
+		for (Unit unit : bwapi.getMyUnits()) {
+			UnitType type = unit.getType();
+			if (type.isBuilding() || type.isSpiderMine() || type.isWorker()) {
+				continue;
+			}
+
+			// ==========================
+			// Strength evaluation
+			strength = StrengthEvaluator.calculateStrengthRatioFor(unit);
 			if (strength != -1) {
 				strength -= 1; // make +/- values display
 				if (strength < 99998) {
-					text = (strength > 0 ? "+" : "") + String.format("%.1f", strength);
+					text = (strength > 0 ? (BWColor.getToStringHex(BWColor.GREEN) + "+") : (BWColor
+							.getToStringHex(BWColor.RED) + "")) + String.format("%.1f", strength);
 					bwapi.drawText(unit.getX() - 7, unit.getY() + 30, text, false);
 				}
+			}
+
+			// ==========================
+			// Cooldown
+			if (unit.getGroundWeaponCooldown() > 0) {
+				int cooldownWidth = 20;
+				int cooldownHeight = 4;
+				int cooldownLeft = unit.getX() - cooldownWidth / 2;
+				int cooldownTop = unit.getY() + 23;
+				cooldown = BWColor.getToStringHex(BWColor.YELLOW) + "("
+						+ unit.getGroundWeaponCooldown() + ")";
+
+				// Paint box
+				int cooldownProgress = cooldownWidth * unit.getGroundWeaponCooldown()
+						/ (unit.getType().getGroundWeapon().getDamageCooldown() + 1);
+				bwapi.drawBox(cooldownLeft, cooldownTop, cooldownLeft + cooldownProgress,
+						cooldownTop + cooldownHeight, BWColor.RED, true, false);
+
+				// Paint box borders
+				bwapi.drawBox(cooldownLeft, cooldownTop, cooldownLeft + cooldownWidth, cooldownTop
+						+ cooldownHeight, BWColor.BLACK, false, false);
+
+				// Paint label
+				bwapi.drawText(cooldownLeft + cooldownWidth - 4, cooldownTop, cooldown, false);
 			}
 		}
 	}
@@ -119,11 +153,15 @@ public class Debug {
 		}
 
 		if (NukeHandling.nuclearDetectionPoint != null) {
-			Point nuclearPoint = NukeHandling.nuclearDetectionPoint;
-			bwapi.drawCircle(nuclearPoint.x, nuclearPoint.y, 20, BWColor.RED, false, false);
-			bwapi.drawCircle(nuclearPoint.x, nuclearPoint.y, 18, BWColor.RED, false, false);
-			bwapi.drawCircle(nuclearPoint.x, nuclearPoint.y, 16, BWColor.RED, false, false);
-			bwapi.drawCircle(nuclearPoint.x, nuclearPoint.y, 14, BWColor.RED, false, false);
+			MapPoint nuclearPoint = NukeHandling.nuclearDetectionPoint;
+			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 20, BWColor.RED, false,
+					false);
+			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 18, BWColor.RED, false,
+					false);
+			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 16, BWColor.RED, false,
+					false);
+			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 14, BWColor.RED, false,
+					false);
 		}
 	}
 
@@ -131,7 +169,7 @@ public class Debug {
 		MapPoint building;
 
 		// Paint next NEXUS position
-		building = TerranCommandCenter.getTileForNextBase(false);
+		building = TerranCommandCenter.findTileForNextBase(false);
 		if (building != null) {
 			xvr.getBwapi().drawBox(building.getX(), building.getY(), building.getX() + 4 * 32,
 					building.getY() + 4 * 32, BWColor.TEAL, false, false);
@@ -140,16 +178,17 @@ public class Debug {
 			// "Nexus", false);
 		}
 
-		// // Paint next CANNON position
-		// building = ProtossPhotonCannon.findTileForCannon();
-		// if (building != null) {
-		// xvr.getBwapi().drawBox(building.getX(), building.getY(),
-		// building.getX() + 2 * 32, building.getY() + 2 * 32,
-		// BWColor.TEAL, false, false);
-		// xvr.getBwapi().drawText(building.getX() + 10, building.getY() + 30,
-		// "Cannon", false);
-		// }
-		//
+		// Paint next BUNKER position
+		if (TerranBunker.getNumberOfUnits() == 0) {
+			building = TerranBunker.findTileForBunker();
+			if (building != null) {
+				xvr.getBwapi().drawBox(building.getX(), building.getY(), building.getX() + 2 * 32,
+						building.getY() + 2 * 32, BWColor.TEAL, false, false);
+				xvr.getBwapi()
+						.drawText(building.getX() + 10, building.getY() + 30, "Bunker", false);
+			}
+		}
+
 		// // Paint next PYLON position
 		// building = ProtossPylon.findTileForPylon();
 		// if (building != null) {
@@ -225,7 +264,8 @@ public class Debug {
 		// if gas, yellow if they're constructing).
 		JNIBWAPI bwapi = xvr.getBwapi();
 		for (Unit u : bwapi.getMyUnits()) {
-			if (FULL_DEBUG) {
+			boolean isBuilding = u.getType().isBuilding();
+			if (FULL_DEBUG && !isBuilding) {
 				// if (u.isMoving()) {
 				// continue;
 				// }
@@ -234,9 +274,10 @@ public class Debug {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.BLUE, false, false);
 				} else if (u.isGatheringGas()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREEN, false, false);
-				} else if (u.isMoving()) {
-					bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(),
-							BWColor.WHITE, false);
+					// } else if (u.isMoving()) {
+					// bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(),
+					// u.getTargetY(),
+					// BWColor.WHITE, false);
 				} else if (u.isAttacking()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.RED, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.RED, false, false);
@@ -249,17 +290,23 @@ public class Debug {
 					bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.PURPLE, false, false);
 				} else if (u.isConstructing()
 						|| u.getLastCommandID() == UnitCommandTypes.Build.ordinal()) {
-					if (u.getBuildTypeID() == UnitManager.BASE.ordinal()) {
-						bwapi.drawCircle(u.getX(), u.getY(), 16, BWColor.ORANGE, false, false);
-						bwapi.drawCircle(u.getX(), u.getY(), 14, BWColor.ORANGE, false, false);
-						bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false, false);
-						bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.ORANGE, false, false);
-						bwapi.drawCircle(u.getX(), u.getY(), 8, BWColor.ORANGE, false, false);
-						bwapi.drawCircle(u.getX(), u.getY(), 6, BWColor.ORANGE, false, false);
-					} else {
-						bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false, false);
-						bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.ORANGE, false, false);
-					}
+					// if (u.getBuildTypeID() == UnitManager.BASE.ordinal()) {
+					// bwapi.drawCircle(u.getX(), u.getY(), 16, BWColor.ORANGE,
+					// false, false);
+					// bwapi.drawCircle(u.getX(), u.getY(), 14, BWColor.ORANGE,
+					// false, false);
+					// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE,
+					// false, false);
+					// bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.ORANGE,
+					// false, false);
+					// bwapi.drawCircle(u.getX(), u.getY(), 8, BWColor.ORANGE,
+					// false, false);
+					// bwapi.drawCircle(u.getX(), u.getY(), 6, BWColor.ORANGE,
+					// false, false);
+					// } else {
+					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false, false);
+					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.ORANGE, false, false);
+					// }
 				} else if (u.isStuck()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.TEAL, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.TEAL, false, false);
@@ -274,16 +321,20 @@ public class Debug {
 				// bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.WHITE,
 				// false, false);
 				// }
-			}
 
-			if (u.isConstructing()) {
-				String name = (UnitType.getUnitTypesByID(u.getBuildTypeID()) + "").replace(
-						"Terran_", "");
-				bwapi.drawText(u.getX() - 30, u.getY(), "-> " + name, false);
-			} else if (u.isTraining()) {
-				String name = (bwapi.getUnitCommandType(u.getLastCommandID()).getName() + "")
-						.replace("Terran_", "");
-				bwapi.drawText(u.getX() - 30, u.getY(), "-> " + name, false);
+				if (u.isConstructing()) {
+					String name = (UnitType.getUnitTypesByID(u.getBuildTypeID()) + "").replace(
+							"Terran_", "");
+					bwapi.drawText(u.getX() - 30, u.getY(), BWColor.getToStringHex(BWColor.GREY)
+							+ "-> " + name, false);
+				}
+			} else if (isBuilding) {
+				if (u.isTraining()) {
+					String name = (bwapi.getUnitCommandType(u.getLastCommandID()).getName() + "")
+							.replace("Terran_", "");
+					bwapi.drawText(u.getX() - 30, u.getY(), BWColor.getToStringHex(BWColor.GREY)
+							+ "-> " + name, false);
+				}
 			}
 		}
 		// } else if ((u.isMoving() || u.isAttacking()) && !u.isSCV()) {
@@ -309,7 +360,7 @@ public class Debug {
 			Unit attack = StrategyManager.getTargetUnit();
 			paintMainMessage(xvr,
 					"Attack target: " + attack.getName() + " ## visible:" + attack.isVisible()
-							+ ", exists:" + attack.isExists() + ", HP:" + attack.getHitPoints());
+							+ ", exists:" + attack.isExists() + ", HP:" + attack.getHP());
 		}
 
 		if (FULL_DEBUG) {
@@ -401,6 +452,8 @@ public class Debug {
 	}
 
 	private static void paintMainMessage(XVR xvr, String string) {
+		// string = "\u001F" + string;
+		string = BWColor.getToStringHex(BWColor.WHITE) + string;
 		xvr.getBwapi().drawText(new Point(5, 12 * mainMessageRowCounter++), string, true);
 	}
 

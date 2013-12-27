@@ -34,14 +34,12 @@ public class TargetHandling {
 			}
 
 			if (unit.isExists()
-					&& unit.getHitPoints() > 0
-					&& (type.isFleetBeacon() || type.isTerranMine()
-							|| (unit.isRepairing() && type.isSCV())
-							|| type.isLurker() || type.isObserver()
-							|| type.isScienceVessel() || type.isTank()
-							|| type.isReaver() || type.isHighTemplar() || (type
-							.isDarkTemplar() && unit.isDetected()))
-					&& xvr.getDistanceBetween(unit, point) <= MAX_DIST) {
+					&& unit.getHP() > 0
+					&& (type.isFleetBeacon() || type.isSpiderMine()
+							|| (unit.isRepairing() && type.isSCV()) || type.isLurker()
+							|| type.isObserver() || type.isScienceVessel() || type.isTank()
+							|| type.isReaver() || type.isHighTemplar() || (type.isDarkTemplar() && unit
+							.isDetected())) && xvr.getDistanceBetween(unit, point) <= MAX_DIST) {
 				if (isProperTarget(unit)) {
 					return unit;
 				}
@@ -60,13 +58,11 @@ public class TargetHandling {
 		return null;
 	}
 
-	public static Unit findTopPriorityTargetIfPossible(
-			Collection<Unit> enemyBuildings) {
+	public static Unit findTopPriorityTargetIfPossible(Collection<Unit> enemyBuildings) {
 		for (Unit unit : enemyBuildings) {
 			UnitType type = unit.getType();
-			if (type.isBunker() || type.isCarrier() || type.isPhotonCannon()
-					|| type.isObserver() || type.isScienceVessel()
-					|| type.isSunkenColony()) {
+			if (type.isBunker() || type.isCarrier() || type.isPhotonCannon() || type.isObserver()
+					|| type.isScienceVessel() || type.isSunkenColony()) {
 				if (isProperTarget(unit)) {
 					return unit;
 				}
@@ -82,7 +78,7 @@ public class TargetHandling {
 		if (target == null) {
 			return false;
 		}
-		
+
 		if (!target.isDetected()) {
 			return false;
 		}
@@ -129,8 +125,7 @@ public class TargetHandling {
 		return isProper;
 	}
 
-	public static Unit findHighPriorityTargetIfPossible(
-			Collection<Unit> enemyBuildings) {
+	public static Unit findHighPriorityTargetIfPossible(Collection<Unit> enemyBuildings) {
 		for (Unit unit : enemyBuildings) {
 			UnitType type = unit.getType();
 			if (type.isSporeColony() || type.isMissileTurret() || type.isBase()) {
@@ -142,8 +137,7 @@ public class TargetHandling {
 		return null;
 	}
 
-	public static Unit findNormalPriorityTargetIfPossible(
-			Collection<Unit> enemyBuildings) {
+	public static Unit findNormalPriorityTargetIfPossible(Collection<Unit> enemyBuildings) {
 		for (Unit unit : enemyBuildings) {
 			UnitType type = unit.getType();
 			if (!type.isOnGeyser()) {
@@ -156,24 +150,21 @@ public class TargetHandling {
 	}
 
 	public static Unit getEnemyNearby(Unit unit, int maxTileDistance) {
-		Unit nearestEnemy = xvr.getUnitNearestFromList(unit.getX(),
-				unit.getY(), xvr.getEnemyUnitsVisible());
-		if (nearestEnemy != null
-				&& xvr.getDistanceBetween(unit, nearestEnemy) < maxTileDistance) {
+		Unit nearestEnemy = xvr.getUnitNearestFromList(unit.getX(), unit.getY(),
+				xvr.getEnemyUnitsVisible(), true, true);
+		if (nearestEnemy != null && xvr.getDistanceBetween(unit, nearestEnemy) < maxTileDistance) {
 			return nearestEnemy;
 		} else {
 			return null;
 		}
 	}
 
-	public static ArrayList<Unit> getTopPriorityTargetsNear(MapPoint near,
-			int tileRadius) {
+	public static ArrayList<Unit> getTopPriorityTargetsNear(MapPoint near, int tileRadius) {
 		return xvr.getUnitsInRadius(near, tileRadius, xvr.getEnemyUnitsOfType(
 				UnitTypes.Protoss_Carrier, UnitTypes.Terran_Battlecruiser,
-				UnitTypes.Terran_Siege_Tank_Siege_Mode,
-				UnitTypes.Terran_Bunker, UnitTypes.Terran_Siege_Tank_Tank_Mode,
-				UnitTypes.Zerg_Guardian, UnitTypes.Zerg_Lurker,
-				UnitTypes.Zerg_Sunken_Colony, UnitTypes.Zerg_Ultralisk,
+				UnitTypes.Terran_Siege_Tank_Siege_Mode, UnitTypes.Terran_Bunker,
+				UnitTypes.Terran_Siege_Tank_Tank_Mode, UnitTypes.Zerg_Guardian,
+				UnitTypes.Zerg_Lurker, UnitTypes.Zerg_Sunken_Colony, UnitTypes.Zerg_Ultralisk,
 				UnitTypes.Protoss_Observer));
 	}
 

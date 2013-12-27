@@ -15,9 +15,9 @@ import ai.terran.TerranSiegeTank;
 
 public class TechnologyManager {
 
-	protected static final TechTypes TANK_SIEGE_MODE = TechTypes.Tank_Siege_Mode;
-	protected static final TechTypes SPIDER_MINES = TechTypes.Spider_Mines;
-	protected static final TechTypes CLOAKING_FIELD = TechTypes.Cloaking_Field;
+	public static final TechTypes TANK_SIEGE_MODE = TechTypes.Tank_Siege_Mode;
+	public static final TechTypes SPIDER_MINES = TechTypes.Spider_Mines;
+	public static final TechTypes CLOAKING_FIELD = TechTypes.Cloaking_Field;
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -44,6 +44,12 @@ public class TechnologyManager {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 
+		// Spider Mines
+		technology = SPIDER_MINES;
+		if (vultures >= 1 && isResearchPossible(technology) && !isResearchPossible(TANK_SIEGE_MODE)) {
+			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
+		}
+
 		// U-238 Shells
 		upgrade = UpgradeTypes.U_238_Shells;
 		if (marines >= 8 && isUpgradePossible(upgrade)) {
@@ -56,26 +62,20 @@ public class TechnologyManager {
 		if (UnitCounter.getNumberOfUnits(UnitManager.BASE) <= 1) {
 			return;
 		}
-		
-		// Spider Mines
-		technology = SPIDER_MINES;
-		if (vultures >= 3 && isResearchPossible(technology)) {
-			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
-		}
-		
+
 		// Ion Thrusters
 		upgrade = UpgradeTypes.Ion_Thrusters;
 		if (vultures >= 4 && isUpgradePossible(upgrade)) {
 			tryToUpgrade(TerranMachineShop.getOneNotBusy(), upgrade);
 		}
-		
+
 		// Vehicle Weapons
 		upgrade = UpgradeTypes.Terran_Vehicle_Weapons;
 		if (TerranArmory.getNumberOfUnitsCompleted() > 0 && tanks >= 5
 				&& isUpgradePossible(upgrade)) {
 			tryToUpgrade(TerranArmory.getOneNotBusy(), upgrade);
 		}
-		
+
 		// Cloaking field
 		technology = CLOAKING_FIELD;
 		if (isResearchPossible(technology)) {
@@ -139,13 +139,17 @@ public class TechnologyManager {
 	public static boolean isSiegeModeResearched() {
 		return isResearched(TANK_SIEGE_MODE);
 	}
-	
+
+	public static boolean isSiegeModeResearchPossible() {
+		return isResearchPossible(TANK_SIEGE_MODE);
+	}
+
 	public static boolean isSpiderMinesResearched() {
 		return isResearched(SPIDER_MINES);
 	}
-	
+
 	public static boolean isWraithCloakingFieldResearched() {
 		return isResearched(SPIDER_MINES);
 	}
-	
+
 }

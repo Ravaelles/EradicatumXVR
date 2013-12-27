@@ -380,7 +380,7 @@ public class MapExploration {
 	private static synchronized void removeNonExistingUnitsFrom(HashMap<Integer, Unit> mapping) {
 		for (Entry<Integer, Unit> entry : mapping.entrySet()) {
 			Unit unit = entry.getValue();
-			if (unit == null || !unit.isExists() || unit.getHitPoints() < 1) {
+			if (unit == null || !unit.isExists() || unit.getHP() < 1) {
 				// System.out.println("REMOVE " + unit.toStringShort());
 				mapping.remove(unit.getID());
 			}
@@ -477,7 +477,7 @@ public class MapExploration {
 
 	public static ChokePoint getImportantChokePointNear(MapPoint point) {
 		ArrayList<ChokePoint> nearestChokePoints = getChokePointsForRegion(xvr.getBwapi().getMap()
-				.getRegion(point), point);
+				.getRegion(point), point, true);
 
 		if (!nearestChokePoints.isEmpty()) {
 			MapPoint secondBase = TerranCommandCenter.getSecondBaseLocation();
@@ -547,14 +547,16 @@ public class MapExploration {
 
 	}
 
-	private static ArrayList<ChokePoint> getChokePointsForRegion(Region region, final MapPoint point) {
+	private static ArrayList<ChokePoint> getChokePointsForRegion(Region region,
+			final MapPoint point, boolean disallowDisabled) {
 		ArrayList<ChokePoint> result = new ArrayList<ChokePoint>();
 		if (region == null) {
 			return result;
 		}
 		for (ChokePoint choke : chokePointsProcessed) {
-			if (choke.getFirstRegionID() == region.getID()
-					|| choke.getSecondRegionID() == region.getID()) {
+			if ((!disallowDisabled || !choke.isDisabled())
+					&& (choke.getFirstRegionID() == region.getID() || choke.getSecondRegionID() == region
+							.getID())) {
 				result.add(choke);
 			}
 		}
@@ -604,19 +606,22 @@ public class MapExploration {
 					choke.setDisabled(true);
 				}
 			}
-			
-//			MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
-//			System.out.println("secondBaseLocation = " + secondBaseLocation);
-//			Collection<ChokePoint> chokes = MapExploration.getChokePointsNear(
-//					secondBaseLocation, 20);
-//			Region baseRegion = xvr.getBwapi().getMap().getRegion(xvr.getFirstBase());
-//			for (ChokePoint choke : chokes) {
-//				if (baseRegion.getChokePoints().contains(choke)) {
-//					// chokePointsProcessed.remove(choke);
-//					System.out.println("Disabling choke point: " + choke);
-//					choke.setDisabled(true);
-//				}
-//			}
+
+			// MapPoint secondBaseLocation =
+			// TerranCommandCenter.getSecondBaseLocation();
+			// System.out.println("secondBaseLocation = " + secondBaseLocation);
+			// Collection<ChokePoint> chokes =
+			// MapExploration.getChokePointsNear(
+			// secondBaseLocation, 20);
+			// Region baseRegion =
+			// xvr.getBwapi().getMap().getRegion(xvr.getFirstBase());
+			// for (ChokePoint choke : chokes) {
+			// if (baseRegion.getChokePoints().contains(choke)) {
+			// // chokePointsProcessed.remove(choke);
+			// System.out.println("Disabling choke point: " + choke);
+			// choke.setDisabled(true);
+			// }
+			// }
 			_disabledChokePointsNearMainBase = true;
 		}
 	}

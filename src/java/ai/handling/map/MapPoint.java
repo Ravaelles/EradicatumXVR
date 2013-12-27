@@ -1,8 +1,15 @@
 package ai.handling.map;
 
+import jnibwapi.model.ChokePoint;
+import jnibwapi.model.Map;
+import jnibwapi.model.Unit;
 import ai.core.XVR;
 
 public abstract class MapPoint {
+
+	private static Map map;
+
+	// ========================================
 
 	public abstract int getX();
 
@@ -11,7 +18,7 @@ public abstract class MapPoint {
 	public int getTx() {
 		return getX() / 32;
 	}
-	
+
 	public int getTy() {
 		return getY() / 32;
 	}
@@ -19,18 +26,25 @@ public abstract class MapPoint {
 	public String toStringLocation() {
 		return "[" + getTx() + ", " + getTy() + "]";
 	}
-	
+
 	public String toString() {
 		return toStringLocation();
 	}
-	
-	public double distanceTo(MapPoint point) {
-		if (point == null) {
+
+	public double distanceTo(MapPoint unit) {
+		if (unit == null) {
 			return -1;
 		}
-		return XVR.getInstance().getDistanceBetween(point, getX(), getY());
+		return XVR.getInstance().getDistanceBetween(unit, getX(), getY());
 	}
-	
+
+	public double distanceToChokePoint(ChokePoint choke) {
+		if (choke == null) {
+			return -1;
+		}
+		return XVR.getInstance().getDistanceBetween(choke, getX(), getY()) - choke.getRadius() / 32;
+	}
+
 	// =================
 
 	@Override
@@ -58,9 +72,25 @@ public abstract class MapPoint {
 		return true;
 	}
 
-	
 	public MapPoint translate(int dx, int dy) {
 		return new MapPointInstance(getX() + dx, getY() + dy);
 	}
-	
+
+	private Map getMap() {
+		if (map != null) {
+			return map;
+		} else {
+			map = XVR.getInstance().getMap();
+			return map;
+		}
+	}
+
+	public boolean isWalkable() {
+		return getMap().isLowResWalkable(getTx(), getTy());
+	}
+
+	public boolean isConnectedTo(Unit unit) {
+		return map.isConnected(this, unit);
+	}
+
 }

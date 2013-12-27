@@ -8,10 +8,12 @@ import jnibwapi.types.TechType.TechTypes;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.army.ArmyPlacing;
 import ai.handling.army.StrengthEvaluator;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
+import ai.handling.map.MapPointInstance;
 import ai.managers.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.terran.ProtossShieldBattery;
@@ -79,10 +81,10 @@ public class UnitActions {
 		UnitActions.moveTo(unit, goTo.getCenterX(), goTo.getCenterY());
 	}
 
-	public static void moveAwayFromUnitIfPossible(Unit unit, MapPoint placeToMoveAwayFrom,
+	public static boolean moveAwayFromUnitIfPossible(Unit unit, MapPoint placeToMoveAwayFrom,
 			int howManyTiles) {
 		if (unit == null || placeToMoveAwayFrom == null) {
-			return;
+			return false;
 		}
 
 		int xDirectionToUnit = placeToMoveAwayFrom.getX() - unit.getX();
@@ -91,8 +93,15 @@ public class UnitActions {
 		double vectorLength = xvr.getDistanceBetween(placeToMoveAwayFrom, unit);
 		double ratio = howManyTiles / vectorLength;
 
-		moveTo(unit, (int) (unit.getX() - ratio * xDirectionToUnit), (int) (unit.getY() - ratio
-				* yDirectionToUnit));
+		MapPoint runTo = new MapPointInstance((int) (unit.getX() - ratio * xDirectionToUnit),
+				(int) (unit.getY() - ratio * yDirectionToUnit));
+
+		if (runTo.isWalkable() && runTo.isConnectedTo(unit)) {
+			moveTo(unit, runTo);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public static void moveInDirectionOfPointIfPossible(Unit unit,
@@ -117,7 +126,7 @@ public class UnitActions {
 
 	public static void spreadOutRandomly(Unit unit) {
 		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
-			UnitActions.moveToMainBase(unit);
+			UnitActions.moveToSafePlace(unit);
 			return;
 		}
 
@@ -132,7 +141,7 @@ public class UnitActions {
 
 		// WORKER: Act when enemy is nearby, run away
 		Unit enemyNearby = TargetHandling.getEnemyNearby(unit, 8);
-		if (enemyNearby != null && unit.isWorker() && unit.getHitPoints() > 18) {
+		if (enemyNearby != null && unit.isWorker() && unit.getHP() > 18) {
 			Unit goTo = xvr.getFirstBase();
 			UnitActions.attackTo(unit, goTo.getX(), goTo.getY());
 			return;
@@ -149,7 +158,7 @@ public class UnitActions {
 		}
 
 		// System.out.println("###### SPREAD OUT ########");
-		if (!unit.isMoving() && !unit.isUnderAttack() && unit.getHitPoints() > 18) {
+		if (!unit.isMoving() && !unit.isUnderAttack() && unit.getHP() > 18) {
 
 			// If distance to current target is smaller than N it means that
 			// unit can spread out and scout nearby grounds
@@ -171,7 +180,7 @@ public class UnitActions {
 		}
 
 		if (unit.isAttacking() && !StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
-			UnitActions.moveToMainBase(unit);
+			UnitActions.moveToSafePlace(unit);
 		}
 	}
 
@@ -266,21 +275,19 @@ public class UnitActions {
 		// return;
 		// }
 
-		int currShields = unit.getShields();
-		int maxShields = type.getMaxShields();
-		int currHP = unit.getHitPoints();
+		int currHP = unit.getHP();
 		int maxHP = type.getMaxHitPoints();
 
 		// If there's massive attack and unit has more than 60% of initial
 		// shields, we treat it as healthy, as there's nothing to do about it.
-		if (StrategyManager.isAttackPending() && currShields >= 0.13 * maxShields) {
+		if (StrategyManager.isAttackPending()) {
 			if (!isImportantUnit && currHP >= 0.6 * maxHP) {
 				return;
 			}
 		}
 
 		// Unit has almost all shields
-		if (currShields >= maxShields / 2) {
+		if (currHP >= maxHP / 2) {
 			return;
 		}
 
@@ -310,7 +317,7 @@ public class UnitActions {
 		// =====================================================================
 		// If unit is close to base then run away only if critically wounded.
 		if (xvr.countUnitsOfGivenTypeInRadius(UnitManager.BASE, 13, unit, true) >= 1) {
-			if (unit.getHitPoints() > (type.getMaxHitPoints() / 3 + 3)) {
+			if (unit.getHP() > (type.getMaxHitPoints() / 3 + 3)) {
 				return;
 			}
 		}
@@ -361,6 +368,14 @@ public class UnitActions {
 
 	public static void useTech(Unit wizard, TechTypes tech, Unit useOn) {
 		xvr.getBwapi().useTech(wizard.getID(), tech.getID(), useOn.getID());
+	}
+
+	public static void useTech(Unit wizard, TechTypes tech, MapPoint place) {
+		xvr.getBwapi().useTech(wizard.getID(), tech.getID(), place.getX(), place.getY());
+	}
+
+	public static void moveToSafePlace(Unit unit) {
+		ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
 	}
 
 }

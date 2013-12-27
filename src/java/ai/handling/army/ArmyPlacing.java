@@ -5,71 +5,72 @@ import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
-import ai.handling.units.UnitCounter;
-import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
+import ai.terran.TerranSiegeTank;
 
 public class ArmyPlacing {
 
 	private static XVR xvr = XVR.getInstance();
 
 	public static MapPoint getArmyGatheringPointFor(Unit unit) {
-		int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
+		// int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
 
 		MapPoint runTo = null;
 
 		// If only one base, then go to nearest cannon
-		if (bases == 1) {
-			MapPoint base = TerranCommandCenter.getSecondBaseLocation();
-			runTo = base;
+		// if (bases == 1) {
+		MapPoint secondBase = TerranCommandCenter.getSecondBaseLocation();
+		runTo = secondBase;
 
-			Unit bunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), base);
-			if (bunker != null) {
-				// UnitActions.loadUnitInto(unit, bunker);
-				// return null;
-				runTo = bunker;
-			}
-
-			if (runTo == null) {
-				Unit barracks = xvr.getUnitOfTypeNearestTo(TerranBarracks.getBuildingType(), base);
-				if (barracks != null) {
-					runTo = barracks;
-				}
-			}
-		}
-
-		// Try to go to the base nearest to enemy
-		else if (bases > 1) {
-
-			// If there's stub for new base, go there
-			if (xvr.countUnitsInRadius(TerranCommandCenter.getTileForNextBase(false), 10, true) >= 2) {
-				runTo = TerranCommandCenter.getTileForNextBase(false);
-			} else {
-				Unit baseNearestToEnemy = xvr.getBaseNearestToEnemy();
-				if (baseNearestToEnemy.equals(xvr.getFirstBase())) {
-					runTo = xvr.getLastBase();
-				} else {
-					runTo = baseNearestToEnemy;
-				}
-			}
-
-			// Try to find a bunker new new base
-			Unit nearestBunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), runTo);
-			if (nearestBunker != null && nearestBunker.distanceTo(runTo) < 10) {
-				runTo = nearestBunker;
-			}
+		Unit bunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), secondBase);
+		if (bunker != null) {
+			runTo = bunker;
 		}
 
 		if (runTo == null) {
-			if (!TerranBarracks.getAllObjects().isEmpty()) {
-				runTo = TerranBarracks.getAllObjects().get(0);
+			Unit barracks = xvr
+					.getUnitOfTypeNearestTo(TerranBarracks.getBuildingType(), secondBase);
+			if (barracks != null) {
+				runTo = barracks;
 			}
 		}
-		
+		// }
+
+		// // Try to go to the base nearest to enemy
+		// else if (bases > 1) {
+		//
+		// // If there's stub for new base, go there
+		// if
+		// (xvr.countUnitsInRadius(TerranCommandCenter.findTileForNextBase(false),
+		// 10, true) >= 2) {
+		// runTo = TerranCommandCenter.findTileForNextBase(false);
+		// } else {
+		// Unit baseNearestToEnemy = xvr.getBaseNearestToEnemy();
+		// if (baseNearestToEnemy.equals(xvr.getFirstBase())) {
+		// runTo = xvr.getLastBase();
+		// } else {
+		// runTo = baseNearestToEnemy;
+		// }
+		// }
+		//
+		// // Try to find a bunker new new base
+		// Unit nearestBunker =
+		// xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), runTo);
+		// if (nearestBunker != null && nearestBunker.distanceTo(runTo) <= 28) {
+		// runTo = nearestBunker;
+		// }
+		// }
+		//
+		// if (runTo == null) {
+		// if (!TerranBarracks.getAllObjects().isEmpty()) {
+		// runTo = TerranBarracks.getAllObjects().get(0);
+		// }
+		// }
+
 		// ==================================
-		
+
 		unit.setProperPlaceToBe(runTo);
 
 		if (runTo == null) {
@@ -80,17 +81,26 @@ public class ArmyPlacing {
 	}
 
 	public static void goToSafePlaceIfNotAlreadyThere(Unit unit) {
+		MapPoint safePlace = null;
 
-		// First, just escape.
-		MapPoint safePlace = getArmyGatheringPointFor(unit);
+		if (unit.shouldFollowTanks()) {
+			if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
+				Unit tank = xvr.getNearestTankTo(unit);
+				safePlace = tank;
+			}
+		}
+
 		if (safePlace == null) {
-			return;
+			safePlace = getArmyGatheringPointFor(unit);
+			if (safePlace == null) {
+				return;
+			}
 		}
 
 		if (xvr.getDistanceSimple(unit, safePlace) >= 30) {
 			UnitActions.moveTo(unit, safePlace);
 		} else {
-			UnitActions.attackTo(unit, safePlace);
+			UnitActions.moveTo(unit, safePlace);
 		}
 	}
 

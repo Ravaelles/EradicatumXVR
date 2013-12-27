@@ -3,26 +3,28 @@ package ai.handling.other;
 import java.awt.Point;
 import java.util.ArrayList;
 
-import ai.core.XVR;
-import ai.handling.units.UnitActions;
-import ai.terran.ProtossObserver;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitCommandType.UnitCommandTypes;
+import ai.core.XVR;
+import ai.handling.map.MapPoint;
+import ai.handling.map.MapPointInstance;
+import ai.handling.units.UnitActions;
+import ai.terran.TerranComsatStation;
 
 public class NukeHandling {
 
-	public static Point nuclearDetectionPoint = null;
-	
+	public static MapPoint nuclearDetectionPoint = null;
+
 	private static XVR xvr = XVR.getInstance();
 
-	public static void nukeDetected(int x, int y) {		
+	public static void nukeDetected(int x, int y) {
 		// ######
 		// ###### X AND Y ARE USUALLY JUST MISSILE SILOS !!!!!!
 		// ######
-		
-		nuclearDetectionPoint = new Point(x, y);
+
+		nuclearDetectionPoint = new MapPointInstance(x, y);
 		Point probableGhostLocation = null;
-		
+
 		// Only ghost can release nuke so get all enemy ghosts known
 		ArrayList<Unit> enemyGhostsKnown = new ArrayList<Unit>();
 		Unit motherfucker = null;
@@ -36,35 +38,33 @@ public class NukeHandling {
 				}
 			}
 		}
-		
-		// Tough situation: we don't know of any enemy ghost; try to scan x,y... =/
+
+		// Tough situation: we don't know of any enemy ghost; try to scan x,y...
+		// =/
 		if (enemyGhostsKnown.isEmpty() && motherfucker == null) {
-			ProtossObserver.tryToScanPoint(x, y);
+			TerranComsatStation.tryToScanPoint(nuclearDetectionPoint);
 			System.out.println("## HOPELESS NUKE CASE!");
-		}
-		else {
+		} else {
 			if (motherfucker != null) {
 				probableGhostLocation = new Point(motherfucker.getX(), motherfucker.getY());
-			}
-			else {
+			} else {
 				Unit someGhost = enemyGhostsKnown.get(0);
 				System.out.println("## TRYING TO GUESS THAT THIS IS: " + someGhost);
 				probableGhostLocation = new Point(someGhost.getX(), someGhost.getY());
 			}
-			ProtossObserver.tryToScanPoint(x, y);
+			TerranComsatStation.tryToScanPoint(nuclearDetectionPoint);
 		}
-		
+
 		// Send all units from given radius to fight the bastard!
 		if (probableGhostLocation != null) {
-			ArrayList<Unit> armyUnitsNearby = xvr.getArmyUnitsInRadius(
-					probableGhostLocation.x, probableGhostLocation.y, 40, true);
+			ArrayList<Unit> armyUnitsNearby = xvr.getArmyUnitsInRadius(probableGhostLocation.x,
+					probableGhostLocation.y, 40, true);
 			System.out.println("## ATTACKING NUKE PLACE WITH: " + armyUnitsNearby.size()
 					+ " SOLDIERS!");
 			for (Unit unit : armyUnitsNearby) {
 				UnitActions.attackTo(unit, probableGhostLocation.x, probableGhostLocation.y);
 			}
-		}
-		else {
+		} else {
 			System.out.println("## GHOST POSITION UNKNOWN");
 		}
 	}

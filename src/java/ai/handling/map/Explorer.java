@@ -34,7 +34,7 @@ public class Explorer {
 
 		// If explorer is marked to be discovering enemy base, but he's
 		// attacked, then unmark him from his task, thus allowing him to run.
-		if (_isDiscoveringEnemyBase && explorer.isUnderAttack() && explorer.getShields() < 14) {
+		if (_isDiscoveringEnemyBase && explorer.isUnderAttack() && explorer.getHP() < 24) {
 			if (xvr.getEnemyBuildings().size() > 0) {
 				_isDiscoveringEnemyBase = false;
 			}
@@ -93,20 +93,19 @@ public class Explorer {
 
 	private static double getDistanceToNearestEnemy() {
 		Unit nearestEnemy = xvr.getUnitNearestFromList(explorer.getX(), explorer.getY(),
-				xvr.getEnemyUnitsVisible());
+				xvr.getEnemyUnitsVisible(), true, true);
 		return explorer.distanceTo(nearestEnemy);
 	}
 
 	private static boolean isExplorerWounded() {
-		return (explorer.getShields()) < 16
-				|| (explorer.getShields() < 20 && (explorer.getShields() + explorer.getHitPoints() < 30));
+		return explorer.getHP() < 25;
 	}
 
 	private static boolean tryRunningFromEnemiesIfNecessary() {
 		boolean isWounded = isExplorerWounded();
 
 		Unit nearestEnemy = xvr.getUnitNearestFromList(explorer.getX(), explorer.getY(),
-				xvr.getEnemyUnitsVisible());
+				xvr.getEnemyUnitsVisible(), true, true);
 		double distToNearestEnemy = explorer.distanceTo(nearestEnemy);
 
 		boolean isUnitUnderAttack = explorer.isUnderAttack();
@@ -142,7 +141,8 @@ public class Explorer {
 	}
 
 	private static boolean isEnemyArmyUnitCloseToExplorer() {
-		Unit nearestArmyUnit = xvr.getUnitNearestFromList(explorer, xvr.getEnemyArmyUnits());
+		Unit nearestArmyUnit = xvr.getUnitNearestFromList(explorer, xvr.getEnemyArmyUnits(), true,
+				true);
 		if (nearestArmyUnit == null) {
 			return false;
 		} else {
@@ -186,13 +186,13 @@ public class Explorer {
 		boolean isProperTargetSelected = enemyUnit != null;
 		boolean isNeighborhoodQuiteSafe = (xvr.getEnemyUnitsInRadius(3, explorer).size() == 0 && xvr
 				.getEnemyUnitsInRadius(6, explorer).size() <= 1);
-		boolean hasFullShields = explorer.getShields() >= 19;
-		boolean isVeryAlive = explorer.getShields() + explorer.getHitPoints() >= 35;
+		boolean hasFullLife = explorer.getHP() >= 59;
+		boolean isVeryAlive = explorer.getHP() >= 40;
 		boolean isOverwhelmed = xvr.getEnemyWorkersInRadius(6, explorer).size() >= 2;
 
 		if ((!isOverwhelmed || isVeryAlive)
 				&& isProperTargetSelected
-				&& ((!isWounded && isNeighborhoodQuiteSafe) || (hasFullShields && isNeighborhoodQuiteSafe))) {
+				&& ((!isWounded && isNeighborhoodQuiteSafe) || (hasFullLife && isNeighborhoodQuiteSafe))) {
 			// Debug.message(xvr, "Explorer attacks UNIT");
 			UnitActions.attackEnemyUnit(explorer, enemyUnit);
 			return true;
@@ -205,7 +205,8 @@ public class Explorer {
 			// Debug.message(xvr, "---> building?");
 
 			if (enemyUnit == null) {
-				enemyUnit = xvr.getUnitNearestFromList(explorer, xvr.getEnemyBuildings());
+				enemyUnit = xvr.getUnitNearestFromList(explorer, xvr.getEnemyBuildings(), true,
+						false);
 			}
 		}
 
@@ -296,7 +297,7 @@ public class Explorer {
 		}
 
 		if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
-			MapPoint tileForNextBase = TerranCommandCenter.getTileForNextBase(false);
+			MapPoint tileForNextBase = TerranCommandCenter.findTileForNextBase(false);
 			if (!xvr.getBwapi().isVisible(tileForNextBase.getTx(), tileForNextBase.getTy())) {
 				UnitActions.moveTo(explorer, tileForNextBase);
 				return true;

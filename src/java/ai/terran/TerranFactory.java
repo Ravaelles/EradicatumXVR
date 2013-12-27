@@ -6,6 +6,7 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
+import ai.managers.TechnologyManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 
@@ -34,10 +35,15 @@ public class TerranFactory {
 			boolean buildNext = factories == 0
 					|| (factories == 1 && !Constructing.weAreBuilding(buildingType));
 			if (buildNext
-					&& (UnitCounter.getNumberOfBattleUnits() >= (9 + 4 * factories) || factories == 0)) {
+					&& (UnitCounter.getNumberOfBattleUnits() >= (4 * factories) || factories == 0)) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}
+		}
+
+		if (factories >= 2 && factories <= 4 && xvr.canAfford(600, 200)) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			return true;
 		}
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -90,6 +96,10 @@ public class TerranFactory {
 	}
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
+		if (xvr.canAfford(900)) {
+			return VULTURE;
+		}
+
 		boolean tanksAllowed = (freeMinerals >= 125 && freeGas >= 50)
 				&& UnitCounter.weHaveBuildingFinished(TerranMachineShop.getBuildingType());
 		// && (freeMinerals >= 125 && freeGas >= 50)
@@ -109,7 +119,8 @@ public class TerranFactory {
 
 		// TANK
 		if (tanksAllowed) {
-			if (tanks >= 2 && notEnoughVultures) {
+			if (tanks >= 2
+					&& (notEnoughVultures || !TechnologyManager.isSiegeModeResearchPossible())) {
 				return VULTURE;
 			} else {
 				return TANK;

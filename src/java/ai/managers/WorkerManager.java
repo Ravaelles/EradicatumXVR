@@ -20,8 +20,9 @@ import ai.utils.RUtilities;
 
 public class WorkerManager {
 
-	public static final int GUY_TO_CHASE_OTHERS_INDEX = 1;
-	public static final int EXPLORER_INDEX = 6;
+	public static final int WORKER_INDEX_GUY_TO_CHASE_OTHERS = 1;
+	public static final int WORKER_INDEX_BUNKER_REPAIRER = 3;
+	public static final int WORKER_INDEX_EXPLORER = 6;
 	public static final int DEFEND_BASE_RADIUS = 23;
 
 	private static XVR xvr = XVR.getInstance();
@@ -47,7 +48,7 @@ public class WorkerManager {
 		// boolean shouldStopExploring = Debug.ourDeaths >= 2
 		// && !MapExploration.getEnemyBuildingsDiscovered().isEmpty();
 		for (Unit worker : workers) {
-			if (_counter != EXPLORER_INDEX) {
+			if (_counter != WORKER_INDEX_EXPLORER) {
 				WorkerManager.act(worker);
 			} else {
 				Explorer.explore(worker);
@@ -63,7 +64,7 @@ public class WorkerManager {
 		}
 
 		// Check for any enemy workers
-		if (_counter == GUY_TO_CHASE_OTHERS_INDEX) {
+		if (_counter == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
 			Unit enemyWorkerNearMainBase = xvr.getEnemyWorkerInRadius(38, xvr.getFirstBase());
 			UnitActions.attackEnemyUnit(worker, enemyWorkerNearMainBase);
 			return;
@@ -71,7 +72,8 @@ public class WorkerManager {
 
 		// =================
 		// Look for potential dangers to the main base
-		Unit enemyToFight = xvr.getNearestEnemyInRadius(xvr.getFirstBase(), DEFEND_BASE_RADIUS);
+		Unit enemyToFight = xvr.getNearestEnemyInRadius(xvr.getFirstBase(), DEFEND_BASE_RADIUS,
+				true, false);
 		if (enemyToFight == null) {
 			return;
 		}
@@ -132,10 +134,14 @@ public class WorkerManager {
 	}
 
 	public static void act(Unit unit) {
+		if (unit.isIdle() && _counter != WORKER_INDEX_BUNKER_REPAIRER) {
+			gatherResources(unit, xvr.getFirstBase());
+		}
+
 		if (unit.equals(Explorer.getExplorer())) {
 			return;
 		}
-		
+
 		// Don't interrupt when REPAIRING
 		if (unit.isRepairing()) {
 			return;
@@ -144,6 +150,13 @@ public class WorkerManager {
 		defendBase(unit);
 
 		if (unit.isAttacking() && unit.distanceTo(xvr.getFirstBase()) < 17) {
+			return;
+		}
+
+		// ==================================
+
+		if (_counter == WORKER_INDEX_BUNKER_REPAIRER && TerranBunker.getNumberOfUnits() > 0) {
+			handleBunkerRepairer(unit);
 			return;
 		}
 
@@ -161,7 +174,7 @@ public class WorkerManager {
 		int distToMainBase = xvr.getDistanceSimple(unit, xvr.getFirstBase());
 		if (unit.isAttacking()
 				&& distToMainBase >= 7
-				|| (unit.isConstructing() && unit.getShields() < 20 && StrengthEvaluator
+				|| (unit.isConstructing() && unit.getHP() < 21 && StrengthEvaluator
 						.isStrengthRatioCriticalFor(unit))) {
 			UnitActions.moveTo(unit, xvr.getFirstBase());
 			return;
@@ -229,6 +242,14 @@ public class WorkerManager {
 		// else if (unit.isConstructing()) {
 		// Constructing.removeDuplicateConstructionsPending(unit);
 		// }
+	}
+
+	private static void handleBunkerRepairer(Unit unit) {
+		Unit bunkerToBeAt = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
+				TerranCommandCenter.getSecondBaseLocation());
+		if (unit.distanceTo(bunkerToBeAt) >= 5) {
+			UnitActions.moveTo(unit, bunkerToBeAt);
+		}
 	}
 
 	public static void gatherResources(Unit worker, Unit nearestBase) {

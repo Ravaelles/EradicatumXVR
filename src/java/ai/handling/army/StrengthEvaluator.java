@@ -11,6 +11,7 @@ import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.managers.StrategyManager;
 import ai.terran.TerranBarracks;
+import ai.terran.TerranSiegeTank;
 
 public class StrengthEvaluator {
 
@@ -19,16 +20,22 @@ public class StrengthEvaluator {
 	private static final int BATTLE_RADIUS_ALLIES = 11;
 	private static final double CRITICAL_RATIO_THRESHOLD = 0.7;
 	private static final double RATIO_PENALTY_FOR_CLOSE_CHOKE_POINT = 0.3;
-	private static final double FAVORABLE_RATIO_THRESHOLD = 1.6;
-	private static final double ENEMY_RANGE_WEAPON_STRENGTH_BONUS = 1.9;
+	private static final double FAVORABLE_RATIO_THRESHOLD = 1.7;
+	private static final double ENEMY_RANGE_WEAPON_STRENGTH_BONUS = 1.4;
 	private static final int RANGE_BONUS_IF_ENEMY_DEF_BUILDING_NEAR = 6;
 	private static final int DEFENSIVE_BUILDING_ATTACK_BONUS = 24;
-	// private static final int IF_CANNONS_WAIT_FOR_N_UNITS = 7;
+	private static final int MAX_TILES_FROM_TANK = 6;
+	// private static final double RATIO_PENALTY_FOR_NO_TANK_NEARBY = 1;
 
 	private static boolean changePlanToBuildAntiAirUnits = false;
 
 	private static int _rangeBonus = 0;
+	private static int _enemyDefensiveBuildings = 0;
+
 	private static ArrayList<Unit> _ourUnits;
+	private static ArrayList<Unit> _enemyUnits;
+
+	// =====================================================
 
 	/**
 	 * Calculates ground advantage for given unit, based on nearby enemies and
@@ -38,6 +45,26 @@ public class StrengthEvaluator {
 	 */
 	public static double calculateStrengthRatioFor(Unit unit) {
 		_rangeBonus = 0;
+		UnitType type = unit.getType();
+		double ratio = 0;
+		boolean isTank = type.isTank();
+		boolean canAttackLonely = type.isWorker() || type.isVulture() || type.isGhost();
+
+		// ===================================================
+		// SPECIAL unit actions
+
+		// If Vulture can't shoot (cooldown), make it go back.
+		if (type.isVulture() && unit.getGroundWeaponCooldown() > 0) {
+			return 0;
+		}
+
+		// ===================================================
+		// Check if unit should always be near one of the tanks
+		if (isTooFarFromTank(unit)) {
+			return 0;
+		}
+
+		// ===================================================
 
 		// If there's at least one building like cannon, sunken colony, bunker,
 		// then increase range of units search and look again for enemy units.
@@ -48,15 +75,35 @@ public class StrengthEvaluator {
 
 		// Define enemy units nearby and our units nearby
 		ArrayList<Unit> enemyUnits = getEnemiesNear(unit);
+		_enemyUnits = enemyUnits;
 
-		// If there's no units return -1, it means it's fully safe.
+		ArrayList<Unit> ourUnits = getOurUnitsNear(unit);
+		int ourUnitsGroupSize = ourUnits.size();
+		_ourUnits = ourUnits;
+
+		if (isEnemyAirUnitNearbyThatCanShootGround(unit) && isCriticalSituationVersusAirUnits(unit)) {
+			return 0;
+		}
+
+		// ==================================
+		// Disallow attacking lonely
+		boolean ourGroupToSmall = ourUnitsGroupSize < 3;
+		if (!canAttackLonely && ourGroupToSmall) {
+			boolean forTank = isTank && (ourGroupToSmall || unit.getHP() < 80);
+			if (forTank) {
+				return 0;
+			}
+		}
+
+		if (type.isVulture() && ourUnitsGroupSize <= 4) {
+			return 0;
+		}
+
+		// If there's no enemy units
 		if (enemyUnits.isEmpty()) {
 			_rangeBonus = 0;
 			return -1;
 		}
-
-		ArrayList<Unit> ourUnits = getOurUnitsNear(unit);
-		_ourUnits = ourUnits;
 
 		// ==================================
 		// Calculate hit points and ground attack values of units nearby
@@ -78,13 +125,11 @@ public class StrengthEvaluator {
 		// Its range is (0.0; Infinity).
 		// Ratio 1.0 means forces are perfectly equal (according to this metric)
 		// Ratio < 1.0 means
-		double ratio = ourStrength / enemyStrength;
+		ratio += ourStrength / enemyStrength;
 
 		// Include info about choke points near
 		if (StrategyManager.isAnyAttackFormPending()) {
-			ChokePoint nearestChoke = MapExploration.getNearestChokePointFor(unit);
-			double distToNearestChoke = xvr.getDistanceBetween(nearestChoke, unit);
-			if (distToNearestChoke > -0.1 && distToNearestChoke <= 9) {
+			if (isCriticallyCloseToChokePoint(unit)) {
 				ratio -= RATIO_PENALTY_FOR_CLOSE_CHOKE_POINT;
 			}
 		}
@@ -101,29 +146,79 @@ public class StrengthEvaluator {
 		// + unit.getGroundAttackNormalized());
 		// }
 
-		if (ourUnits.size() >= 3 && ratio < 0.8) {
+		// ========================================
+		// Extract information for the strategy based on enemy units
+
+		// ========================================
+		// Coordinate troops
+
+		// Ensure we're attacking in large groups
+		if (ourUnitsGroupSize >= 3 && ratio < 0.8) {
 			StrategyManager.waitForMoreUnits();
 		}
+		if (_enemyDefensiveBuildings >= 1 && ourUnitsGroupSize <= 6) {
+			return 0;
+		}
+
+		// ========================================
 
 		_rangeBonus = 0;
 		return ratio;
 	}
 
-	// private static boolean isOneOfUnitsDefensiveBuilding(Collection<Unit>
-	// units) {
-	// for (Unit unit : units) {
-	// if (unit.isDefensiveGroundBuilding()) {
-	// return true;
-	// }
-	// }
-	// return false;
-	// }
+	private static boolean isEnemyAirUnitNearbyThatCanShootGround(Unit unit) {
+		for (Unit enemy : _enemyUnits) {
+			UnitType type = enemy.getType();
+			if (type.isFlyer() && type.canGroundAttack()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static boolean isTooFarFromTank(Unit unit) {
+		UnitType type = unit.getType();
+		boolean shouldBeAlwaysNearTank = !type.isWorker() && !type.isTank() && !type.isVulture();
+		double distToTank = -1;
+		if (shouldBeAlwaysNearTank) {
+			Unit nearestTank = xvr.getNearestTankTo(unit);
+			if (nearestTank != null) {
+				distToTank = nearestTank.distanceTo(unit);
+			}
+
+			if (distToTank > MAX_TILES_FROM_TANK) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isCriticallyCloseToChokePoint(Unit unit) {
+		ChokePoint nearestChoke = MapExploration.getNearestChokePointFor(unit);
+		double distToNearestChoke = xvr.getDistanceBetween(nearestChoke, unit);
+		if (distToNearestChoke > -0.1 && distToNearestChoke <= 9) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean isCriticalSituationVersusAirUnits(Unit unit) {
+		int antiAirUnits = 0;
+		for (Unit ourUnit : _ourUnits) {
+			if (ourUnit.getType().canAirAttack()) {
+				antiAirUnits++;
+			}
+		}
+
+		return antiAirUnits == 0;
+	}
 
 	private static double calculateTotalAttackOf(ArrayList<Unit> units, boolean forEnemy) {
 		int total = 0;
 		int seconds = xvr.getTimeSeconds();
 		int defensiveBuildings = 0;
-		int vultures = 0;
+		// int vultures = 0;
 		// int dragoons = 0;
 		for (Unit unit : units) {
 			double attackValue = unit.getGroundAttackNormalized();
@@ -139,7 +234,7 @@ public class StrengthEvaluator {
 				total += attackValue;
 
 				if (type.isVulture()) {
-					vultures++;
+					// vultures++;
 					total -= attackValue * 1.4;
 				}
 				if (type.isHydralisk()) {
@@ -197,11 +292,15 @@ public class StrengthEvaluator {
 			}
 		}
 
-		if ((vultures >= 3 || defensiveBuildings >= 3) && !TerranBarracks.LIMIT_MARINES
-				&& xvr.getTimeSeconds() < 600) {
-			StrategyManager.waitForMoreUnits();
-			TerranBarracks.LIMIT_MARINES = true;
-			Debug.message(xvr, "Dont build zealots mode enabled");
+		if (forEnemy) {
+			if (StrategyManager.getMinBattleUnits() <= StrategyManager.INITIAL_MIN_UNITS
+					&& defensiveBuildings >= 2 && TerranSiegeTank.getNumberOfUnitsCompleted() <= 1) {
+				StrategyManager.waitForMoreUnits();
+				// TerranBarracks.LIMIT_MARINES = true;
+				// Debug.message(xvr, "Dont build zealots mode enabled");
+			}
+
+			_enemyDefensiveBuildings = defensiveBuildings;
 		}
 
 		return total;
@@ -213,7 +312,7 @@ public class StrengthEvaluator {
 			UnitType type = unit.getType();
 
 			if (unit.isCompleted() && (!type.isBuilding() || unit.isDefensiveGroundBuilding())) {
-				total += unit.getHitPoints() + unit.getShields();
+				total += unit.getHP() + unit.getShields();
 				if (type.isMedic()) {
 					total += 60;
 				}
@@ -240,7 +339,7 @@ public class StrengthEvaluator {
 				xvr.getArmyUnitsIncludingDefensiveBuildings());
 		for (Iterator<Unit> iterator = unitsInRadius.iterator(); iterator.hasNext();) {
 			Unit unit = (Unit) iterator.next();
-			if (unit.getShields() < 5) {
+			if (unit.getHP() <= 10) {
 				iterator.remove();
 			} else if (unit.isDefensiveGroundBuilding()) {
 				if (xvr.getDistanceBetween(unit, ourUnit) >= 3) {

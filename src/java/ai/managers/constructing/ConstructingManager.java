@@ -7,11 +7,6 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
-import ai.terran.ProtossArbiterTribunal;
-import ai.terran.ProtossCitadelOfAdun;
-import ai.terran.ProtossRoboticsSupportBay;
-import ai.terran.ProtossShieldBattery;
-import ai.terran.ProtossTemplarArchives;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranArmory;
 import ai.terran.TerranBarracks;
@@ -60,20 +55,17 @@ public class ConstructingManager {
 		boolean shouldBuildHQ = TerranCommandCenter.shouldBuild();
 		boolean canBuildOtherThingThanHQ = !shouldBuildHQ || xvr.canAfford(550);
 
-		if (_actCounter == 0) {
+		if (_actCounter == 0 && shouldBuildHQ) {
 			TerranCommandCenter.buildIfNecessary();
 		} else if (_actCounter == 1 && canBuildOtherThingThanHQ) {
+			TerranAcademy.buildIfNecessary();
 			TerranBunker.buildIfNecessary();
 			TerranFactory.buildIfNecessary();
-			TerranAcademy.buildIfNecessary();
-			ProtossRoboticsSupportBay.buildIfNecessary();
-			ProtossTemplarArchives.buildIfNecessary();
 			TerranBarracks.buildIfNecessary();
 			TerranComsatStation.buildIfNecessary();
 			TerranControlTower.buildIfNecessary();
 			TerranEngineeringBay.buildIfNecessary();
 			TerranRefinery.buildIfNecessary();
-			ProtossCitadelOfAdun.buildIfNecessary();
 		} else if (canBuildOtherThingThanHQ) {
 			TerranBarracks.buildIfNecessary();
 			TerranBunker.buildIfNecessary();
@@ -82,8 +74,6 @@ public class ConstructingManager {
 			TerranStarport.buildIfNecessary();
 			TerranMachineShop.buildIfNecessary();
 			TerranArmory.buildIfNecessary();
-			ProtossShieldBattery.buildIfNecessary();
-			ProtossArbiterTribunal.buildIfNecessary();
 		}
 
 		// It can happen that damned worker will stuck somewhere (what a retard)

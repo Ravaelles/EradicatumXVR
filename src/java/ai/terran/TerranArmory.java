@@ -4,6 +4,7 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
+import ai.managers.TechnologyManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 
@@ -22,9 +23,11 @@ public class TerranArmory {
 
 	public static boolean shouldBuild() {
 		int factories = UnitCounter.getNumberOfUnits(TerranFactory.getBuildingType());
+		int armories = getNumberOfUnits();
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 
-		if (factories >= 2 && !weAreBuilding) {
+		if (armories == 0 && factories >= 2 && !weAreBuilding
+				&& !TechnologyManager.isSiegeModeResearchPossible()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}

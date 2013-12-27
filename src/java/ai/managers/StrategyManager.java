@@ -11,6 +11,8 @@ import ai.handling.army.ArmyPlacing;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
 import ai.handling.units.UnitCounter;
+import ai.terran.TerranMedic;
+import ai.terran.TerranSiegeTank;
 
 public class StrategyManager {
 
@@ -19,6 +21,7 @@ public class StrategyManager {
 	// private static final int MINIMUM_INITIAL_ARMY_TO_PUSH_ONE_TIME = 5;
 	// private static final int MINIMUM_NON_INITIAL_ARMY_TO_PUSH = 25;
 	private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 41;
+	public static final int INITIAL_MIN_UNITS = 26;
 	// private static final int MINIMUM_ARMY_PSI_USED_THRESHOLD = 75;
 
 	/**
@@ -63,8 +66,10 @@ public class StrategyManager {
 
 	private static int retreatsCounter = 0;
 	private static final int EXTRA_UNITS_PER_RETREAT = 5;
+	private static final int MIN_MEDICS = 8;
+	private static final int MIN_TANKS = 6;
 
-	private static int _minBattleUnits = 10;
+	private static int _minBattleUnits = INITIAL_MIN_UNITS;
 	private static int _lastTimeWaitCalled = 0;
 
 	// private static boolean pushedInitially = false;
@@ -74,14 +79,16 @@ public class StrategyManager {
 	private static boolean decideIfWeAreReadyToAttack() {
 		int battleUnits = UnitCounter.getNumberOfBattleUnitsCompleted();
 		int minUnits = calculateMinimumUnitsToAttack();
-		
+		boolean haveEnoughMedics = TerranMedic.getNumberOfUnitsCompleted() >= MIN_MEDICS;
+		boolean haveEnoughTanks = TerranSiegeTank.getNumberOfUnitsCompleted() >= MIN_TANKS;
+
 		if (xvr.getTimeSeconds() >= 380 && minUnits < 5) {
 			final int EXTRA = 5;
 			minUnits += EXTRA;
 			_minBattleUnits += EXTRA;
 		}
-		
-		if (battleUnits >= minUnits) {
+
+		if (haveEnoughMedics && haveEnoughTanks && battleUnits >= minUnits) {
 			return true;
 		} else {
 			boolean weAreReady = (battleUnits >= minUnits * 0.35) && isAnyAttackFormPending();
@@ -212,7 +219,8 @@ public class StrategyManager {
 			if (base == null) {
 				return;
 			}
-			target = xvr.getUnitNearestFromList(base.getX(), base.getY(), enemyBuildings);
+			target = xvr.getUnitNearestFromList(base.getX(), base.getY(), enemyBuildings, true,
+					false);
 		}
 
 		// Update the target.

@@ -481,6 +481,16 @@ public class UnitType {
 		return null;
 	}
 
+	public static UnitType getUnitTypeByUnitTypes(UnitTypes types) {
+		// return XVR.getInstance().getBwapi().getUnitType(unitID);
+		for (UnitType type : allObjects) {
+			if (type.getID() == types.getID()) {
+				return type;
+			}
+		}
+		return null;
+	}
+
 	public boolean isBunker() {
 		return getID() == UnitTypes.Terran_Bunker.ordinal();
 	}
@@ -597,6 +607,14 @@ public class UnitType {
 		return getID() == UnitTypes.Terran_Science_Vessel.ordinal();
 	}
 
+	public boolean isStarport() {
+		return getID() == UnitTypes.Terran_Starport.ordinal();
+	}
+
+	public boolean isScienceFacility() {
+		return getID() == UnitTypes.Terran_Science_Facility.ordinal();
+	}
+
 	public boolean isCarrier() {
 		return getID() == UnitTypes.Protoss_Carrier.ordinal();
 	}
@@ -608,7 +626,7 @@ public class UnitType {
 	public boolean isVulture() {
 		return getID() == UnitTypes.Terran_Vulture.ordinal();
 	}
-	
+
 	public boolean isWraith() {
 		return getID() == UnitTypes.Terran_Wraith.ordinal();
 	}
@@ -621,7 +639,7 @@ public class UnitType {
 		return getID() == UnitTypes.Terran_Firebat.ordinal();
 	}
 
-	public boolean isTerranMine() {
+	public boolean isSpiderMine() {
 		return getID() == UnitTypes.Terran_Vulture_Spider_Mine.ordinal();
 	}
 
@@ -647,6 +665,10 @@ public class UnitType {
 
 	public boolean canGroundAttack() {
 		return isAttackCapable() && getGroundWeaponID() != WeaponTypes.None.ordinal();
+	}
+
+	public boolean canAirAttack() {
+		return isAttackCapable() && getAirWeaponID() != WeaponTypes.None.ordinal();
 	}
 
 	public int getGroundAttackUnnormalized() {

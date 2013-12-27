@@ -141,4 +141,9 @@ public class ChokePoint extends MapPoint {
 		this.disabled = disabled;
 	}
 
+	
+	public double getRadiusInTiles() {
+		return (double) getRadius() / 32;
+	}
+
 }

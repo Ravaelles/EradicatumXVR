@@ -58,7 +58,7 @@ public class TerranBarracks {
 
 		// ### Version ### Expansion with gateways
 		if (BotStrategyManager.isExpandWithBarracks()) {
-			if (barracks <= 3 && (isMajorityOfBarracksTrainingUnits()) && xvr.canAfford(134)) {
+			if (barracks <= 2 && (isMajorityOfBarracksTrainingUnits()) && xvr.canAfford(134)) {
 				if (barracks < 2) {
 					ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 					return true;
@@ -76,38 +76,38 @@ public class TerranBarracks {
 			return false;
 		}
 
-		if (barracks >= 3 && xvr.canAfford(140)) {
-			if (isMajorityOfBarracksTrainingUnits()) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-		}
-
-		// 3 barracks or more
-		if (barracks >= 3 && (barracks <= 5 || xvr.canAfford(520))) {
-			if (isMajorityOfBarracksTrainingUnits()) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-		}
-		if (barracks >= 2 && bases >= 2
-				&& UnitCounter.weHaveBuilding(UnitTypes.Protoss_Observatory)
-				&& UnitCounter.weHaveBuilding(UnitTypes.Protoss_Citadel_of_Adun)) {
-			int HQs = UnitCounter.getNumberOfUnits(UnitManager.BASE);
-			if ((double) barracks / HQs <= 2 && xvr.canAfford(560)) {
-				if (isMajorityOfBarracksTrainingUnits()) {
-					ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-					return true;
-				}
-			}
-		}
-
-		if (xvr.canAfford(1500)) {
-			if (isMajorityOfBarracksTrainingUnits()) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-		}
+//		if (barracks >= 3 && xvr.canAfford(140)) {
+//			if (isMajorityOfBarracksTrainingUnits()) {
+//				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+//				return true;
+//			}
+//		}
+//
+//		// 3 barracks or more
+//		if (barracks >= 3 && (barracks <= 5 || xvr.canAfford(520))) {
+//			if (isMajorityOfBarracksTrainingUnits()) {
+//				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+//				return true;
+//			}
+//		}
+//		if (barracks >= 2 && bases >= 2
+//				&& UnitCounter.weHaveBuilding(UnitTypes.Protoss_Observatory)
+//				&& UnitCounter.weHaveBuilding(UnitTypes.Protoss_Citadel_of_Adun)) {
+//			int HQs = UnitCounter.getNumberOfUnits(UnitManager.BASE);
+//			if ((double) barracks / HQs <= 2 && xvr.canAfford(560)) {
+//				if (isMajorityOfBarracksTrainingUnits()) {
+//					ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+//					return true;
+//				}
+//			}
+//		}
+//
+//		if (xvr.canAfford(1500)) {
+//			if (isMajorityOfBarracksTrainingUnits()) {
+//				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+//				return true;
+//			}
+//		}
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		return false;

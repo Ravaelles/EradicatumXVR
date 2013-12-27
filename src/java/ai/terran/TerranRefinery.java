@@ -1,7 +1,10 @@
 package ai.terran;
 
+import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.map.MapPoint;
+import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.BotStrategyManager;
 import ai.managers.constructing.Constructing;
@@ -21,14 +24,13 @@ public class TerranRefinery {
 
 		if (UnitCounter.getNumberOfUnitsCompleted(TerranEngineeringBay.getBuildingType()) == 0
 				&& UnitCounter.getNumberOfUnits(TerranBunker.getBuildingType()) == 0) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			return false;
 		}
 
 		if (!Constructing.weAreBuilding(buildingType)
 				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
-						.getNumberOfUnitsCompleted(UnitManager.BASE)
-				&& (weHaveAcademy || TerranBarracks.LIMIT_MARINES)) {
+						.getNumberOfUnitsCompleted(UnitManager.BASE) && weHaveAcademy) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
@@ -68,9 +70,26 @@ public class TerranRefinery {
 	public static int getNumberOfUnits() {
 		return UnitCounter.getNumberOfUnits(buildingType);
 	}
-	
+
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
 	}
-	
+
+	public static MapPoint findTileForRefinery() {
+		Unit nearestGeyser = xvr.getUnitNearestFromList(xvr.getFirstBase(), xvr.getGeysersUnits());
+		if (nearestGeyser != null
+				&& xvr.getUnitsOfGivenTypeInRadius(UnitManager.BASE, 15, nearestGeyser, true)
+						.isEmpty()) {
+			return null;
+		}
+
+		// return new MapPointInstance(nearestGeyser.getX(),
+		// nearestGeyser.getY());
+		if (nearestGeyser != null) {
+			return new MapPointInstance(nearestGeyser.getX() - 64, nearestGeyser.getY() - 32);
+		} else {
+			return null;
+		}
+	}
+
 }

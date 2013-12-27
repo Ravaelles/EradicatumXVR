@@ -19,8 +19,8 @@ import ai.utils.RUtilities;
 
 public class TerranSupplyDepot {
 
-	private static int INITIAL_DEPOT_MIN_DIST_FROM_BASE = 6;
-	private static int INITIAL_DEPOT_MAX_DIST_FROM_BASE = 18;
+//	private static int INITIAL_DEPOT_MIN_DIST_FROM_BASE = 6;
+//	private static int INITIAL_DEPOT_MAX_DIST_FROM_BASE = 18;
 	private static int DEPOT_FROM_DEPOT_MIN_DISTANCE = 0;
 	private static int DEPOT_FROM_DEPOT_MAX_DISTANCE = 7;
 
@@ -106,7 +106,7 @@ public class TerranSupplyDepot {
 		double result = 0;
 
 		for (Unit pylon : xvr.getUnitsOfType(buildingType)) {
-			result += (double) (pylon.getShields() + pylon.getHitPoints()) / 600;
+			result += (double) pylon.getHP() / 500;
 		}
 
 		return result;
@@ -116,41 +116,16 @@ public class TerranSupplyDepot {
 		Unit builder = Constructing.getRandomWorker();
 
 		if (UnitCounter.weHaveSupplyDepot()) {
-			return findTileForNextSupplyDepot(builder);
+			return findTileForNextDepot(builder);
 		}
 
-		// It's the first pylon
+		// It's the first Depot
 		else {
-			return findTileForFirstSupplyDepot(builder, xvr.getFirstBase());
+			return findTileForFirstDepot(builder, xvr.getFirstBase());
 		}
 	}
 
-	private static MapPoint findTileForNextSupplyDepot(Unit builder) {
-
-		// If we have more than one base make sure that every base has at
-		// least one pylon nearby
-		for (Unit base : xvr.getUnitsOfType(UnitManager.BASE)) {
-			int nearbyPylons = xvr.countUnitsOfGivenTypeInRadius(buildingType, 14, base.getX(),
-					base.getY(), true);
-			if (nearbyPylons == 0) {
-				MapPoint buildTile = findTileForSupplyDepotNearby(base,
-						INITIAL_DEPOT_MIN_DIST_FROM_BASE, INITIAL_DEPOT_MAX_DIST_FROM_BASE);
-				if (buildTile != null) {
-					return buildTile;
-				}
-			}
-		}
-
-		// Either build randomly near base
-		if (UnitCounter.getNumberOfSupplyDepots() >= 10 && RUtilities.rand(0, 3) == 0) {
-
-			// Build normally, at random base.
-			MapPoint buildTile = findTileForSupplyDepotNearby(TerranCommandCenter.getRandomBase(),
-					INITIAL_DEPOT_MIN_DIST_FROM_BASE, INITIAL_DEPOT_MAX_DIST_FROM_BASE);
-			if (buildTile != null) {
-				return buildTile;
-			}
-		}
+	private static MapPoint findTileForNextDepot(Unit builder) {
 
 		// Or build near random depot.
 		Unit supplyDepot = null;
@@ -168,7 +143,7 @@ public class TerranSupplyDepot {
 		if (tile != null) {
 			return tile;
 		} else {
-			return Constructing.findTileForNewBuilding(buildingType);
+			return Constructing.findTileForStandardBuilding(buildingType);
 		}
 
 	}
@@ -191,7 +166,7 @@ public class TerranSupplyDepot {
 							&& xvr.getUnitsOfGivenTypeInRadius(buildingType,
 									DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true).isEmpty()) {
 						MapPointInstance point = new MapPointInstance(x, y);
-						if (!Constructing.isTooNearMineralAndBase(point)) {
+						if (!Constructing.isTooNearMineralOrBase(point)) {
 
 							// Damn, try NOT to build in the middle of narrow
 							// choke point.
@@ -222,7 +197,7 @@ public class TerranSupplyDepot {
 		return depots;
 	}
 
-	private static MapPoint findTileForFirstSupplyDepot(Unit builder, Unit base) {
+	private static MapPoint findTileForFirstDepot(Unit builder, Unit base) {
 		if (base == null) {
 			return null;
 		}

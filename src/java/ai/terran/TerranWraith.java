@@ -31,7 +31,7 @@ public class TerranWraith {
 
 		// CLOAKED.
 		else {
-			double nearestEnemyDist = xvr.getNearestEnemyDistance(unit);
+			double nearestEnemyDist = xvr.getNearestEnemyDistance(unit, true, true);
 			if (nearestEnemyDist > -0.1 && nearestEnemyDist > 11) {
 				unit.decloak();
 			}

@@ -16,7 +16,6 @@ import ai.managers.units.UnitManager;
 import ai.terran.ProtossArbiterTribunal;
 import ai.terran.ProtossCitadelOfAdun;
 import ai.terran.ProtossFleetBeacon;
-import ai.terran.TerranFactory;
 import ai.terran.ProtossRoboticsSupportBay;
 import ai.terran.ProtossShieldBattery;
 import ai.terran.ProtossTemplarArchives;
@@ -26,6 +25,8 @@ import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranComsatStation;
 import ai.terran.TerranEngineeringBay;
+import ai.terran.TerranFactory;
+import ai.terran.TerranMissileTurret;
 import ai.terran.TerranRefinery;
 import ai.terran.TerranSupplyDepot;
 
@@ -35,37 +36,16 @@ public class Constructing {
 
 	// ============================
 
-	public static MapPoint findTileForNewBuilding(UnitTypes typeToBuild) {
-		// Unit base = ProtossNexus.getRandomBase();
+	public static MapPoint findTileForStandardBuilding(UnitTypes typeToBuild) {
 		Unit base = xvr.getFirstBase();
 		if (base == null) {
 			return null;
 		}
 
-		// return Constructing.getLegitTileToBuildNear(
-		// xvr.getRandomWorker(), buildingType, pylon.getTileX(),
-		// pylon.getTileY(), 0, PYLON_FROM_PYLON_MAX_DISTANCE);
-		// return new Point(pylonWithLeastBuildings.getTileX(),
-		// pylonWithLeastBuildings.getTileY());
-		// int minDistanceBetweenPylons =
-		// PYLON_FROM_PYLON_MIN_DISTANCE_RAND
-		// + PYLON_FROM_PYLON_MIN_DISTANCE_RAND
-		// - RUtilities.rand(0,
-		// 2 * PYLON_FROM_PYLON_MIN_DISTANCE_RAND);
-
-		int minDistFromBase = 9;
-		// MapPoint secondBase = ProtossNexus.getSecondBaseLocation();
-		// if (secondBase != null
-		// && xvr.getDistanceBetween(pylon, secondBase) < 12) {
-		// minDistFromPylon = 0;
-		// }
-
 		MapPoint tile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), typeToBuild,
-				base, minDistFromBase, 50);
-		if (tile != null) {
-			return tile;
-		}
-		return null;
+				base, 8, 70);
+
+		return tile;
 	}
 
 	private static MapPoint getTileAccordingToBuildingType(UnitTypes building) {
@@ -80,33 +60,24 @@ public class Constructing {
 			return TerranBunker.findTileForBunker();
 		}
 
+		// Missile Turret
+		else if (TerranMissileTurret.getBuildingType().ordinal() == building.ordinal()) {
+			return TerranMissileTurret.findTileForTurret();
+		}
+
 		// Refinery
 		else if (TerranRefinery.getBuildingType().ordinal() == building.ordinal()) {
-			return findTileForAssimilator();
+			return TerranRefinery.findTileForRefinery();
 		}
 
 		// Base
 		else if (TerranCommandCenter.getBuildingType().ordinal() == building.ordinal()) {
-			return TerranCommandCenter.getTileForNextBase(false);
+			return TerranCommandCenter.findTileForNextBase(false);
 		}
 
 		// Standard building
 		else {
-
-			// Let the Pylon class decide where to put buildings like Gateway,
-			// Stargate etc.
-			return findTileForNewBuilding(building);
-
-			// // Get random worker, it doesn't matter now which one, because we
-			// // will decide later. But for now we have to specify something.
-			// Unit workerUnit = xvr.getRandomWorker();
-			// if (workerUnit == null) {
-			// return null;
-			// } else {
-			// return Constructing.findBuildTile(xvr, workerUnit.getID(),
-			// building.ordinal(), buildInNeighborhoodOf.getX(),
-			// buildInNeighborhoodOf.getY());
-			// }
+			return findTileForStandardBuilding(building);
 		}
 	}
 
@@ -217,7 +188,8 @@ public class Constructing {
 	}
 
 	public static MapPoint findBuildTile(XVR xvr, int builderID, int buildingTypeID, int x, int y) {
-		MapPoint tileToBuild = findTileForNewBuilding(UnitType.getUnitTypesByID(buildingTypeID));
+		MapPoint tileToBuild = findTileForStandardBuilding(UnitType
+				.getUnitTypesByID(buildingTypeID));
 
 		if (tileToBuild == null) {
 			JNIBWAPI bwapi = xvr.getBwapi();
@@ -225,23 +197,6 @@ public class Constructing {
 					+ bwapi.getUnitType(buildingTypeID).getName());
 		}
 		return tileToBuild;
-	}
-
-	public static MapPoint findTileForAssimilator() {
-		Unit nearestGeyser = xvr.getUnitNearestFromList(xvr.getFirstBase(), xvr.getGeysersUnits());
-		if (nearestGeyser != null
-				&& xvr.getUnitsOfGivenTypeInRadius(UnitManager.BASE, 15, nearestGeyser, true)
-						.isEmpty()) {
-			return null;
-		}
-
-		// return new MapPointInstance(nearestGeyser.getX(),
-		// nearestGeyser.getY());
-		if (nearestGeyser != null) {
-			return new MapPointInstance(nearestGeyser.getX() - 64, nearestGeyser.getY() - 32);
-		} else {
-			return null;
-		}
 	}
 
 	public static MapPoint getLegitTileToBuildNear(UnitTypes type, MapPoint nearTo,
@@ -277,8 +232,8 @@ public class Constructing {
 		JNIBWAPI bwapi = XVR.getInstance().getBwapi();
 		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
 		boolean isBase = type.isBase();
-		boolean isBunker = type.isBunker();
-		boolean isDepot = type.isSupplyDepot();
+
+		boolean skipCheckingIsFreeFromUnits = type.isBase();
 
 		int currentDist = minimumDist;
 		while (currentDist <= maximumDist) {
@@ -292,10 +247,10 @@ public class Constructing {
 						MapPointInstance place = new MapPointInstance(x, y);
 						Unit optimalBuilder = xvr.getOptimalBuilder(place);
 						if (optimalBuilder != null
-								&& (isBunker || isBase || isBuildTileFreeFromUnits(
+								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
 										optimalBuilder.getID(), i, j))) {
-							if (!isTooNearMineralAndBase(place)
-									&& (isDepot || isEnoughPlaceToOtherBuildings(place, type))
+							if ((skipCheckingIsFreeFromUnits || !isTooNearMineralOrBase(place))
+									&& (isEnoughPlaceToOtherBuildings(place, type))
 									&& (isBase || !isOverlappingNextNexus(place, type))
 									&& (isBase || !isTooCloseToAnyChokePoint(place))) {
 
@@ -332,7 +287,7 @@ public class Constructing {
 	private static boolean isOverlappingNextNexus(MapPoint place, UnitType type) {
 		if (!type.isBase()
 				&& UnitCounter.getNumberOfUnits(TerranSupplyDepot.getBuildingType()) >= 1) {
-			return xvr.getDistanceSimple(place, TerranCommandCenter.getTileForNextBase(false)) <= 4;
+			return xvr.getDistanceSimple(place, TerranCommandCenter.findTileForNextBase(false)) <= 4;
 		} else {
 			return false;
 		}
@@ -343,6 +298,7 @@ public class Constructing {
 		if (type.isBase() || type.isOnGeyser()) {
 			return true;
 		}
+		boolean isDepot = type.isSupplyDepot();
 
 		int wHalf = type.getTileWidth();
 		int hHalf = type.getTileHeight();
@@ -361,25 +317,53 @@ public class Constructing {
 		// }
 		// System.out.println();
 
+		int baseBonus = 0;
+		if (type.isFactory() || type.isBase() || type.isScienceFacility()) {
+			baseBonus += 2;
+			center = center.translate(40, 0);
+		}
+
 		for (Unit unit : buildingsNearby) {
-			if (unit.getType().isBuilding() && unit.distanceTo(center) <= maxDimension + 1) {
+			if (isDepot
+					&& type.isSupplyDepot()
+					&& xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot, 5, place,
+							true) <= 2
+					&& xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot, 9, place,
+							true) <= 3) {
+				continue;
+			}
+
+			int dx = 0;
+			int bonus = baseBonus;
+			UnitType unitType = unit.getType();
+			if (unitType.isFactory() || unitType.isBase() || unitType.isScienceFacility()) {
+				bonus++;
+				dx = 45;
+			}
+
+			if (type.isBuilding()
+					&& unit.translate(dx, 0).distanceTo(center) <= maxDimension + 1 + bonus) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	public static boolean isTooNearMineralAndBase(MapPoint point) {
+	public static boolean isTooNearMineralOrBase(MapPoint point) {
 		Unit nearestMineral = xvr.getUnitNearestFromList(point, xvr.getMineralsUnits());
 		double distToMineral = xvr.getDistanceBetween(nearestMineral, point);
-		if (distToMineral <= 3) {
+		if (distToMineral <= 7) {
 			return true;
 		}
 
-		if (distToMineral <= 5) {
+		if (distToMineral <= 10) {
 			Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
-			double distToBase = xvr.getDistanceBetween(nearestBase, point);
-			if (distToBase < distToMineral) {
+			if (nearestBase.distanceTo(point) <= 4) {
+				return false;
+			}
+
+			double distBaseToMineral = xvr.getDistanceBetween(nearestBase, nearestMineral);
+			if (distToMineral < distBaseToMineral) {
 				return true;
 			}
 		}
@@ -473,12 +457,12 @@ public class Constructing {
 		// Get point in between choke and base
 		MapPointInstance point = MapPointInstance.getMiddlePointBetween(buildTile, choke);
 
-		int cannonsNearby = xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 16,
+		int bunkersNearby = xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 13,
 				point, true);
 
 		// ==============================
 		// Ensure there's a bunker nearby
-		if (cannonsNearby < 0) {
+		if (bunkersNearby == 0) {
 			baseInterrupted = true;
 			building = TerranBunker.getBuildingType();
 			buildTile = TerranBunker.findTileForBunker();
@@ -489,7 +473,7 @@ public class Constructing {
 		if (!baseInterrupted) {
 			if (buildTile == null || !Constructing.canBuildAt(buildTile, UnitManager.BASE)) {
 				// System.out.println("TEST cant Build At: " + buildTile);
-				buildTile = TerranCommandCenter.getTileForNextBase(true);
+				buildTile = TerranCommandCenter.findTileForNextBase(true);
 			}
 		}
 

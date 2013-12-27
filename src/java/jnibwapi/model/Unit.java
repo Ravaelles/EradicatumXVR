@@ -23,6 +23,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	private Unit mineralGathered = null;
 	private CallForHelp callForHelpMission = null;
 	private MapPoint properPlaceToBe = null;
+	private UnitType type;
 	// ========
 
 	private int ID;
@@ -317,7 +318,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		return velocityY;
 	}
 
-	public int getHitPoints() {
+	public int getHP() {
 		return hitPoints;
 	}
 
@@ -776,7 +777,12 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public UnitType getType() {
-		return UnitType.getUnitTypeByID(getTypeID());
+		if (type != null) {
+			return type;
+		} else {
+			type = UnitType.getUnitTypeByID(getTypeID());
+			return type;
+		}
 	}
 
 	public String getName() {
@@ -898,7 +904,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public boolean isBuildingNotBusy() {
-		return !isTraining() && !isUpgrading();
+		return !isTraining() && !isUpgrading() && !isConstructing();
 	}
 
 	public CallForHelp getCallForHelpMission() {
@@ -996,6 +1002,18 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public void decloak() {
 		XVR.getInstance().getBwapi().decloak(ID);
+	}
+
+	public int getMaxHP() {
+		return getType().getMaxHitPoints();
+	}
+
+	public boolean isWounded() {
+		return hitPoints < getMaxHP();
+	}
+
+	public boolean shouldFollowTanks() {
+		return !type.isVulture() && !type.isWorker() && !type.isTank();
 	}
 
 }

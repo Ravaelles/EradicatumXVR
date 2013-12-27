@@ -13,10 +13,9 @@ import jnibwapi.types.UnitType;
 import ai.handling.map.MapExploration;
 import ai.handling.other.NukeHandling;
 import ai.managers.StrategyManager;
-import ai.terran.ProtossObserver;
-import ai.terran.TerranAcademy;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
+import ai.terran.TerranComsatStation;
 
 public class XVRClient implements BWAPIEventListener {
 
@@ -57,7 +56,7 @@ public class XVRClient implements BWAPIEventListener {
 		bwapi.enableUserInput();
 		bwapi.setGameSpeed(XVR.GAME_SPEED);
 		bwapi.loadMapData(true);
-		
+
 		MapExploration.disableChokePointsNearFirstBase();
 
 		// ========================================
@@ -123,7 +122,7 @@ public class XVRClient implements BWAPIEventListener {
 	}
 
 	private static boolean responded = false;
-	
+
 	public void receiveText(String text) {
 		if (!responded) {
 			responded = true;
@@ -154,16 +153,16 @@ public class XVRClient implements BWAPIEventListener {
 		if (!unit.isEnemy()) {
 			historyOfOurUnits.add(unitID);
 			historyOfOurUnitsObjects.put(unitID, unit.getType());
-//			if (unitType.isBuilding() && unitType.isBase()) {
-//
-//				// Build pylon nearby
-//				Constructing.forceConstructingPylonNear(unit);
-//			}
+			// if (unitType.isBuilding() && unitType.isBase()) {
+			//
+			// // Build pylon nearby
+			// Constructing.forceConstructingPylonNear(unit);
+			// }
 		}
 		// if (unitType.isBuilding()) {
 		// TerranConstructing.removeIsBeingBuilt(unitType);
 		// }
-		
+
 		if (unit.isMyUnit() && unitType.isBase()) {
 			TerranCommandCenter.updateNextBaseToExpand();
 		}
@@ -179,8 +178,7 @@ public class XVRClient implements BWAPIEventListener {
 
 		if (!wasOurUnit) {
 			// System.out.println("DESTROYED: " + unitID);
-			boolean removedSomething = MapExploration
-					.enemyUnitDestroyed(unitID);
+			boolean removedSomething = MapExploration.enemyUnitDestroyed(unitID);
 
 			// Check if massive attack target has just been destroyed; if so,
 			// redefine it.
@@ -199,22 +197,22 @@ public class XVRClient implements BWAPIEventListener {
 			if (historyUnitID == unitID) {
 				unitType = historyOfOurUnitsObjects.get(historyUnitID);
 				break;
-//				System.out.println();
-//				System.out.println("Destroyed unit was " + unitType);
+				// System.out.println();
+				// System.out.println("Destroyed unit was " + unitType);
 			}
 		}
-		
+
 		if (unitType != null) {
 			if (unitType.isBase() && wasOurUnit) {
 				TerranCommandCenter.updateNextBaseToExpand();
 			}
 		}
-		
-//		 Unit unit = Unit.getByID(unitID);
-//		 if (unit == null) {
-//		 return;
-//		 }
-//		 System.out.println("Destroyed unit was " + unit.toStringShort());
+
+		// Unit unit = Unit.getByID(unitID);
+		// if (unit == null) {
+		// return;
+		// }
+		// System.out.println("Destroyed unit was " + unit.toStringShort());
 		// UnitType unitType = UnitType.getUnitTypeByID(unit.getTypeID());
 	}
 
@@ -229,12 +227,12 @@ public class XVRClient implements BWAPIEventListener {
 
 		// System.out.println("Unit discover: " + (unit != null ? unit.getName()
 		// : "null"));
-		
-		if (XVR.isEnemyProtoss()) {
-			if (unit.getType().isDragoon()) {
-				TerranAcademy.forceShouldBuild();
-			}
-		}
+
+		// if (XVR.isEnemyProtoss()) {
+		// if (unit.getType().isDragoon()) {
+		// TerranAcademy.forceShouldBuild();
+		// }
+		// }
 	}
 
 	public void unitEvade(int unitID) {
@@ -242,8 +240,8 @@ public class XVRClient implements BWAPIEventListener {
 		if (unit == null || !unit.isEnemy()) {
 			return;
 		}
-//		System.out.println("Unit evade: "
-//				+ (unit != null ? unit.getName() : "null"));
+		// System.out.println("Unit evade: "
+		// + (unit != null ? unit.getName() : "null"));
 	}
 
 	public void unitHide(int unitID) {
@@ -254,9 +252,8 @@ public class XVRClient implements BWAPIEventListener {
 
 		// System.out.println("Unit hide: "
 		// + (unit != null ? unit.getName() : "null"));
-		if (unit.isEnemy()
-				&& (unit.isCloaked() || unit.isBurrowed() || !unit.isDetected())) {
-			ProtossObserver.hiddenUnitDetected(unit);
+		if (unit.isEnemy() && (unit.isCloaked() || unit.isBurrowed() || !unit.isDetected())) {
+			TerranComsatStation.hiddenUnitDetected(unit);
 		}
 	}
 
@@ -272,7 +269,7 @@ public class XVRClient implements BWAPIEventListener {
 		if (unit.isEnemy() && unit.isHidden()) {
 			// Debug.message(xvr, "Hidden unit: " +
 			// Unit.getByID(unitID).getName());
-			ProtossObserver.hiddenUnitDetected(unit);
+			TerranComsatStation.hiddenUnitDetected(unit);
 		}
 
 		if (unit.getType().isCarrier() && !TerranBarracks.isPlanAntiAirActive()) {

@@ -13,7 +13,7 @@ public class TerranMissileTurret {
 	private static final UnitTypes type = UnitTypes.Terran_Missile_Turret;
 	private static XVR xvr = XVR.getInstance();
 
-	private static final int MIN_DIST_OF_TURRET_FROM_BUNKER = 3;
+	private static final int MIN_DIST_OF_TURRET_FROM_BUNKER = 1;
 	private static final int MAX_DIST_OF_TURRET_FROM_BUNKER = 15;
 
 	// ==========================================
@@ -27,7 +27,8 @@ public class TerranMissileTurret {
 	}
 
 	public static boolean shouldBuild() {
-		if (!UnitCounter.weHaveBuildingFinished(UnitTypes.Terran_Engineering_Bay)) {
+		if (!UnitCounter.weHaveBuildingFinished(UnitTypes.Terran_Engineering_Bay)
+				|| Constructing.weAreBuilding(type)) {
 			ShouldBuildCache.cacheShouldBuildInfo(type, false);
 			return false;
 		}
@@ -37,7 +38,7 @@ public class TerranMissileTurret {
 		// System.out.println("2 --> " + bunkers + " / " + turrets);
 
 		if (bunkers > 0 && bunkers > turrets) {
-			MapPoint buildTile = findPlaceToBuild();
+			MapPoint buildTile = findTileForTurret();
 			if (buildTile != null) {
 				ShouldBuildCache.cacheShouldBuildInfo(type, true);
 				return true;
@@ -48,7 +49,7 @@ public class TerranMissileTurret {
 		return false;
 	}
 
-	private static MapPoint findPlaceToBuild() {
+	public static MapPoint findTileForTurret() {
 
 		// Every bunker needs to have one Turret nearby (acting as a detector)
 		for (Unit bunker : xvr.getUnitsOfType(TerranBunker.getBuildingType())) {
@@ -56,8 +57,9 @@ public class TerranMissileTurret {
 					true) == 0) {
 				MapPoint tileForTurret = Constructing.getLegitTileToBuildNear(type, bunker,
 						MIN_DIST_OF_TURRET_FROM_BUNKER, MAX_DIST_OF_TURRET_FROM_BUNKER);
-				System.out.println("###tile## ForTurret = " + tileForTurret + " / bunker: "
-						+ bunker.toStringLocation());
+				// System.out.println("###tile## ForTurret = " + tileForTurret +
+				// " / bunker: "
+				// + bunker.toStringLocation());
 				return tileForTurret;
 			}
 		}

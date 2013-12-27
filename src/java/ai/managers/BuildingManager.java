@@ -2,8 +2,10 @@ package ai.managers;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
+import ai.terran.TerranComsatStation;
 
 public class BuildingManager {
 
@@ -11,8 +13,8 @@ public class BuildingManager {
 	private static XVR xvr = XVR.getInstance();
 
 	public static void act(Unit building) {
-		UnitType buildingType = building.getType();
-		if (buildingType == null) { // || !buildingType.isBuilding()
+		UnitType type = building.getType();
+		if (type == null) { // || !buildingType.isBuilding()
 			return;
 		}
 
@@ -24,7 +26,7 @@ public class BuildingManager {
 		}
 
 		// Cancel construction of buildings under attack and severely damaged
-		checkIfShouldCancelConstruction(building, buildingType);
+		checkIfShouldCancelConstruction(building, type);
 
 		// // Bunker
 		// // if (buildingType.isBunker()) {
@@ -41,13 +43,17 @@ public class BuildingManager {
 		// }
 		// }
 		// // }
+		
+		if (type.getID() == UnitTypes.Terran_Comsat_Station.ordinal()) {
+			TerranComsatStation.act(building);
+		}
 	}
 
 	private static void handleDamagedBuilding(Unit building) {
 		UnitType buildingType = building.getType();
 
 		// Act only if building is not fully healthy
-		if (building.getHitPoints() < buildingType.getMaxHitPoints()) {
+		if (building.getHP() < buildingType.getMaxHitPoints()) {
 
 			// Define number of repairers for this building
 			int numberOfRequiredRepairers = defineNumberOfRepairersFor(building);
@@ -75,7 +81,7 @@ public class BuildingManager {
 			boolean shouldCancelConstruction = false;
 
 			// If this is normal building and it's severely damaged.
-			if (building.getHitPoints() < 0.4 * buildingType.getMaxHitPoints()) {
+			if (building.getHP() < 0.4 * buildingType.getMaxHitPoints()) {
 				shouldCancelConstruction = true;
 			}
 

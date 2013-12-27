@@ -6,6 +6,7 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
+import ai.managers.TechnologyManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 
@@ -16,10 +17,10 @@ public class TerranStarport {
 	public static UnitTypes VALKYRIE = UnitTypes.Terran_Valkyrie;
 	public static UnitTypes WRAITH = UnitTypes.Terran_Wraith;
 
-	private static final int MINIMUM_BATTLECRUISERS = 2;
-	private static final int MINIMUM_WRAITHS = 2;
-	private static final int MINIMUM_VALKYRIES = 3;
-	private static final int VALKYRIES_PER_OTHER_AIR_UNIT = 2;
+	// private static final int MINIMUM_BATTLECRUISERS = 2;
+	// private static final int MINIMUM_WRAITHS = 2;
+	// private static final int MINIMUM_VALKYRIES = 3;
+	// private static final int VALKYRIES_PER_OTHER_AIR_UNIT = 2;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Starport;
 	private static XVR xvr = XVR.getInstance();
@@ -32,13 +33,15 @@ public class TerranStarport {
 
 	public static boolean shouldBuild() {
 		int starports = UnitCounter.getNumberOfUnits(buildingType);
-		
-		if (TerranFactory.getNumberOfUnitsCompleted() >= 2 && starports == 0) {
+
+		if (TerranFactory.getNumberOfUnitsCompleted() >= 2 && starports == 0
+				&& TerranSiegeTank.getNumberOfUnits() >= 2
+				&& !TechnologyManager.isSiegeModeResearchPossible()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
 
-		if (starports == 1 && xvr.canAfford(800, 500)) {
+		if (starports == 1 && xvr.canAfford(600, 400)) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
@@ -88,34 +91,43 @@ public class TerranStarport {
 	}
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
-		boolean arbiterAllowed = UnitCounter.weHaveBuilding(UnitTypes.Protoss_Arbiter_Tribunal);
+		// boolean arbiterAllowed =
+		// UnitCounter.weHaveBuilding(UnitTypes.Protoss_Arbiter_Tribunal);
+		boolean valkyrieAllowed = UnitCounter.weHaveBuilding(UnitTypes.Terran_Control_Tower);
 
-		// ARBITER
-		if (arbiterAllowed && xvr.countUnitsOfType(BATTLECRUISER) < MINIMUM_BATTLECRUISERS) {
-			return BATTLECRUISER;
-		}
+		// // BATTLECRUISER
+		// if (arbiterAllowed && xvr.countUnitsOfType(BATTLECRUISER) <
+		// MINIMUM_BATTLECRUISERS) {
+		// return BATTLECRUISER;
+		// }
 
-		// SCOUT
-		if (UnitCounter.getNumberOfUnits(WRAITH) < MINIMUM_WRAITHS) {
-			return WRAITH;
-		}
-
-		// CORSAIR
-		if (UnitCounter.getNumberOfUnits(VALKYRIE) < MINIMUM_VALKYRIES
-				|| (UnitCounter.countAirUnitsNonValkyrie() * VALKYRIES_PER_OTHER_AIR_UNIT < UnitCounter
-						.getNumberOfUnits(VALKYRIE))) {
+		// VALKYRIE
+		if (valkyrieAllowed) {
 			return VALKYRIE;
 		}
 
-		return null;
+		// WRAITH
+		// if (UnitCounter.getNumberOfUnits(WRAITH) < MINIMUM_WRAITHS) {
+		return WRAITH;
+		// }
+
+		// // VALKYRIE
+		// if (UnitCounter.getNumberOfUnits(VALKYRIE) < MINIMUM_VALKYRIES
+		// || (UnitCounter.countAirUnitsNonValkyrie() *
+		// VALKYRIES_PER_OTHER_AIR_UNIT < UnitCounter
+		// .getNumberOfUnits(VALKYRIE))) {
+		// return VALKYRIE;
+		// }
+
+		// return null;
 	}
 
 	public static int getNumberOfUnits() {
 		return UnitCounter.getNumberOfUnits(buildingType);
 	}
-	
+
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
 	}
-	
+
 }
