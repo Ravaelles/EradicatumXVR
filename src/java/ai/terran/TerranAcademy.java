@@ -22,7 +22,7 @@ public class TerranAcademy {
 
 	public static boolean shouldBuild() {
 		// int battleUnits = UnitCounter.getNumberOfBattleUnits();
-		int barracks = TerranBarracks.getNumberOfUnits();
+		int barracks = TerranBarracks.getNumberOfUnitsCompleted();
 		int academies = getNumberOfUnits();
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 

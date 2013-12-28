@@ -19,8 +19,8 @@ import ai.utils.RUtilities;
 
 public class TerranSupplyDepot {
 
-//	private static int INITIAL_DEPOT_MIN_DIST_FROM_BASE = 6;
-//	private static int INITIAL_DEPOT_MAX_DIST_FROM_BASE = 18;
+	// private static int INITIAL_DEPOT_MIN_DIST_FROM_BASE = 6;
+	// private static int INITIAL_DEPOT_MAX_DIST_FROM_BASE = 18;
 	private static int DEPOT_FROM_DEPOT_MIN_DISTANCE = 0;
 	private static int DEPOT_FROM_DEPOT_MAX_DISTANCE = 7;
 
@@ -47,6 +47,10 @@ public class TerranSupplyDepot {
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
 
 		if (barracks == 0 && depots == 1) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			return false;
+		}
+		if (barracks == 1 && depots == 1) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			return false;
 		}
@@ -89,7 +93,7 @@ public class TerranSupplyDepot {
 
 		boolean shouldBuild = ((depots == 0 && total <= 9 && free <= 3)
 				|| (total >= 10 && total <= 17 && free <= 4 && depots <= 1)
-				|| (total >= 18 && total <= 25 && free <= 7)
+				|| (total >= 18 && total <= 25 && free <= 5)
 				|| (total > 25 && total <= 45 && free <= 8) || (total > 45 && free <= 16) || (total > 90
 				&& total < 200 && free <= 20));
 
@@ -159,14 +163,20 @@ public class TerranSupplyDepot {
 		int currentDist = DEPOT_FROM_DEPOT_MIN_DISTANCE;
 		while (currentDist <= DEPOT_FROM_DEPOT_MAX_DISTANCE) {
 			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
+				if (i % 3 != 0 || i % 9 == 0) {
+					continue;
+				}
 				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
+					if (j % 2 != 0 || j % 6 == 0) {
+						continue;
+					}
 					int x = i * 32;
 					int y = j * 32;
 					if (Constructing.canBuildHere(builder, buildingType, i, j)
 							&& xvr.getUnitsOfGivenTypeInRadius(buildingType,
 									DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true).isEmpty()) {
 						MapPointInstance point = new MapPointInstance(x, y);
-						if (!Constructing.isTooNearMineralOrBase(point)) {
+						if (!Constructing.isTooNearMineralsOrGeyser(point)) {
 
 							// Damn, try NOT to build in the middle of narrow
 							// choke point.

@@ -503,6 +503,10 @@ public class UnitType {
 		return getID() == UnitTypes.Terran_Ghost.ordinal();
 	}
 
+	public boolean isGoliath() {
+		return getID() == UnitTypes.Terran_Ghost.ordinal();
+	}
+
 	public boolean isArmy() {
 		return !isBuilding() && !isWorker();
 	}

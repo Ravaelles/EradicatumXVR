@@ -21,24 +21,6 @@ public class UnitBasicBehavior {
 			return;
 		}
 
-		// Flying unit
-		if (unitType.isFlyer()) {
-
-			if (unit.isHidden()) {
-				// TOP PRIORITY: Act when enemy detector or some AA building is
-				// nearby: just run away, no matter what.
-				if (UnitActions.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, true,
-						true, true)) {
-					return;
-				}
-			} else {
-				if (UnitActions.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, false,
-						true, true)) {
-					return;
-				}
-			}
-		}
-
 		// ======================================
 		// OVERRIDE COMMANDS FOR SPECIFIC UNITS
 
@@ -96,12 +78,35 @@ public class UnitBasicBehavior {
 		else if (unitType.isWraith()) {
 			TerranWraith.act(unit);
 		}
+
+		// Flying unit
+		if (unitType.isFlyer()) {
+
+			if (unit.isHidden()) {
+				// TOP PRIORITY: Act when enemy detector or some AA building is
+				// nearby: just run away, no matter what.
+				if (UnitActions.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, true,
+						true, true)) {
+					return;
+				}
+			} else {
+				if (UnitActions.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, false,
+						true, true)) {
+					return;
+				}
+			}
+
+			if (xvr.isEnemyDefensiveAirBuildingNear(unit) && !unit.isStartingAttack()) {
+				UnitActions.moveToSafePlace(unit);
+				return;
+			}
+		}
 	}
 
 	public static void runFromCloseOpponents(Unit unit) {
 
 		// Don't interrupt when just starting an attack
-		if (unit.isStartingAttack() || unit.isLoaded()) {
+		if (unit.isStartingAttack() || unit.isLoaded() || unit.getType().isFirebat()) {
 			return;
 		}
 

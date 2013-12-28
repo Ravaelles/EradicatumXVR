@@ -24,6 +24,7 @@ import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
 import ai.utils.RUtilities;
+import ai.utils.TimeMeasurer;
 
 /**
  * Main controller of AI. It contains main method act() and has many, many
@@ -86,17 +87,23 @@ public class XVR {
 
 			// See if we're strong enough to attack the enemy
 			if (getTime() % 21 == 0) {
+				TimeMeasurer.startMeasuring("Strategy");
 				StrategyManager.evaluateMassiveAttackOptions();
+				TimeMeasurer.endMeasuring("Strategy");
 			}
 
 			// Handle technologies
 			if (getTime() % 23 == 0) {
+				TimeMeasurer.startMeasuring("Technology");
 				TechnologyManager.act();
+				TimeMeasurer.endMeasuring("Technology");
 			}
 
 			// Now let's mine minerals with your idle workers.
 			if (getTime() % 11 == 0) {
+				TimeMeasurer.startMeasuring("Workers");
 				WorkerManager.act();
+				TimeMeasurer.endMeasuring("Workers");
 			}
 
 			// Handle behavior of units and buildings.
@@ -109,12 +116,16 @@ public class XVR {
 				// + ", HP:" + unit.getHitPoints());
 				// }
 
+				TimeMeasurer.startMeasuring("Army");
 				UnitManager.act();
+				TimeMeasurer.endMeasuring("Army");
 			}
 
 			// Triple the frequency of "anti-hero" code
 			if (getTime() % 22 == 7 || getTime() % 22 == 14) {
+				TimeMeasurer.startMeasuring("Eval forces");
 				UnitManager.applyStrengthEvaluatorToAllUnits();
+				TimeMeasurer.endMeasuring("Eval forces");
 			}
 
 			// Avoid being under psionic storm, disruptive web etc.
@@ -128,13 +139,17 @@ public class XVR {
 			}
 
 			// Handle army building.
-			if (getTime() % 13 == 0) {
+			if (getTime() % 11 == 0) {
+				TimeMeasurer.startMeasuring("Army build");
 				ArmyCreationManager.act();
+				TimeMeasurer.endMeasuring("Army build");
 			}
 
 			// Handle constructing new buildings
 			if (getTime() % 9 == 0) {
+				TimeMeasurer.startMeasuring("Construct");
 				ConstructingManager.act();
+				TimeMeasurer.endMeasuring("Construct");
 			}
 
 			// if (getTime() % 70 == 0) {
@@ -855,6 +870,10 @@ public class XVR {
 		return false;
 	}
 
+	public boolean isEnemyDefensiveAirBuildingNear(MapPoint point) {
+		return isEnemyDefensiveAirBuildingNear(point.getX(), point.getY());
+	}
+
 	public boolean isEnemyDefensiveAirBuildingNear(int x, int y) {
 		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y),
 				WHAT_IS_NEAR_DISTANCE, getEnemyBuildings());
@@ -926,7 +945,7 @@ public class XVR {
 
 		for (Unit unit : bwapi.getMyUnits()) {
 			UnitType type = unit.getType();
-			if (!type.isBuilding() && !type.isWorker() && !type.isTank()) {
+			if (!type.isBuilding() && !type.isWorker() && !type.isTank() && !type.isSpiderMine()) {
 				objectsOfThisType.add(unit);
 			}
 		}

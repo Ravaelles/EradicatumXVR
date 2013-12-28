@@ -7,7 +7,9 @@ import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitCounter;
+import ai.managers.StrategyManager;
 import ai.managers.TechnologyManager;
+import ai.managers.units.UnitManager;
 
 public class TerranSiegeTank {
 
@@ -23,7 +25,7 @@ public class TerranSiegeTank {
 	public static void act(Unit unit) {
 		_properPlace = unit.getProperPlaceToBe();
 		updateProperPlaceToBeForTank(unit);
-		_isUnitWhereItShouldBe = _properPlace == null || _properPlace.distanceTo(unit) <= 3.1;
+		_isUnitWhereItShouldBe = _properPlace == null || _properPlace.distanceTo(unit) <= 3.3;
 		_nearestEnemy = xvr.getNearestGroundEnemy(unit);
 		_nearestEnemyDist = _nearestEnemy != null ? _nearestEnemy.distanceTo(unit) : -1;
 
@@ -40,6 +42,10 @@ public class TerranSiegeTank {
 		if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
 			_properPlace = nearestArmyUnit;
 		}
+
+		if (StrategyManager.isAnyAttackFormPending()) {
+			_properPlace = StrategyManager.getTargetPoint();
+		}
 	}
 
 	private static void actWhenInNormalMode(Unit unit) {
@@ -49,13 +55,20 @@ public class TerranSiegeTank {
 	}
 
 	private static boolean shouldSiege(Unit unit) {
-		if (_isUnitWhereItShouldBe || (_nearestEnemyDist > 0 && _nearestEnemyDist <= 11)) {
+		if ((_isUnitWhereItShouldBe && notTooManySiegedInArea(unit))
+				|| (_nearestEnemyDist > 0 && _nearestEnemyDist <= 11)) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	private static boolean notTooManySiegedInArea(Unit unit) {
+		// return xvr.countUnitsOfGivenTypeInRadius(type, tileRadius, point,
+		// onlyMyUnits);
+		return true;
 	}
 
 	private static boolean notTooManySiegedUnitHere(Unit unit) {
@@ -72,12 +85,13 @@ public class TerranSiegeTank {
 
 	private static boolean canSiegeInThisPlace(Unit unit) {
 		ChokePoint nearestChoke = MapExploration.getNearestChokePointFor(unit);
-		if (nearestChoke.getRadiusInTiles() <= 3 && unit.distanceToChokePoint(nearestChoke) <= 3) {
-			return false;
-		}
 
-		if (!unit.isMoving()) {
-			return true;
+		// Don't siege in the choke point near base, or you'll... lose.
+		if (nearestChoke.getRadiusInTiles() <= 3 && unit.distanceToChokePoint(nearestChoke) <= 3) {
+			Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, unit);
+			if (nearestBase != null && nearestBase.distanceTo(unit) <= 20) {
+				return false;
+			}
 		}
 
 		return true;

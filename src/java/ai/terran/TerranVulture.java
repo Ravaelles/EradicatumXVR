@@ -2,6 +2,7 @@ package ai.terran;
 
 import java.util.ArrayList;
 
+import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
@@ -18,7 +19,7 @@ public class TerranVulture {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static UnitTypes unitType = UnitTypes.Terran_Siege_Tank_Tank_Mode;
+	private static UnitTypes unitType = UnitTypes.Terran_Vulture;
 
 	public static UnitTypes getUnitType() {
 		return unitType;
@@ -38,6 +39,11 @@ public class TerranVulture {
 
 		// Don't interrupt unit on march
 		if (unit.isStartingAttack()) {
+			return;
+		}
+
+		if (xvr.isEnemyDefensiveGroundBuildingNear(unit)) {
+			UnitActions.moveToSafePlace(unit);
 			return;
 		}
 
@@ -72,9 +78,12 @@ public class TerranVulture {
 		// Use mines if possible
 		handleMines(unit);
 
-		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+		if (unit.getGroundWeaponCooldown() > 0
+				&& !StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
 			UnitActions.moveToSafePlace(unit);
 		}
+
+		UnitActions.actWhenLowHitPointsOrShields(unit, false);
 	}
 
 	private static void handleMines(Unit unit) {
@@ -83,10 +92,16 @@ public class TerranVulture {
 			// Make sure mine will be safely far from our buildings
 			boolean isSafelyFarFromBuildings = isSafelyFarFromBuildings(unit);
 
-			if (isSafelyFarFromBuildings && minesArentStackedTooMuchNear(unit)) {
+			if (isQuiteNearChokePoint(unit) && isSafelyFarFromBuildings
+					&& minesArentStackedTooMuchNear(unit)) {
 				placeSpiderMine(unit, unit);
 			}
 		}
+	}
+
+	private static boolean isQuiteNearChokePoint(Unit unit) {
+		ChokePoint choke = MapExploration.getNearestChokePointFor(unit);
+		return unit.distanceToChokePoint(choke) <= 3 || unit.getSpiderMineCount() == 3;
 	}
 
 	private static void placeSpiderMine(Unit vulture, MapPoint place) {
@@ -106,11 +121,11 @@ public class TerranVulture {
 
 			double distanceToBuilding = nearestBuilding.distanceTo(unit);
 			if (nearestBuilding.getType().isBunker()) {
-				if (distanceToBuilding <= 5) {
+				if (distanceToBuilding <= 11) {
 					isSafelyFarFromBuilding = false;
 				}
 			} else {
-				if (distanceToBuilding <= 14) {
+				if (distanceToBuilding <= 17) {
 					isSafelyFarFromBuilding = false;
 				}
 			}

@@ -61,8 +61,7 @@ public class RUtilities {
 	 * testing, error reporting.
 	 */
 	public static void displayMessage(String text) {
-		JOptionPane.showMessageDialog(new JOptionPane(), text, "",
-				JOptionPane.PLAIN_MESSAGE);
+		JOptionPane.showMessageDialog(new JOptionPane(), text, "", JOptionPane.PLAIN_MESSAGE);
 	}
 
 	/**
@@ -70,8 +69,7 @@ public class RUtilities {
 	 * title. Very useful for testing, error reporting.
 	 */
 	public static void displayMessage(String title, String text) {
-		JOptionPane.showMessageDialog(new JOptionPane(), text, title,
-				JOptionPane.PLAIN_MESSAGE);
+		JOptionPane.showMessageDialog(new JOptionPane(), text, title, JOptionPane.PLAIN_MESSAGE);
 	}
 
 	/**
@@ -116,8 +114,7 @@ public class RUtilities {
 	 * @param maxLines
 	 *            maximum number of lines of result String
 	 */
-	public static String convertStackToString(int maxLines,
-			StackTraceElement[] stackTrace) {
+	public static String convertStackToString(int maxLines, StackTraceElement[] stackTrace) {
 		String result = "";
 
 		for (int i = 0; i < stackTrace.length && i < maxLines; i++) {
@@ -166,8 +163,7 @@ public class RUtilities {
 		for (int i = 0; i < decimalPlaces; i++) {
 			zeros += "0";
 		}
-		return new DecimalFormat("0." + zeros).format(decimalPlaces).replace(
-				',', '.');
+		return new DecimalFormat("0." + zeros).format(decimalPlaces).replace(',', '.');
 	}
 
 	/**
@@ -179,8 +175,7 @@ public class RUtilities {
 		container.setBackground(desiredBackgroundColor);
 		for (Component component : container.getComponents()) {
 			if (component instanceof Container) {
-				setAllBackgroundsColorsOfComponent((Container) component,
-						desiredBackgroundColor);
+				setAllBackgroundsColorsOfComponent((Container) component, desiredBackgroundColor);
 			} else {
 				component.setBackground(desiredBackgroundColor);
 			}
@@ -198,8 +193,7 @@ public class RUtilities {
 
 		for (Component component : container.getComponents()) {
 			if (component instanceof Container)
-				setAllBackgroundsColorsOfComponent((Container) component,
-						desiredBackgroundColor);
+				setAllBackgroundsColorsOfComponent((Container) component, desiredBackgroundColor);
 			else {
 				component.setBackground(desiredBackgroundColor);
 			}
@@ -215,8 +209,7 @@ public class RUtilities {
 		container.setBackground(desiredBackgroundColor);
 		for (Component component : container.getComponents()) {
 			if (component instanceof Container)
-				setAllBackgroundsColorsOfComponent((Container) component,
-						desiredBackgroundColor);
+				setAllBackgroundsColorsOfComponent((Container) component, desiredBackgroundColor);
 			else {
 				if (component instanceof Button || component instanceof JButton)
 					component.setBackground(desiredBackgroundColor);
@@ -234,8 +227,7 @@ public class RUtilities {
 
 		for (Component component : container.getComponents()) {
 			if (component instanceof Container)
-				setAllForegroundsColorsOfComponent((Container) component,
-						desiredForegroundColor);
+				setAllForegroundsColorsOfComponent((Container) component, desiredForegroundColor);
 			else {
 				component.setForeground(desiredForegroundColor);
 			}
@@ -246,16 +238,15 @@ public class RUtilities {
 	 * Makes sure each object in given panel (and its children) has specified
 	 * color.
 	 */
-	public static void setAllButtonsOfComponent(Container container,
-			Color backgroundColor, Color fontColor, Border border) {
+	public static void setAllButtonsOfComponent(Container container, Color backgroundColor,
+			Color fontColor, Border border) {
 		for (Component component : container.getComponents()) {
 			if (component instanceof JButton) {
 				component.setBackground(backgroundColor);
 				component.setForeground(fontColor);
 				((JButton) component).setBorder(border);
 			} else if (component instanceof JPanel)
-				setAllButtonsOfComponent((JButton) component, backgroundColor,
-						fontColor, border);
+				setAllButtonsOfComponent((JButton) component, backgroundColor, fontColor, border);
 		}
 	}
 
@@ -270,9 +261,8 @@ public class RUtilities {
 	 */
 	public static boolean isImage(String extension) {
 		extension = extension.toLowerCase();
-		if (extension.equals("png") || extension.equals("jpg")
-				|| extension.equals("jpeg") || extension.equals("bmp")
-				|| extension.equals("gif"))
+		if (extension.equals("png") || extension.equals("jpg") || extension.equals("jpeg")
+				|| extension.equals("bmp") || extension.equals("gif"))
 			return true;
 		else
 			return false;
@@ -283,8 +273,7 @@ public class RUtilities {
 	 *         jpg, jpeg, bmp or gif
 	 */
 	public static boolean isFileImage(File file) {
-		return isImage(file.getName().substring(
-				file.getName().lastIndexOf('.') + 1));
+		return isImage(file.getName().substring(file.getName().lastIndexOf('.') + 1));
 	}
 
 	/**
@@ -299,17 +288,11 @@ public class RUtilities {
 	 * Displays given exception in user friendly way (with exception name and
 	 * stack).
 	 */
-	public static void displayException(Exception e, String title,
-			String preText) {
-		RUtilities
-				.displayError(
-						title,
-						preText
-								+ "\n\n"
-								+ e.getMessage()
-								+ "\n\n"
-								+ RUtilities.convertStackToString(10,
-										e.getStackTrace()));
+	public static void displayException(Exception e, String title, String preText) {
+		RUtilities.displayError(
+				title,
+				preText + "\n\n" + e.getMessage() + "\n\n"
+						+ RUtilities.convertStackToString(10, e.getStackTrace()));
 	}
 
 	/**
@@ -320,22 +303,22 @@ public class RUtilities {
 	 * @return false if user clicked no
 	 */
 	public static boolean displayYesNoPopup(String title, String text) {
-		if (JOptionPane.showConfirmDialog(new JOptionPane(), text, title,
-				JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+		if (JOptionPane
+				.showConfirmDialog(new JOptionPane(), text, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 			return true;
 		else
 			return false;
 	}
 
 	/** Displays new JFrame with given panel, as centered window. */
-	public static JFrame displayPanelAsCenteredFrame(JPanel panel,
-			String frameTitle, Image frameIcon) {
+	public static JFrame displayPanelAsCenteredFrame(JPanel panel, String frameTitle,
+			Image frameIcon) {
 		return displayPanelAsCenteredFrame(panel, frameTitle, frameIcon, true);
 	}
 
 	/** Displays new JFrame with given panel, as centered window. */
-	public static JFrame displayPanelAsCenteredFrame(JPanel panel,
-			String frameTitle, Image frameIcon, boolean visible) {
+	public static JFrame displayPanelAsCenteredFrame(JPanel panel, String frameTitle,
+			Image frameIcon, boolean visible) {
 		JFrame frame = new JFrame();
 		if (frameIcon != null)
 			frame.setIconImage(frameIcon);
@@ -419,8 +402,7 @@ public class RUtilities {
 	/** @return string like "2011-03-07", based on today's date. */
 	public static String getTodayAsString() {
 		GregorianCalendar today = new GregorianCalendar();
-		return today.get(GregorianCalendar.YEAR) + "-"
-				+ today.get(GregorianCalendar.MONTH) + "-"
+		return today.get(GregorianCalendar.YEAR) + "-" + today.get(GregorianCalendar.MONTH) + "-"
 				+ today.get(GregorianCalendar.DAY_OF_MONTH);
 	}
 
@@ -428,9 +410,8 @@ public class RUtilities {
 	public static String getYesterdayAsString() {
 		GregorianCalendar yesterday = new GregorianCalendar();
 		yesterday.add(GregorianCalendar.DAY_OF_MONTH, -1);
-		return yesterday.get(GregorianCalendar.YEAR) + "-"
-				+ yesterday.get(GregorianCalendar.MONTH) + "-"
-				+ yesterday.get(GregorianCalendar.DAY_OF_MONTH);
+		return yesterday.get(GregorianCalendar.YEAR) + "-" + yesterday.get(GregorianCalendar.MONTH)
+				+ "-" + yesterday.get(GregorianCalendar.DAY_OF_MONTH);
 	}
 
 	/** Returns string like 21:12:59 */
@@ -438,14 +419,12 @@ public class RUtilities {
 		GregorianCalendar today = new GregorianCalendar();
 		String hour = today.get(GregorianCalendar.HOUR_OF_DAY) + "";
 		return (hour.length() < 2 ? ("0" + hour) : hour) + ":"
-				+ today.get(GregorianCalendar.MINUTE) + ":"
-				+ today.get(GregorianCalendar.SECOND);
+				+ today.get(GregorianCalendar.MINUTE) + ":" + today.get(GregorianCalendar.SECOND);
 	}
 
 	/** Returns string like 2011-06-09 21:20:59 */
 	public static String getDateAndTime() {
-		return RUtilities.getTodayAsString() + " "
-				+ RUtilities.getCurrentTimeAsString();
+		return RUtilities.getTodayAsString() + " " + RUtilities.getCurrentTimeAsString();
 	}
 
 	/**
@@ -498,8 +477,7 @@ public class RUtilities {
 
 	/** Returns extension of given file e.g. "jpg", "txt". */
 	public static String getFileExtension(File fileImage) {
-		return fileImage.getName().substring(
-				fileImage.getName().lastIndexOf('.') + 1);
+		return fileImage.getName().substring(fileImage.getName().lastIndexOf('.') + 1);
 	}
 
 	/**
@@ -512,16 +490,13 @@ public class RUtilities {
 		if (fileName.lastIndexOf("\\") == -1) {
 			return fileName.substring(0, fileName.lastIndexOf("."));
 		} else {
-			return fileName.substring(fileName.lastIndexOf("\\"),
-					fileName.lastIndexOf("."));
+			return fileName.substring(fileName.lastIndexOf("\\"), fileName.lastIndexOf("."));
 		}
 	}
 
 	/** Returns scaled image. */
-	public static BufferedImage resizeImage(BufferedImage originalImage,
-			int width, int height) {
-		BufferedImage resizedImage = new BufferedImage(width, height,
-				originalImage.getType());
+	public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
+		BufferedImage resizedImage = new BufferedImage(width, height, originalImage.getType());
 		Graphics2D g = resizedImage.createGraphics();
 		g.drawImage(originalImage, 0, 0, width, height, null);
 		g.dispose();
@@ -542,9 +517,8 @@ public class RUtilities {
 			else
 				return out;
 		} catch (Exception e) {
-			RUtilities.displayException(e, "Błąd",
-					"Błąd przy zapisywaniu do pliku\n" + "saveToFile(\""
-							+ filePath + "\", \"" + stringToWrite + "\")");
+			RUtilities.displayException(e, "Błąd", "Błąd przy zapisywaniu do pliku\n"
+					+ "saveToFile(\"" + filePath + "\", \"" + stringToWrite + "\")");
 		}
 		return null;
 	}
@@ -593,20 +567,14 @@ public class RUtilities {
 			return numberOfSeconds + "s";
 		} else {
 			if (numberOfSeconds < 3600) {
-				return numberOfSeconds
-						/ 60
-						+ "m "
+				return numberOfSeconds / 60 + "m "
 						+ convertSecondsToDisplayableFormat(numberOfSeconds % 60);
 			} else {
 				if (numberOfSeconds < 86400) {
-					return numberOfSeconds
-							/ 3600
-							+ "h "
+					return numberOfSeconds / 3600 + "h "
 							+ convertSecondsToDisplayableFormat(numberOfSeconds % 3600);
 				} else {
-					return numberOfSeconds
-							/ 86400
-							+ "d "
+					return numberOfSeconds / 86400 + "d "
 							+ convertSecondsToDisplayableFormat(numberOfSeconds % 86400);
 				}
 			}
@@ -624,12 +592,11 @@ public class RUtilities {
 
 		System.out.println();
 		System.out.println(totalToProcess + " objects have been processed.");
-		System.out
-				.println("Processing took "
-						+ convertSecondsToDisplayableFormat((int) (timeEnd - timeStart) / 1000)
-						+ " seconds  ("
-						+ String.format("%.2f", (double) (timeEnd - timeStart)
-								/ (1000 * totalToProcess)) + "s per file)");
+		System.out.println("Processing took "
+				+ convertSecondsToDisplayableFormat((int) (timeEnd - timeStart) / 1000)
+				+ " seconds  ("
+				+ String.format("%.2f", (double) (timeEnd - timeStart) / (1000 * totalToProcess))
+				+ "s per file)");
 		System.out.println("################################################");
 		System.out.println();
 	}
@@ -638,23 +605,20 @@ public class RUtilities {
 	 * According to current objects processed and total to process it displays
 	 * estimated time to finish all tasks.
 	 */
-	public static void displayETA(long timeStart, int alreadyProcessed,
-			int totalToProcess) {
+	public static void displayETA(long timeStart, int alreadyProcessed, int totalToProcess) {
 		double seconds = ((double) (System.currentTimeMillis() - timeStart) / (1000 * alreadyProcessed));
 		String eta = RUtilities
 				.convertSecondsToDisplayableFormat((int) ((totalToProcess - alreadyProcessed) * seconds));
 		System.out.println("It took " + String.format("%.1f", seconds) + "s. "
-				+ (int) alreadyProcessed * 100 / totalToProcess + "% objects ("
-				+ alreadyProcessed + "/" + totalToProcess + ") ready. ETA: "
-				+ eta);
+				+ (int) alreadyProcessed * 100 / totalToProcess + "% objects (" + alreadyProcessed
+				+ "/" + totalToProcess + ") ready. ETA: " + eta);
 	}
 
 	/**
 	 * Returns map containing number of occurences of each element in given
 	 * collection.
 	 */
-	public static TreeMap<String, Integer> getOccurenceMap(
-			Collection<String> collection) {
+	public static TreeMap<String, Integer> getOccurenceMap(Collection<String> collection) {
 		TreeMap<String, Integer> occurences = new TreeMap<String, Integer>();
 		for (String string : collection) {
 			if (occurences.containsKey(string)) {
@@ -720,8 +684,7 @@ public class RUtilities {
 	/**
      *     */
 	public static int daysBetween(Calendar c1, Calendar c2) {
-		return (int) Math
-				.abs((c1.getTimeInMillis() - c2.getTimeInMillis()) / 3600000 / 24);
+		return (int) Math.abs((c1.getTimeInMillis() - c2.getTimeInMillis()) / 3600000 / 24);
 	}
 
 	/**
@@ -772,8 +735,7 @@ public class RUtilities {
 
 	/**
      *     */
-	public static void setActionOnClick(JLabel label,
-			final Callable<Object> callable) {
+	public static void setActionOnClick(JLabel label, final Callable<Object> callable) {
 		label.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -791,8 +753,7 @@ public class RUtilities {
 	 * provided value to the possible range e.g. we can assign letters from A to
 	 * Z for numbers 1-10.
 	 * */
-	public static String assignStringForValue(double value, double max,
-			double min, String[] strings) {
+	public static String assignStringForValue(double value, double max, double min, String[] strings) {
 		value -= min;
 		max -= min;
 		min = 0;
@@ -822,16 +783,15 @@ public class RUtilities {
 
 	/**
      *     */
-	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(
-			Map<K, V> map, boolean ascending) {
+	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map,
+			boolean ascending) {
 		final int compareModifier = ascending ? 1 : -1;
 		java.util.List<Map.Entry<K, V>> list = new LinkedList<java.util.Map.Entry<K, V>>(
 				map.entrySet());
 		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
 			@Override
 			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
-				return compareModifier
-						* (o1.getValue()).compareTo(o2.getValue());
+				return compareModifier * (o1.getValue()).compareTo(o2.getValue());
 			}
 		});
 
@@ -857,8 +817,7 @@ public class RUtilities {
 	 *            and number of elements is even the center (but lesser) element
 	 *            will be returned e.g. for [1 2 3 4] it would return 2.
 	 * */
-	public static double median(Collection<Double> list,
-			boolean mathematicMedian) {
+	public static double median(Collection<Double> list, boolean mathematicMedian) {
 		if (list.isEmpty()) {
 			RUtilities.displayMessage("List for computing a median is empty!");
 			return -1;
@@ -876,8 +835,7 @@ public class RUtilities {
 			return sorted.get(sorted.size() / 2);
 		} else {
 			if (mathematicMedian) {
-				return (sorted.get(sorted.size() / 2) + sorted.get(sorted
-						.size() / 2 + 1)) / 2;
+				return (sorted.get(sorted.size() / 2) + sorted.get(sorted.size() / 2 + 1)) / 2;
 			} else {
 				return (sorted.get(sorted.size() / 2));
 			}
@@ -888,8 +846,8 @@ public class RUtilities {
 	 * Returns index of option chosen according to the option weights. Higher
 	 * the weight is, greater the chance for the option to be chosen.
 	 * */
-	public static int chooseOptionRandomlyWithWeights(
-			boolean areValuesNormalizedToOne, double... weights) {
+	public static int chooseOptionRandomlyWithWeights(boolean areValuesNormalizedToOne,
+			double... weights) {
 		double[] normalized;
 
 		if (!areValuesNormalizedToOne) {
@@ -930,8 +888,7 @@ public class RUtilities {
 
 	/**
      *     */
-	public static HashMap<Object, Double> normalizeTo(Map<?, Double> map,
-			int toValue) {
+	public static HashMap<Object, Double> normalizeTo(Map<?, Double> map, int toValue) {
 		HashMap<Object, Double> normalized = new HashMap<Object, Double>();
 
 		double total = 0;
@@ -940,8 +897,7 @@ public class RUtilities {
 			total += value;
 		}
 
-		for (Iterator<? extends Object> it = map.keySet().iterator(); it
-				.hasNext();) {
+		for (Iterator<? extends Object> it = map.keySet().iterator(); it.hasNext();) {
 			Object key = it.next();
 			normalized.put(key, map.get(key) / total);
 		}
@@ -952,7 +908,8 @@ public class RUtilities {
 	/**
 	 * Returns index-th element of the given set or null if there's no element
 	 * "at" given index.
-	 * @return 
+	 * 
+	 * @return
 	 * */
 	public static Object getSetElement(Set<?> set, int index) {
 		int counter = 0;
@@ -962,6 +919,16 @@ public class RUtilities {
 			}
 		}
 		return null;
+	}
+
+	public static double getMaxElement(Collection<Double> collection) {
+		double max = -9999999;
+		for (double number : collection) {
+			if (max < number) {
+				max = number;
+			}
+		}
+		return max;
 	}
 
 }

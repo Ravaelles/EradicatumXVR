@@ -38,6 +38,11 @@ public class TerranBunker {
 				return true;
 			}
 
+			if (bunkers >= TerranCommandCenter.getNumberOfUnits() * MAX_STACK) {
+				ShouldBuildCache.cacheShouldBuildInfo(type, false);
+				return false;
+			}
+
 			boolean weAreBuilding = Constructing.weAreBuilding(type);
 			if (weAreBuilding) {
 				ShouldBuildCache.cacheShouldBuildInfo(type, false);
@@ -261,7 +266,7 @@ public class TerranBunker {
 
 		// ================================
 		// Define maximum distance from a choke point for a cannon
-		int minimumDistance = 1;
+		int minimumDistance = 5;
 		int numberOfCannonsNearby = calculateBunkersNearby(mapPoint);
 		if (mapPoint instanceof ChokePoint) {
 			ChokePoint choke = (ChokePoint) mapPoint;

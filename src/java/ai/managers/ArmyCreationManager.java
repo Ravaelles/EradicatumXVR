@@ -3,6 +3,7 @@ package ai.managers;
 import java.util.ArrayList;
 
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
@@ -17,7 +18,8 @@ public class ArmyCreationManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static final int MINIMUM_INFANTRY = 15;
+	private static final int MINIMUM_UNITS = 19;
+	private static final int MINIMUM_MARINES = 12;
 
 	public static void act() {
 		if (weShouldBuildBattleUnits()) {
@@ -31,10 +33,12 @@ public class ArmyCreationManager {
 			}
 
 			// BARRACKS
+			int infantry = UnitCounter.getNumberOfInfantryUnits();
 			boolean noFactories = TerranFactory.getNumberOfUnitsCompleted() == 0;
-			boolean fewInfantry = UnitCounter.getNumberOfInfantryUnits() <= MINIMUM_INFANTRY;
+			boolean fewInfantry = infantry <= MINIMUM_MARINES;
 			boolean haveFreeFactorySpots = TerranFactory.getOneNotBusy() != null;
-			boolean shouldBuildInfantry = noFactories || (!haveFreeFactorySpots && fewInfantry);
+			boolean shouldBuildInfantry = fewInfantry || noFactories
+					|| (!haveFreeFactorySpots && fewInfantry);
 			if (shouldBuildInfantry) {
 				ArrayList<Unit> barracks = TerranBarracks.getAllObjects();
 				if (!barracks.isEmpty()) {
@@ -54,12 +58,19 @@ public class ArmyCreationManager {
 		}
 	}
 
+	public static boolean isCriticallyFewInfantry() {
+		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) <= MINIMUM_MARINES;
+	}
+
 	public static boolean weShouldBuildBattleUnits() {
+		if (isCriticallyFewInfantry()) {
+			return true;
+		}
+
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 		int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
 
-		if (battleUnits <= MINIMUM_INFANTRY
-				|| (battleUnits < StrategyManager.getMinBattleUnits() + 2)) {
+		if (battleUnits <= MINIMUM_UNITS) {
 			return true;
 		}
 		if (bases == 1

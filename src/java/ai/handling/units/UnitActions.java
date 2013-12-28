@@ -16,7 +16,6 @@ import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.managers.StrategyManager;
 import ai.managers.units.UnitManager;
-import ai.terran.ProtossShieldBattery;
 import ai.terran.TerranBunker;
 import ai.utils.RUtilities;
 
@@ -324,26 +323,8 @@ public class UnitActions {
 
 		// =====================================================================
 
-		// First try to go to the nearest shield battery, if exists.
-		goTo = ProtossShieldBattery.getOneWithEnergy();
-		if (goTo != null && goTo.isUnpowered()) {
-			goTo = null;
-		}
-
-		if (goTo != null) {
-
-			// We can heal at this point! Right click *should* do it.
-			if (goTo.getEnergy() >= 13) {
-				UnitActions.rightClick(unit, goTo);
-				return;
-			}
-
-			// We cannot heal, just go there and hope it will heal the poor unit
-			// ;_;
-		}
-
 		// Then try to go to cannon nearest to the last base, if exists.
-		else {
+		if (goTo == null) {
 			goTo = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), xvr.getLastBase());
 		}
 
@@ -376,6 +357,22 @@ public class UnitActions {
 
 	public static void moveToSafePlace(Unit unit) {
 		ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
+	}
+
+	public static void repairThisUnit(Unit unit) {
+		if (unit.getType().isVulture()) {
+			return;
+		}
+
+		Unit repairer = xvr.getOptimalBuilder(unit);
+		if (unit == null || repairer == null) {
+			return;
+		}
+		repair(repairer, unit);
+	}
+
+	public static void holdPosition(Unit unit) {
+		xvr.getBwapi().holdPosition(unit.getID());
 	}
 
 }

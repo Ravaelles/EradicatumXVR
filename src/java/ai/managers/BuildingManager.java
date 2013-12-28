@@ -43,7 +43,7 @@ public class BuildingManager {
 		// }
 		// }
 		// // }
-		
+
 		if (type.getID() == UnitTypes.Terran_Comsat_Station.ordinal()) {
 			TerranComsatStation.act(building);
 		}
@@ -69,7 +69,7 @@ public class BuildingManager {
 		if (building.getType().isBunker()) {
 			int enemiesNearBunker = xvr.getNumberOfUnitsInRadius(building, 11,
 					xvr.getEnemyArmyUnits());
-			return Math.min(5, Math.min(1, enemiesNearBunker / 3));
+			return Math.min(5, Math.max(1, enemiesNearBunker / 3));
 		} else {
 			return 1;
 		}

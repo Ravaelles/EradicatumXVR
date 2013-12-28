@@ -1016,4 +1016,9 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		return !type.isVulture() && !type.isWorker() && !type.isTank();
 	}
 
+	public boolean isRepairable() {
+		return type.isFlyer() || type.isBuilding() || type.isVulture() || type.isTank()
+				|| type.isGoliath();
+	}
+
 }

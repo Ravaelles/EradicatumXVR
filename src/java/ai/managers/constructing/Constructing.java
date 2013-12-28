@@ -13,12 +13,6 @@ import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.units.UnitManager;
-import ai.terran.ProtossArbiterTribunal;
-import ai.terran.ProtossCitadelOfAdun;
-import ai.terran.ProtossFleetBeacon;
-import ai.terran.ProtossRoboticsSupportBay;
-import ai.terran.ProtossShieldBattery;
-import ai.terran.ProtossTemplarArchives;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
@@ -98,21 +92,9 @@ public class Constructing {
 			buildingsToBuildTypesNumber++;
 			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
 		}
-		if (ProtossTemplarArchives.shouldBuild()) {
-			mineralsRequired += 150;
-			gasRequired += 200;
-			buildingsToBuildTypesNumber++;
-			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
-		}
 		if (TerranFactory.shouldBuild()) {
 			mineralsRequired += 200;
 			gasRequired += 200;
-			buildingsToBuildTypesNumber++;
-			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
-		}
-		if (ProtossRoboticsSupportBay.shouldBuild()) {
-			mineralsRequired += 150;
-			gasRequired += 100;
 			buildingsToBuildTypesNumber++;
 			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
 		}
@@ -146,32 +128,9 @@ public class Constructing {
 			buildingsToBuildTypesNumber++;
 			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
 		}
-		if (ProtossCitadelOfAdun.shouldBuild()) {
-			mineralsRequired += 150;
-			gasRequired += 100;
-			buildingsToBuildTypesNumber++;
-			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
-		}
 		if (TerranComsatStation.shouldBuild()) {
 			mineralsRequired += 50;
 			gasRequired += 100;
-			buildingsToBuildTypesNumber++;
-			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
-		}
-		if (ProtossArbiterTribunal.shouldBuild()) {
-			mineralsRequired += 200;
-			gasRequired += 150;
-			buildingsToBuildTypesNumber++;
-			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
-		}
-		if (ProtossFleetBeacon.shouldBuild()) {
-			mineralsRequired += 300;
-			gasRequired += 200;
-			buildingsToBuildTypesNumber++;
-			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
-		}
-		if (ProtossShieldBattery.shouldBuild()) {
-			mineralsRequired += 100;
 			buildingsToBuildTypesNumber++;
 			return new int[] { mineralsRequired + 8, gasRequired, buildingsToBuildTypesNumber };
 		}
@@ -232,13 +191,20 @@ public class Constructing {
 		JNIBWAPI bwapi = XVR.getInstance().getBwapi();
 		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
 		boolean isBase = type.isBase();
+		boolean isDepot = type.isSupplyDepot();
 
 		boolean skipCheckingIsFreeFromUnits = type.isBase();
 
 		int currentDist = minimumDist;
 		while (currentDist <= maximumDist) {
 			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
+				if (isDepot && (i % 3 != 0 || i % 9 == 0)) {
+					continue;
+				}
 				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
+					if (isDepot && (j % 2 != 0 || j % 6 == 0)) {
+						continue;
+					}
 					if (bwapi.canBuildHere(builderID, i, j, buildingTypeID, false)) {
 						// && isBuildTileFullyBuildableFor(builderID, i, j,
 						// buildingTypeID)
@@ -249,9 +215,9 @@ public class Constructing {
 						if (optimalBuilder != null
 								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
 										optimalBuilder.getID(), i, j))) {
-							if ((skipCheckingIsFreeFromUnits || !isTooNearMineralOrBase(place))
+							if ((skipCheckingIsFreeFromUnits || !isTooNearMineralsOrGeyser(place))
 									&& (isEnoughPlaceToOtherBuildings(place, type))
-									&& (isBase || !isOverlappingNextNexus(place, type))
+									&& (isBase || !isOverlappingNextBase(place, type))
 									&& (isBase || !isTooCloseToAnyChokePoint(place))) {
 
 								// if (type.isPhotonCannon()) {
@@ -284,10 +250,10 @@ public class Constructing {
 		return false;
 	}
 
-	private static boolean isOverlappingNextNexus(MapPoint place, UnitType type) {
+	private static boolean isOverlappingNextBase(MapPoint place, UnitType type) {
 		if (!type.isBase()
 				&& UnitCounter.getNumberOfUnits(TerranSupplyDepot.getBuildingType()) >= 1) {
-			return xvr.getDistanceSimple(place, TerranCommandCenter.findTileForNextBase(false)) <= 4;
+			return xvr.getDistanceSimple(place, TerranCommandCenter.findTileForNextBase(false)) <= 6;
 		} else {
 			return false;
 		}
@@ -339,6 +305,9 @@ public class Constructing {
 			if (unitType.isFactory() || unitType.isBase() || unitType.isScienceFacility()) {
 				bonus++;
 				dx = 45;
+				if (unitType.isBase()) {
+					bonus += 2;
+				}
 			}
 
 			if (type.isBuilding()
@@ -349,7 +318,21 @@ public class Constructing {
 		return true;
 	}
 
-	public static boolean isTooNearMineralOrBase(MapPoint point) {
+	public static boolean isTooNearMineralsOrGeyser(MapPoint point) {
+
+		// Check if isn't too near to geyser
+		Unit nearestGeyser = xvr.getUnitNearestFromList(point, xvr.getGeysersUnits());
+		double distToGeyser = xvr.getDistanceBetween(nearestGeyser, point);
+		Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
+		if (distToGeyser <= 5) {
+			double distBaseToGeyser = xvr.getDistanceBetween(nearestBase, nearestGeyser);
+			if (distBaseToGeyser >= distToGeyser) {
+				return false;
+			}
+		}
+
+		// ==================================
+		// Check if isn't too near to mineral
 		Unit nearestMineral = xvr.getUnitNearestFromList(point, xvr.getMineralsUnits());
 		double distToMineral = xvr.getDistanceBetween(nearestMineral, point);
 		if (distToMineral <= 7) {
@@ -357,7 +340,6 @@ public class Constructing {
 		}
 
 		if (distToMineral <= 10) {
-			Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
 			if (nearestBase.distanceTo(point) <= 4) {
 				return false;
 			}
@@ -542,6 +524,7 @@ public class Constructing {
 		// Disallow multiple building of all buildings, except cannons.
 		if (building.getType().isBarracks()) {
 			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+			// int barracks = TerranBarracks.getNumberOfUnits();
 			canProceed = builders == 0;
 		} else {
 			canProceed = !weAreBuilding(building);
@@ -570,21 +553,5 @@ public class Constructing {
 		}
 		xvr.getBwapi().buildAddon(buildingWithNoAddOn.getID(), buildingType.ordinal());
 	}
-
-	// /** This method shouldn't be used other than in very, very specific
-	// cases. */
-	// public static void forceConstructingPylonNear(MapPoint
-	// tryBuildingAroundHere) {
-	//
-	// // First find proper place for building.
-	// MapPoint tileForBuilding = getLegitTileToBuildNear(getRandomWorker(),
-	// ProtossPylon.getBuildingType(), tryBuildingAroundHere, 5, 13, false);
-	//
-	// // Construct building here.
-	// constructBuilding(xvr, ProtossPylon.getBuildingType(), tileForBuilding);
-	// // if (!operation) {
-	// // Debug.message(xvr, "Forced constr: no place for " + buildingtype);
-	// // }
-	// }
 
 }

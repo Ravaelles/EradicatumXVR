@@ -6,7 +6,6 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
-import ai.managers.BotStrategyManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
@@ -29,8 +28,8 @@ public class TerranBarracks {
 	public static boolean LIMIT_MARINES = false;
 
 	private static int marinesBuildRatio = 65;
-	private static int firebatBuildRatio = 10;
-	private static int medicBuildRatio = 35;
+	private static int firebatBuildRatio = 0;
+	private static int medicBuildRatio = 19;
 
 	// private static int highTemplarBuildRatio = 19;
 
@@ -46,86 +45,94 @@ public class TerranBarracks {
 			return false;
 		}
 
-		// ### Version ### Expansion with cannons
-		if (BotStrategyManager.isExpandWithBunkers()) {
-			int bunkers = UnitCounter.getNumberOfUnitsCompleted(TerranBunker.getBuildingType());
-			if ((bunkers >= TerranBunker.MAX_STACK || xvr.canAfford(300)) && barracks <= 2
-					&& xvr.canAfford(150)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
+		if (TerranSupplyDepot.getNumberOfUnits() > 0 && barracks < 2) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			return true;
 		}
 
-		// ### Version ### Expansion with gateways
-		if (BotStrategyManager.isExpandWithBarracks()) {
-			if (barracks <= 2 && (isMajorityOfBarracksTrainingUnits()) && xvr.canAfford(134)) {
-				if (barracks < 2) {
-					ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-					return true;
-				}
-			} else {
-				if (!UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType())) {
-					ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-					return false;
-				}
-			}
-		}
+		// // ### Version ### Expansion with cannons
+		// if (BotStrategyManager.isExpandWithBunkers()) {
+		// int bunkers =
+		// UnitCounter.getNumberOfUnitsCompleted(TerranBunker.getBuildingType());
+		// if ((bunkers >= TerranBunker.MAX_STACK || xvr.canAfford(300)) &&
+		// barracks <= 2
+		// && xvr.canAfford(150)) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		// }
+
+		// // ### Version ### Expansion with gateways
+		// if (BotStrategyManager.isExpandWithBarracks()) {
+		// if (barracks <= 2 && (isMajorityOfBarracksTrainingUnits()) &&
+		// xvr.canAfford(134)) {
+		// if (barracks < 2) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		// } else {
+		// if (!UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType())) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// return false;
+		// }
+		// }
+		// }
 
 		if (bases <= 1) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			return false;
 		}
 
-//		if (barracks >= 3 && xvr.canAfford(140)) {
-//			if (isMajorityOfBarracksTrainingUnits()) {
-//				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-//				return true;
-//			}
-//		}
-//
-//		// 3 barracks or more
-//		if (barracks >= 3 && (barracks <= 5 || xvr.canAfford(520))) {
-//			if (isMajorityOfBarracksTrainingUnits()) {
-//				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-//				return true;
-//			}
-//		}
-//		if (barracks >= 2 && bases >= 2
-//				&& UnitCounter.weHaveBuilding(UnitTypes.Protoss_Observatory)
-//				&& UnitCounter.weHaveBuilding(UnitTypes.Protoss_Citadel_of_Adun)) {
-//			int HQs = UnitCounter.getNumberOfUnits(UnitManager.BASE);
-//			if ((double) barracks / HQs <= 2 && xvr.canAfford(560)) {
-//				if (isMajorityOfBarracksTrainingUnits()) {
-//					ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-//					return true;
-//				}
-//			}
-//		}
-//
-//		if (xvr.canAfford(1500)) {
-//			if (isMajorityOfBarracksTrainingUnits()) {
-//				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-//				return true;
-//			}
-//		}
+		// if (barracks >= 3 && xvr.canAfford(140)) {
+		// if (isMajorityOfBarracksTrainingUnits()) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		// }
+		//
+		// // 3 barracks or more
+		// if (barracks >= 3 && (barracks <= 5 || xvr.canAfford(520))) {
+		// if (isMajorityOfBarracksTrainingUnits()) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		// }
+		// if (barracks >= 2 && bases >= 2
+		// && UnitCounter.weHaveBuilding(UnitTypes.Protoss_Observatory)
+		// && UnitCounter.weHaveBuilding(UnitTypes.Protoss_Citadel_of_Adun)) {
+		// int HQs = UnitCounter.getNumberOfUnits(UnitManager.BASE);
+		// if ((double) barracks / HQs <= 2 && xvr.canAfford(560)) {
+		// if (isMajorityOfBarracksTrainingUnits()) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		// }
+		// }
+		//
+		// if (xvr.canAfford(1500)) {
+		// if (isMajorityOfBarracksTrainingUnits()) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		// }
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		return false;
 	}
 
-	private static boolean isMajorityOfBarracksTrainingUnits() {
-		ArrayList<Unit> allObjects = xvr.getUnitsOfType(buildingType);
-		int all = allObjects.size();
-		int busy = 0;
-		for (Unit gateway : allObjects) {
-			if (gateway.isTraining()) {
-				busy++;
-			}
-		}
-
-		double threshold = (Math.min(0.8, 0.7 + all * 0.05));
-		return all <= 2 || ((double) busy / all) >= threshold;
-	}
+	// private static boolean isMajorityOfBarracksTrainingUnits() {
+	// ArrayList<Unit> allObjects = xvr.getUnitsOfType(buildingType);
+	// int all = allObjects.size();
+	// int busy = 0;
+	// for (Unit gateway : allObjects) {
+	// if (gateway.isTraining()) {
+	// busy++;
+	// }
+	// }
+	//
+	// double threshold = (Math.min(0.8, 0.7 + all * 0.05));
+	// return all <= 2 || ((double) busy / all) >= threshold;
+	// }
 
 	public static ArrayList<Unit> getAllObjects() {
 		return xvr.getUnitsOfTypeCompleted(buildingType);
@@ -192,7 +199,7 @@ public class TerranBarracks {
 		UnitTypes typeToBuild = MARINE;
 
 		// MEDICS
-		if (weHaveAcademy) {
+		if (weHaveAcademy && xvr.getTimeSeconds() >= 270) {
 			int medics = UnitCounter.getNumberOfUnits(MEDIC);
 			int ghosts = UnitCounter.getNumberOfUnits(GHOST);
 
@@ -209,7 +216,7 @@ public class TerranBarracks {
 		}
 
 		// FIREBATS
-		if (firebats < 3 && firebatAllowed && xvr.canAfford(50, 25)) {
+		if (firebats < 1 && firebatAllowed && xvr.canAfford(50, 25)) {
 			return FIREBAT;
 		}
 		if (firebatAllowed) {
@@ -220,14 +227,14 @@ public class TerranBarracks {
 		}
 
 		// MARINES
-		if (BotStrategyManager.isExpandWithBunkers()) {
-			if (marines >= 3 && !xvr.canAfford(1000)) {
-				return null;
-			}
-		}
-		if (marines >= 8 + firebats) {
-			return null;
-		}
+		// if (BotStrategyManager.isExpandWithBunkers()) {
+		// if (marines >= 3 && !xvr.canAfford(1000)) {
+		// return null;
+		// }
+		// }
+		// if (marines >= 8 + firebats) {
+		// return null;
+		// }
 
 		double marinePercent = marines / totalInfantry;
 		if (marinePercent < marinesBuildRatio / totalRatio || LIMIT_MARINES) {

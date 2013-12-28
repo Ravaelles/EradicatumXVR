@@ -12,6 +12,7 @@ import ai.handling.army.StrengthEvaluator;
 import ai.handling.map.Explorer;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
+import ai.managers.units.RepairAndSons;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -48,10 +49,16 @@ public class WorkerManager {
 		// boolean shouldStopExploring = Debug.ourDeaths >= 2
 		// && !MapExploration.getEnemyBuildingsDiscovered().isEmpty();
 		for (Unit worker : workers) {
-			if (_counter != WORKER_INDEX_EXPLORER) {
-				WorkerManager.act(worker);
+			Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
+			if (repairThisUnit != null) {
+				UnitActions.repair(worker, repairThisUnit);
 			} else {
-				Explorer.explore(worker);
+
+				if (_counter != WORKER_INDEX_EXPLORER) {
+					WorkerManager.act(worker);
+				} else {
+					Explorer.explore(worker);
+				}
 			}
 
 			_counter++;
@@ -59,7 +66,7 @@ public class WorkerManager {
 	}
 
 	private static void defendBase(Unit worker) {
-		if (TerranCommandCenter.getNumberOfUnits() > 1) {
+		if (TerranCommandCenter.getNumberOfUnits() > 1 || xvr.getTimeSeconds() >= 300) {
 			return;
 		}
 

@@ -1,6 +1,5 @@
 package ai.managers;
 
-import java.awt.Point;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -10,6 +9,7 @@ import ai.core.XVR;
 import ai.handling.army.ArmyPlacing;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
+import ai.handling.map.MapPoint;
 import ai.handling.units.UnitCounter;
 import ai.terran.TerranMedic;
 import ai.terran.TerranSiegeTank;
@@ -53,7 +53,7 @@ public class StrategyManager {
 	 * specific Unit. Units are supposed to attack the neighborhood of this
 	 * point.
 	 */
-	private static Point _attackPoint;
+	private static MapPoint _attackPoint;
 
 	/**
 	 * If we are ready to attack it represents the unit that is the focus of our
@@ -66,8 +66,8 @@ public class StrategyManager {
 
 	private static int retreatsCounter = 0;
 	private static final int EXTRA_UNITS_PER_RETREAT = 5;
-	private static final int MIN_MEDICS = 8;
-	private static final int MIN_TANKS = 6;
+	private static final int MIN_MEDICS = 3;
+	private static final int MIN_TANKS = 3;
 
 	private static int _minBattleUnits = INITIAL_MIN_UNITS;
 	private static int _lastTimeWaitCalled = 0;
@@ -246,8 +246,7 @@ public class StrategyManager {
 	}
 
 	private static void updateTargetPosition() {
-		Point point = new Point(_attackTargetUnit.getX(), _attackTargetUnit.getY());
-		_attackPoint = point;
+		_attackPoint = _attackTargetUnit;
 	}
 
 	private static void retreat() {
@@ -319,7 +318,7 @@ public class StrategyManager {
 		return _attackTargetUnit;
 	}
 
-	public static Point getTargetPoint() {
+	public static MapPoint getTargetPoint() {
 		return _attackPoint;
 	}
 

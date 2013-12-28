@@ -20,6 +20,8 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
+import ai.utils.RUtilities;
+import ai.utils.TimeMeasurer;
 
 public class Debug {
 
@@ -32,6 +34,8 @@ public class Debug {
 	public static int enemyDeaths = 0;
 
 	public static void drawDebug(XVR xvr) {
+		TimeMeasurer.startMeasuring("Painting");
+
 		int oldMainMessageRowCounter = mainMessageRowCounter;
 		mainMessageRowCounter = 0;
 
@@ -42,6 +46,7 @@ public class Debug {
 		// }
 
 		if (FULL_DEBUG) {
+			paintTimeConsumption(xvr);
 			paintNextBuildingsPosition(xvr);
 		}
 		paintUnitsDetails(xvr);
@@ -89,6 +94,54 @@ public class Debug {
 
 		// ========
 		mainMessageRowCounter = oldMainMessageRowCounter;
+
+		TimeMeasurer.endMeasuring("Painting");
+	}
+
+	private static final int timeConsumptionLeftOffset = 575;
+	private static final int timeConsumptionTopOffset = 30;
+	private static final int timeConsumptionBarMaxWidth = 50;
+	private static final int timeConsumptionBarHeight = 14;
+	private static final int timeConsumptionYInterval = 16;
+
+	private static void paintTimeConsumption(XVR xvr) {
+		JNIBWAPI bwapi = xvr.getBwapi();
+
+		int counter = 0;
+		double maxValue = RUtilities.getMaxElement(TimeMeasurer.getAspectsTimeConsumption()
+				.values());
+
+		// System.out.println();
+		// for (double val : TimeMeasurer.getAspectsTimeConsumption().values())
+		// {
+		// System.out.println("   " + val);
+		// }
+
+		// System.out.println(TimeMeasurer.getAspectsTimeConsumption().keySet().size());
+		for (String aspectTitle : TimeMeasurer.getAspectsTimeConsumption().keySet()) {
+			int x = timeConsumptionLeftOffset;
+			int y = timeConsumptionTopOffset + timeConsumptionYInterval * counter++;
+
+			int value = TimeMeasurer.getAspectsTimeConsumption().get(aspectTitle).intValue();
+
+			// Draw aspect time consumption bar
+			int barWidth = (int) (timeConsumptionBarMaxWidth * value / maxValue);
+			if (barWidth < 3) {
+				barWidth = 3;
+			}
+			if (barWidth > timeConsumptionBarMaxWidth) {
+				barWidth = timeConsumptionBarMaxWidth;
+			}
+			// System.out.println("   " + aspectTitle + " x:" + x + ", y:" + y +
+			// "  ## " + barWidth);
+			bwapi.drawBox(x, y, x + barWidth, y + timeConsumptionBarHeight, BWColor.WHITE, true,
+					true);
+			bwapi.drawBox(x, y, x + timeConsumptionBarMaxWidth, y + timeConsumptionBarHeight,
+					BWColor.BLACK, false, true);
+
+			// Draw aspect label
+			bwapi.drawText(x + 2, y - 1, BWColor.getToStringHex(BWColor.YELLOW) + aspectTitle, true);
+		}
 	}
 
 	private static void paintValuesOverUnits(XVR xvr) {
@@ -172,7 +225,7 @@ public class Debug {
 		building = TerranCommandCenter.findTileForNextBase(false);
 		if (building != null) {
 			xvr.getBwapi().drawBox(building.getX(), building.getY(), building.getX() + 4 * 32,
-					building.getY() + 4 * 32, BWColor.TEAL, false, false);
+					building.getY() + 3 * 32, BWColor.TEAL, false, false);
 			// xvr.getBwapi().drawText(building.getX() + 10, building.getY() +
 			// 30,
 			// "Nexus", false);

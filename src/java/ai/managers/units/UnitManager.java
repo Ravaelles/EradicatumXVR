@@ -63,6 +63,10 @@ public class UnitManager {
 				continue;
 			}
 
+			if (unit.isBeingHealed()) {
+				continue;
+			}
+
 			// ===============
 			// Attack close targets (Tactics phase)
 			if (!type.isTank() && !type.isMedic()) {
@@ -187,7 +191,7 @@ public class UnitManager {
 	}
 
 	protected static void handleWoundedUnitBehaviourIfNecessary(Unit unit) {
-		if (unit.getHP() <= 31) {
+		if (unit.getHP() <= unit.getMaxHP() * 0.4) {
 
 			// Now, it doesn't make sense to run away if we're close to some
 			// bunker or cannon and we're lonely. In this case it's better to
@@ -212,6 +216,18 @@ public class UnitManager {
 			}
 
 			UnitActions.actWhenLowHitPointsOrShields(unit, false);
+
+			if (unit.isRepairable()) {
+				// UnitActions.repairThisUnit(unit);
+				RepairAndSons.issueTicketToRepair(unit);
+
+				Unit repairer = RepairAndSons.getRepairerForUnit(unit);
+				if (repairer != null && repairer.distanceTo(unit) >= 2) {
+					UnitActions.moveTo(unit, repairer);
+				} else {
+					UnitActions.holdPosition(unit);
+				}
+			}
 		}
 	}
 
@@ -322,7 +338,7 @@ public class UnitManager {
 		// }
 
 		// If there's OUR BUNKER
-		if (xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 4, unit, true).size() > 0) {
+		if (xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 6, unit, true) > 0) {
 			return;
 		}
 
@@ -344,7 +360,7 @@ public class UnitManager {
 	}
 
 	protected static void actTryAttackingCloseEnemyUnits(Unit unit) {
-		if (unit.getType().isMedic()) {
+		if (unit.getType().isMedic() || unit.isBeingHealed()) {
 			return;
 		}
 
@@ -437,13 +453,15 @@ public class UnitManager {
 
 			// If there's an enemy near to this unit, don't change the target.
 			if (nearestEnemy != null && xvr.getDistanceBetween(unit, nearestEnemy) <= 1) {
-				return;
+				// return;
 			}
 
 			// There's no valid target, attack this enemy.
 			else {
+				int maxDistance = unit.getType().isFlyer() ? 300 : 10;
+
 				if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)
-						&& unit.distanceTo(xvr.getFirstBase()) > 25) {
+						&& unit.distanceTo(xvr.getFirstBase()) > maxDistance) {
 					return;
 				}
 
@@ -463,6 +481,10 @@ public class UnitManager {
 					UnitActions.attackTo(unit, enemyToAttack);
 				}
 			}
+		}
+
+		if (unit.getType().isTerranInfantry()) {
+			handleInteractionWithBunkers(unit);
 		}
 	}
 
@@ -563,8 +585,7 @@ public class UnitManager {
 
 			if (StrategyManager.getTargetPoint() != null) {
 				if (!isUnitAttackingSomeone(unit)) {
-					UnitActions.attackTo(unit, StrategyManager.getTargetPoint().x,
-							StrategyManager.getTargetPoint().y);
+					UnitActions.attackTo(unit, StrategyManager.getTargetPoint());
 				}
 				if (isUnitFullyIdle(unit)) {
 					UnitActions.spreadOutRandomly(unit);
@@ -601,6 +622,10 @@ public class UnitManager {
 	}
 
 	protected static void handleInteractionWithBunkers(Unit unit) {
+		if (TerranBunker.getNumberOfUnitsCompleted() == 0) {
+			return;
+		}
+
 		boolean isUnitInsideBunker = unit.isLoaded();
 		boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 11, true, true) != null;
 
@@ -627,7 +652,7 @@ public class UnitManager {
 	}
 
 	protected static void loadIntoBunkerNearbyIfPossible(Unit unit) {
-		final int MAX_DIST_TO_BUNKER_TO_LOAD_INTO_IT = 12;
+		final int MAX_DIST_TO_BUNKER_TO_LOAD_INTO_IT = 18;
 
 		if (unit.getType().isMedic()) {
 			return;

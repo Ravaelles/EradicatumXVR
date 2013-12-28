@@ -1,12 +1,12 @@
 package ai.terran;
 
+import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.AddOn;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType.UnitTypes;
 
 public class TerranMachineShop {
 
@@ -17,8 +17,7 @@ public class TerranMachineShop {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			Constructing.constructAddOn(
-					AddOn.getBuildingWithNoAddOn(TerranFactory.getBuildingType()),
-					buildingType);
+					AddOn.getBuildingWithNoAddOn(TerranFactory.getBuildingType()), buildingType);
 			return;
 		}
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -26,14 +25,22 @@ public class TerranMachineShop {
 
 	public static boolean shouldBuild() {
 		if (UnitCounter.weHaveBuilding(TerranFactory.getBuildingType())) {
+			if (TerranVulture.getNumberOfUnits() == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				return false;
+			}
+
 			int factories = TerranFactory.getNumberOfUnitsCompleted();
 			int addOns = getNumberOfUnits();
 
 			boolean shouldBuild = factories > addOns;
 			if (shouldBuild) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}
 		}
+
+		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		return false;
 	}
 

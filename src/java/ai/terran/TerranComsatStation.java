@@ -103,6 +103,9 @@ public class TerranComsatStation {
 	}
 
 	private static void scan(Unit comsat, MapPoint point) {
+		if (point == null) {
+			return;
+		}
 		xvr.getBwapi().useTech(comsat.getID(), TechTypes.Scanner_Sweep.ordinal(), point.getX(),
 				point.getY());
 	}
