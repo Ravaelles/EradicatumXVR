@@ -750,7 +750,7 @@ public class XVR {
 	}
 
 	/** @return List of units from unitsList sorted ascending by distance. */
-	public ArrayList<Unit> getUnitsInRadius(MapPoint point, int tileRadius,
+	public ArrayList<Unit> getUnitsInRadius(MapPoint point, double tileRadius,
 			Collection<Unit> unitsList) {
 		HashMap<Unit, Double> unitToDistance = new HashMap<Unit, Double>();
 

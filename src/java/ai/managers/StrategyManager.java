@@ -204,7 +204,7 @@ public class StrategyManager {
 
 		// Try to target some crucial building
 		if (!TargetHandling.isProperTarget(target)) {
-			target = TargetHandling.findTopPriorityTargetIfPossible(enemyBuildings);
+			target = TargetHandling.findTopPriorityTargetIfPossible(enemyBuildings, true, false);
 		}
 		if (!TargetHandling.isProperTarget(target)) {
 			target = TargetHandling.findHighPriorityTargetIfPossible(enemyBuildings);

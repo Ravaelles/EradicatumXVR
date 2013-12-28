@@ -578,6 +578,10 @@ public class UnitType {
 				|| ID == UnitTypes.Terran_Siege_Tank_Tank_Mode.ordinal();
 	}
 
+	public boolean isTankSieged() {
+		return ID == UnitTypes.Terran_Siege_Tank_Siege_Mode.ordinal();
+	}
+
 	public boolean isTerranInfantry() {
 		return ID == UnitTypes.Terran_Marine.ordinal() || ID == UnitTypes.Terran_Firebat.ordinal()
 				|| ID == UnitTypes.Terran_Medic.ordinal() || ID == UnitTypes.Terran_Ghost.ordinal();

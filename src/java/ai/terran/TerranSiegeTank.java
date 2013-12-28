@@ -6,6 +6,8 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
+import ai.handling.units.TankTargeting;
+import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.StrategyManager;
 import ai.managers.TechnologyManager;
@@ -98,12 +100,22 @@ public class TerranSiegeTank {
 	}
 
 	private static void actWhenSieged(Unit unit) {
-		// if (!_isUnitWhereItShouldBe
-		// || (StrategyManager.isAnyAttackFormPending() && _nearestEnemyDist >
-		// 11)
-		// || !isNeighborhoodSafeToSiege(unit)) {
-		if (!shouldSiege(unit)) {
+
+		// If tank from various reasons shouldn't be here, unsiege.
+		if (!shouldSiege(unit) && !unit.isStartingAttack()) {
 			unit.unsiege();
+		}
+
+		// If tank should be here, try to attack proper target.
+		else {
+			MapPoint targetForTank = TankTargeting.defineTargetForSiegeTank(unit);
+			if (targetForTank != null) {
+				if (targetForTank instanceof Unit && ((Unit) targetForTank).isDetected()) {
+					UnitActions.attackEnemyUnit(unit, (Unit) targetForTank);
+				} else {
+					UnitActions.attackTo(unit, targetForTank);
+				}
+			}
 		}
 	}
 

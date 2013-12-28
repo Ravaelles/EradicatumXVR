@@ -18,6 +18,12 @@ public class TargetHandling {
 	public static Unit getImportantEnemyUnitTargetIfPossibleFor(MapPoint point,
 			boolean includeGroundUnits, boolean includeAirUnits) {
 		Collection<Unit> enemyUnits = xvr.getEnemyBuildings();
+		return getImportantEnemyUnitTargetIfPossibleFor(point, enemyUnits, includeGroundUnits,
+				includeAirUnits);
+	}
+
+	public static Unit getImportantEnemyUnitTargetIfPossibleFor(MapPoint point,
+			Collection<Unit> enemyUnits, boolean includeGroundUnits, boolean includeAirUnits) {
 		// ArrayList<Unit> enemyUnits = xvr.getUnitsInRadius(point.x, point.y,
 		// 25,
 		// xvr.getEnemyUnitsVisible());
@@ -58,11 +64,16 @@ public class TargetHandling {
 		return null;
 	}
 
-	public static Unit findTopPriorityTargetIfPossible(Collection<Unit> enemyBuildings) {
+	public static Unit findTopPriorityTargetIfPossible(Collection<Unit> enemyBuildings,
+			boolean includeGroundTargets, boolean includeAirTargets) {
 		for (Unit unit : enemyBuildings) {
 			UnitType type = unit.getType();
-			if (type.isBunker() || type.isCarrier() || type.isPhotonCannon() || type.isObserver()
-					|| type.isScienceVessel() || type.isSunkenColony()) {
+			if ((includeGroundTargets && type.isBunker())
+					|| (includeAirTargets && type.isCarrier())
+					|| (includeGroundTargets && type.isPhotonCannon())
+					|| (includeAirTargets && type.isObserver())
+					|| (includeAirTargets && type.isScienceVessel())
+					|| (includeGroundTargets && type.isSunkenColony())) {
 				if (isProperTarget(unit)) {
 					return unit;
 				}

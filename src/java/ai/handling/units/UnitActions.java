@@ -339,7 +339,7 @@ public class UnitActions {
 		}
 	}
 
-	private static void rightClick(Unit unit, Unit clickTo) {
+	public static void rightClick(Unit unit, Unit clickTo) {
 		if (unit == null || clickTo == null) {
 			System.err.println("rightClick # unit: " + unit + " # clickTo: " + clickTo);
 			return;

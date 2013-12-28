@@ -360,7 +360,8 @@ public class UnitManager {
 	}
 
 	protected static void actTryAttackingCloseEnemyUnits(Unit unit) {
-		if (unit.getType().isMedic() || unit.isBeingHealed()) {
+		UnitType type = unit.getType();
+		if (type.isMedic() || unit.isBeingHealed() || type.isTankSieged()) {
 			return;
 		}
 

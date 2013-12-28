@@ -5,11 +5,11 @@ import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
+import ai.managers.units.UnitManager;
 import ai.terran.TerranComsatStation;
 
 public class BuildingManager {
 
-	// private static final int REPAIR_BUILDING_WITH_WORKERS = 3;
 	private static XVR xvr = XVR.getInstance();
 
 	public static void act(Unit building) {
@@ -26,7 +26,7 @@ public class BuildingManager {
 		}
 
 		// Cancel construction of buildings under attack and severely damaged
-		checkIfShouldCancelConstruction(building, type);
+		handleUnfinishedBuildings(building, type);
 
 		// // Bunker
 		// // if (buildingType.isBunker()) {
@@ -75,8 +75,10 @@ public class BuildingManager {
 		}
 	}
 
-	private static void checkIfShouldCancelConstruction(Unit building, UnitType buildingType) {
-		if (building.isUnderAttack() && (!building.isCompleted())) {
+	private static void handleUnfinishedBuildings(Unit building, UnitType buildingType) {
+		// System.out.println("TEST " + building.isUnderAttack() + " " +
+		// !building.isCompleted());
+		if (building.isUnderAttack() && !building.isCompleted()) {
 			System.out.println("BUILDING ATTACKED");
 			boolean shouldCancelConstruction = false;
 
@@ -113,6 +115,28 @@ public class BuildingManager {
 				xvr.getBwapi().cancelConstruction(building.getID());
 			}
 		}
+
+		// If building still isn't completed check if it has a builder,
+		// something might have accidentally killed him, like e.g. a lonely
+		// lurker, looking for some love
+		if (!building.isCompleted()) {
+			Unit builder = getWorkerBuilding(building);
+			if (builder == null) {
+				System.out.println("###### No builder is building: " + building.getName());
+				Unit newBuilder = xvr.getOptimalBuilder(building);
+				if (newBuilder != null) {
+					UnitActions.rightClick(newBuilder, building);
+				}
+			}
+		}
 	}
 
+	private static Unit getWorkerBuilding(Unit building) {
+		for (Unit worker : xvr.getUnitsOfType(UnitManager.WORKER)) {
+			if (worker.isConstructing() && worker.getBuildUnitID() == building.getID()) {
+				return worker;
+			}
+		}
+		return null;
+	}
 }

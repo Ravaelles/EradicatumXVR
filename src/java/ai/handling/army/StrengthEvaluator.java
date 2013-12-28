@@ -80,7 +80,7 @@ public class StrengthEvaluator {
 		_enemyUnits = enemyUnits;
 
 		// If there's no enemy units
-		if (canAttackLonely && enemyUnits.isEmpty()) {
+		if (isWorker && enemyUnits.isEmpty()) {
 			_rangeBonus = 0;
 			return -1;
 		}
@@ -88,6 +88,11 @@ public class StrengthEvaluator {
 		ArrayList<Unit> ourUnits = getOurUnitsNear(unit);
 		int ourUnitsGroupSize = ourUnits.size();
 		_ourUnits = ourUnits;
+
+		if (canAttackLonely && ourUnitsGroupSize >= 3) {
+			_rangeBonus = 0;
+			return -1;
+		}
 
 		if (isEnemyAirUnitNearbyThatCanShootGround(unit) && isCriticalSituationVersusAirUnits(unit)) {
 			return 0;

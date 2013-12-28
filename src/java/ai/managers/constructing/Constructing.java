@@ -284,7 +284,7 @@ public class Constructing {
 		// System.out.println();
 
 		int baseBonus = 0;
-		if (type.isFactory() || type.isBase() || type.isScienceFacility()) {
+		if (type.isFactory() || type.isStarport() || type.isBase() || type.isScienceFacility()) {
 			baseBonus += 2;
 			center = center.translate(40, 0);
 		}
@@ -302,7 +302,8 @@ public class Constructing {
 			int dx = 0;
 			int bonus = baseBonus;
 			UnitType unitType = unit.getType();
-			if (unitType.isFactory() || unitType.isBase() || unitType.isScienceFacility()) {
+			if (unitType.isFactory() || type.isStarport() || unitType.isBase()
+					|| unitType.isScienceFacility()) {
 				bonus++;
 				dx = 45;
 				if (unitType.isBase()) {
