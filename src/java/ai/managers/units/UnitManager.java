@@ -25,9 +25,9 @@ public class UnitManager {
 	public static final UnitTypes BASE = UnitTypes.Terran_Command_Center;
 	public static final UnitTypes BARRACKS = UnitTypes.Terran_Barracks;
 
-	protected static XVR xvr = XVR.getInstance();
+	private static XVR xvr = XVR.getInstance();
 
-	protected static int _unitCounter = 0;
+	private static int _unitCounter = 0;
 
 	// ===========================================================
 
@@ -46,6 +46,12 @@ public class UnitManager {
 		for (Unit unit : xvr.getUnitsNonWorker()) {
 			UnitType type = unit.getType();
 			if (type.equals(UnitManager.WORKER)) {
+				continue;
+			}
+
+			// Flying unit
+			if (type.isFlyer()) {
+				FlyerManager.act(unit);
 				continue;
 			}
 
@@ -338,7 +344,7 @@ public class UnitManager {
 		// }
 
 		// If there's OUR BUNKER
-		if (xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 6, unit, true) > 0) {
+		if (xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3, unit, true) > 0) {
 			return;
 		}
 

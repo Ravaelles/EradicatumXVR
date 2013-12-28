@@ -16,7 +16,8 @@ public class TerranFactory {
 	public static UnitTypes GOLIATH = UnitTypes.Terran_Goliath;
 
 	private static final int MINIMUM_VULTURES = 6;
-	private static final int MINIMUM_GOLIATHS = 2;
+	private static final int MINIMUM_GOLIATHS_EARLY = 2;
+	private static final int MINIMUM_GOLIATHS_LATER = 6;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Factory;
 	private static XVR xvr = XVR.getInstance();
@@ -51,7 +52,7 @@ public class TerranFactory {
 
 	public static Unit getOneNotBusy() {
 		for (Unit unit : xvr.getUnitsOfType(buildingType)) {
-			if (unit.isBuildingNotBusy()) {
+			if (unit.isCompleted() && unit.isBuildingNotBusy()) {
 				return unit;
 			}
 		}
@@ -112,14 +113,19 @@ public class TerranFactory {
 		int goliaths = UnitCounter.getNumberOfUnits(GOLIATH);
 
 		boolean notEnoughVultures = vultures < MINIMUM_VULTURES;
-		boolean notEnoughGoliaths = goliaths < MINIMUM_GOLIATHS;
+		boolean notEnoughGoliaths = xvr.getTimeSeconds() < 800 ? goliaths < MINIMUM_GOLIATHS_EARLY
+				: goliaths < MINIMUM_GOLIATHS_LATER;
 
 		// ==================
 
 		// TANK
 		if (tanksAllowed) {
-			if (tanks >= 2 && notEnoughVultures) {
-				return VULTURE;
+			if (tanks >= 2) {
+				if (notEnoughGoliaths) {
+					return GOLIATH;
+				} else if (notEnoughVultures) {
+					return VULTURE;
+				}
 			} else {
 				return TANK;
 			}
@@ -127,13 +133,6 @@ public class TerranFactory {
 
 		// GOLIATH
 		if (goliathsAllowed) {
-			// int totalInfantry = UnitCounter.getNumberOfInfantryUnits() + 1;
-			// int totalReavers = UnitCounter.getNumberOfUnits(REAVER);
-			// if ((double) totalReavers / totalInfantry <=
-			// REAVERS_TO_INFANTRY_RATIO
-			// || totalReavers < MINIMUM_REAVERS) {
-			// return REAVER;
-			// }
 			if (notEnoughGoliaths) {
 				return GOLIATH;
 			}

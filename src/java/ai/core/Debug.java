@@ -465,6 +465,10 @@ public class Debug {
 			if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
 				paintMainMessage(xvr, "Vultures: " + UnitCounter.getNumberOfUnitsCompleted(type));
 
+			type = UnitTypes.Terran_Goliath;
+			if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
+				paintMainMessage(xvr, "Goliaths: " + UnitCounter.getNumberOfUnitsCompleted(type));
+
 			type = UnitTypes.Terran_Siege_Tank_Siege_Mode;
 			if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
 				paintMainMessage(xvr, "Tanks: " + UnitCounter.getNumberOfUnitsCompleted(type));

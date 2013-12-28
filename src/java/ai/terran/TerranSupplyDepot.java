@@ -176,7 +176,7 @@ public class TerranSupplyDepot {
 							&& xvr.getUnitsOfGivenTypeInRadius(buildingType,
 									DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true).isEmpty()) {
 						MapPointInstance point = new MapPointInstance(x, y);
-						if (!Constructing.isTooNearMineralsOrGeyser(point)) {
+						if (!Constructing.isTooNearMineralsOrGeyser(buildingType.getType(), point)) {
 
 							// Damn, try NOT to build in the middle of narrow
 							// choke point.

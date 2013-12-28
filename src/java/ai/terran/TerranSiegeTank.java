@@ -56,6 +56,31 @@ public class TerranSiegeTank {
 		}
 	}
 
+	private static void actWhenSieged(Unit unit) {
+
+		// If tank from various reasons shouldn't be here, unsiege.
+		if (!shouldSiege(unit) && !unit.isStartingAttack()) {
+			unit.unsiege();
+		}
+
+		// If tank should be here, try to attack proper target.
+		else {
+			MapPoint targetForTank = TankTargeting.defineTargetForSiegeTank(unit);
+			if (targetForTank != null) {
+				if (targetForTank instanceof Unit && ((Unit) targetForTank).isDetected()) {
+					UnitActions.attackEnemyUnit(unit, (Unit) targetForTank);
+				} else {
+					UnitActions.attackTo(unit, targetForTank);
+				}
+			} else {
+				double nearestEnemyDist = xvr.getNearestEnemyDistance(unit, true, true);
+				if (nearestEnemyDist >= 0 && nearestEnemyDist < 2) {
+					unit.unsiege();
+				}
+			}
+		}
+	}
+
 	private static boolean shouldSiege(Unit unit) {
 		if ((_isUnitWhereItShouldBe && notTooManySiegedInArea(unit))
 				|| (_nearestEnemyDist > 0 && _nearestEnemyDist <= 11)) {
@@ -97,26 +122,6 @@ public class TerranSiegeTank {
 		}
 
 		return true;
-	}
-
-	private static void actWhenSieged(Unit unit) {
-
-		// If tank from various reasons shouldn't be here, unsiege.
-		if (!shouldSiege(unit) && !unit.isStartingAttack()) {
-			unit.unsiege();
-		}
-
-		// If tank should be here, try to attack proper target.
-		else {
-			MapPoint targetForTank = TankTargeting.defineTargetForSiegeTank(unit);
-			if (targetForTank != null) {
-				if (targetForTank instanceof Unit && ((Unit) targetForTank).isDetected()) {
-					UnitActions.attackEnemyUnit(unit, (Unit) targetForTank);
-				} else {
-					UnitActions.attackTo(unit, targetForTank);
-				}
-			}
-		}
 	}
 
 	public static int getNumberOfUnits() {

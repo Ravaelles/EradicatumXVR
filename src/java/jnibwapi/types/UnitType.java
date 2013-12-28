@@ -671,6 +671,10 @@ public class UnitType {
 		return WeaponType.getWeaponByID(groundWeaponID);
 	}
 
+	public WeaponType getAirWeapon() {
+		return WeaponType.getWeaponByID(airWeaponID);
+	}
+
 	public boolean canGroundAttack() {
 		return isAttackCapable() && getGroundWeaponID() != WeaponTypes.None.ordinal();
 	}
@@ -687,12 +691,8 @@ public class UnitType {
 		return UnitDamages.getGroundAttackNormalized(this);
 	}
 
-	// public boolean isDefensiveBuilding() {
-	// if (!isBuilding()) {
-	// return false;
-	// }
-	//
-	// return isPhotonCannon() || isSunkenColony() || isBunker();
-	// }
+	public boolean canHaveAddOn() {
+		return isFactory() || isStarport() || isBase() || isScienceFacility();
+	}
 
 }

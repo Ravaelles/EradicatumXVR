@@ -49,11 +49,7 @@ public class WorkerManager {
 		// boolean shouldStopExploring = Debug.ourDeaths >= 2
 		// && !MapExploration.getEnemyBuildingsDiscovered().isEmpty();
 		for (Unit worker : workers) {
-			Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
-			if (repairThisUnit != null) {
-				UnitActions.repair(worker, repairThisUnit);
-			} else {
-
+			if (!tryRepairingSomethingIfNeeded(worker)) {
 				if (_counter != WORKER_INDEX_EXPLORER) {
 					WorkerManager.act(worker);
 				} else {
@@ -63,6 +59,22 @@ public class WorkerManager {
 
 			_counter++;
 		}
+	}
+
+	private static boolean tryRepairingSomethingIfNeeded(Unit worker) {
+		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
+		if (repairThisUnit != null) {
+			if (repairThisUnit.isWounded()) {
+				UnitActions.repair(worker, repairThisUnit);
+				return true;
+			}
+
+			// This repair order is obsolete, remove it.
+			else {
+				RepairAndSons.removeTicketFor(repairThisUnit, worker);
+			}
+		}
+		return false;
 	}
 
 	private static void defendBase(Unit worker) {

@@ -2,6 +2,7 @@ package ai.handling.army;
 
 import jnibwapi.model.Unit;
 import ai.core.XVR;
+import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
@@ -15,68 +16,54 @@ public class ArmyPlacing {
 	private static XVR xvr = XVR.getInstance();
 
 	public static MapPoint getArmyGatheringPointFor(Unit unit) {
-		// int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
+		MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
 
-		MapPoint runTo = null;
+		// Initially, go to the second base location
+		MapPoint runTo = secondBaseLocation;
 
-		// If only one base, then go to nearest cannon
-		// if (bases == 1) {
-		MapPoint secondBase = TerranCommandCenter.getSecondBaseLocation();
-		runTo = secondBase;
+		// =====================================================
+		// Define bunker where most of the units should head to.
+		runTo = defineRendezvousBunkerIfPossible();
 
-		Unit bunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), secondBase);
-		if (bunker != null) {
-			runTo = bunker;
-		}
-
+		// =====================================================
+		// Try to go to the barracks if no bunker available
 		if (runTo == null) {
-			Unit barracks = xvr
-					.getUnitOfTypeNearestTo(TerranBarracks.getBuildingType(), secondBase);
-			if (barracks != null) {
-				runTo = barracks;
-			}
+			runTo = defineRendezvousBarracksIfPossible();
 		}
-		// }
-
-		// // Try to go to the base nearest to enemy
-		// else if (bases > 1) {
-		//
-		// // If there's stub for new base, go there
-		// if
-		// (xvr.countUnitsInRadius(TerranCommandCenter.findTileForNextBase(false),
-		// 10, true) >= 2) {
-		// runTo = TerranCommandCenter.findTileForNextBase(false);
-		// } else {
-		// Unit baseNearestToEnemy = xvr.getBaseNearestToEnemy();
-		// if (baseNearestToEnemy.equals(xvr.getFirstBase())) {
-		// runTo = xvr.getLastBase();
-		// } else {
-		// runTo = baseNearestToEnemy;
-		// }
-		// }
-		//
-		// // Try to find a bunker new new base
-		// Unit nearestBunker =
-		// xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), runTo);
-		// if (nearestBunker != null && nearestBunker.distanceTo(runTo) <= 28) {
-		// runTo = nearestBunker;
-		// }
-		// }
-		//
-		// if (runTo == null) {
-		// if (!TerranBarracks.getAllObjects().isEmpty()) {
-		// runTo = TerranBarracks.getAllObjects().get(0);
-		// }
-		// }
 
 		// ==================================
-
+		// Tell the unit where to be
 		unit.setProperPlaceToBe(runTo);
 
 		if (runTo == null) {
 			return null;
 		} else {
 			return new MapPointInstance(runTo.getX(), runTo.getY()).translate(-4, 0);
+		}
+	}
+
+	private static MapPoint defineRendezvousBarracksIfPossible() {
+		Unit barracks = xvr.getUnitOfTypeNearestTo(TerranBarracks.getBuildingType(),
+				TerranCommandCenter.getSecondBaseLocation());
+		if (barracks != null) {
+			return barracks;
+		} else {
+			return null;
+		}
+	}
+
+	private static MapPoint defineRendezvousBunkerIfPossible() {
+		MapPoint bunkerNearThisPoint = MapExploration.getNearestEnemyBase();
+		if (bunkerNearThisPoint == null) {
+			bunkerNearThisPoint = TerranCommandCenter.getSecondBaseLocation();
+		}
+
+		Unit bunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
+				bunkerNearThisPoint);
+		if (bunker != null) {
+			return bunker;
+		} else {
+			return null;
 		}
 	}
 

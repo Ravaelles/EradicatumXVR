@@ -52,7 +52,7 @@ public class TerranStarport {
 
 	public static Unit getOneNotBusy() {
 		for (Unit unit : xvr.getUnitsOfType(buildingType)) {
-			if (unit.isBuildingNotBusy()) {
+			if (unit.isCompleted() && unit.isBuildingNotBusy()) {
 				return unit;
 			}
 		}

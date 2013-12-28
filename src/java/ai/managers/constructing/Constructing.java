@@ -215,7 +215,7 @@ public class Constructing {
 						if (optimalBuilder != null
 								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
 										optimalBuilder.getID(), i, j))) {
-							if ((skipCheckingIsFreeFromUnits || !isTooNearMineralsOrGeyser(place))
+							if ((!isTooNearMineralsOrGeyser(type, place))
 									&& (isEnoughPlaceToOtherBuildings(place, type))
 									&& (isBase || !isOverlappingNextBase(place, type))
 									&& (isBase || !isTooCloseToAnyChokePoint(place))) {
@@ -260,36 +260,39 @@ public class Constructing {
 	}
 
 	private static boolean isEnoughPlaceToOtherBuildings(MapPoint place, UnitType type) {
-		// type.isPhotonCannon() ||
 		if (type.isBase() || type.isOnGeyser()) {
 			return true;
 		}
 		boolean isDepot = type.isSupplyDepot();
 
+		// ==============================
+		// Define building dimensions
 		int wHalf = type.getTileWidth();
 		int hHalf = type.getTileHeight();
 		int maxDimension = wHalf > hHalf ? wHalf : hHalf;
 
+		// ==============================
 		// Define center of the building
 		MapPoint center = new MapPointInstance(place.getX() + wHalf, place.getY() + hHalf);
 
+		// Define buildings that are near this build tile
 		ArrayList<Unit> buildingsNearby = xvr.getUnitsInRadius(center, maxDimension + 1,
 				xvr.getUnitsBuildings());
 
-		// System.out.println("FOR: " + type.getName());
-		// for (Unit unit : buildingsNearby) {
-		// System.out.println("   " + unit.getName() + ": " +
-		// unit.distanceTo(center));
-		// }
-		// System.out.println();
-
+		// If this building can have an Add-On, it is essential we keep place
+		// for it.
 		int baseBonus = 0;
-		if (type.isFactory() || type.isStarport() || type.isBase() || type.isScienceFacility()) {
+		if (type.canHaveAddOn()) {
 			baseBonus += 2;
 			center = center.translate(40, 0);
 		}
 
+		// For each building nearby define if it's not too close to this build
+		// tile. If so, reject this build tile.
 		for (Unit unit : buildingsNearby) {
+
+			// Supply Depots can be really close to each other, but only if
+			// there're few of them
 			if (isDepot
 					&& type.isSupplyDepot()
 					&& xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot, 5, place,
@@ -299,11 +302,12 @@ public class Constructing {
 				continue;
 			}
 
+			// Also: don't build in the place where there COULD BE Add-On for a
+			// different, already existing building
 			int dx = 0;
 			int bonus = baseBonus;
 			UnitType unitType = unit.getType();
-			if (unitType.isFactory() || type.isStarport() || unitType.isBase()
-					|| unitType.isScienceFacility()) {
+			if (type.canHaveAddOn()) {
 				bonus++;
 				dx = 45;
 				if (unitType.isBase()) {
@@ -311,6 +315,8 @@ public class Constructing {
 				}
 			}
 
+			// If this building is too close to our build tile, indicate this
+			// fact.
 			if (type.isBuilding()
 					&& unit.translate(dx, 0).distanceTo(center) <= maxDimension + 1 + bonus) {
 				return false;
@@ -319,15 +325,16 @@ public class Constructing {
 		return true;
 	}
 
-	public static boolean isTooNearMineralsOrGeyser(MapPoint point) {
+	public static boolean isTooNearMineralsOrGeyser(UnitType type, MapPoint point) {
+		int minDistBonus = type.canHaveAddOn() ? 2 : 0;
 
 		// Check if isn't too near to geyser
 		Unit nearestGeyser = xvr.getUnitNearestFromList(point, xvr.getGeysersUnits());
 		double distToGeyser = xvr.getDistanceBetween(nearestGeyser, point);
 		Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
-		if (distToGeyser <= 5) {
+		if (distToGeyser <= 5 + minDistBonus) {
 			double distBaseToGeyser = xvr.getDistanceBetween(nearestBase, nearestGeyser);
-			if (distBaseToGeyser >= distToGeyser) {
+			if (distBaseToGeyser >= distToGeyser + minDistBonus) {
 				return false;
 			}
 		}
@@ -336,17 +343,17 @@ public class Constructing {
 		// Check if isn't too near to mineral
 		Unit nearestMineral = xvr.getUnitNearestFromList(point, xvr.getMineralsUnits());
 		double distToMineral = xvr.getDistanceBetween(nearestMineral, point);
-		if (distToMineral <= 7) {
+		if (distToMineral <= 7 + minDistBonus) {
 			return true;
 		}
 
-		if (distToMineral <= 10) {
-			if (nearestBase.distanceTo(point) <= 4) {
+		if (distToMineral <= 10 + minDistBonus) {
+			if (nearestBase.distanceTo(point) <= 4 + minDistBonus) {
 				return false;
 			}
 
 			double distBaseToMineral = xvr.getDistanceBetween(nearestBase, nearestMineral);
-			if (distToMineral < distBaseToMineral) {
+			if (distToMineral < distBaseToMineral + minDistBonus) {
 				return true;
 			}
 		}

@@ -144,8 +144,9 @@ public class TankTargeting {
 		optionValue -= calculatePointsPenaltyFromDamageToUs(outerDamageValue,
 				xvr.getUnitsInRadius(enemy, INNER_SPLASH_TILES, ourUnitsInRange));
 
-		System.out.println("Option (#" + optionValue + "#): shoot at " + enemy.getName()
-				+ ", there are enemies: " + enemiesInRange.size());
+		// System.out.println("Option (#" + optionValue + "#): shoot at " +
+		// enemy.getName()
+		// + ", there are enemies: " + enemiesInRange.size());
 
 		return optionValue;
 	}

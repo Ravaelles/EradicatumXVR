@@ -89,10 +89,10 @@ public class StrengthEvaluator {
 		int ourUnitsGroupSize = ourUnits.size();
 		_ourUnits = ourUnits;
 
-		if (canAttackLonely && ourUnitsGroupSize >= 3) {
-			_rangeBonus = 0;
-			return -1;
-		}
+		// if (canAttackLonely && ourUnitsGroupSize >= 4) {
+		// _rangeBonus = 0;
+		// return -1;
+		// }
 
 		if (isEnemyAirUnitNearbyThatCanShootGround(unit) && isCriticalSituationVersusAirUnits(unit)) {
 			return 0;
@@ -196,7 +196,8 @@ public class StrengthEvaluator {
 		}
 
 		UnitType type = unit.getType();
-		boolean shouldBeAlwaysNearTank = !type.isWorker() && !type.isTank() && !type.isVulture();
+		boolean shouldBeAlwaysNearTank = !type.isFlyer() && !type.isWorker() && !type.isTank()
+				&& !type.isVulture();
 		double distToTank = -1;
 		if (shouldBeAlwaysNearTank) {
 			nearestTank = xvr.getNearestTankTo(unit);

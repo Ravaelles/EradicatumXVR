@@ -1,12 +1,12 @@
 package ai.terran;
 
+import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.AddOn;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType.UnitTypes;
 
 public class TerranControlTower {
 
@@ -17,8 +17,7 @@ public class TerranControlTower {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			Constructing.constructAddOn(
-					AddOn.getBuildingWithNoAddOn(TerranStarport.getBuildingType()),
-					buildingType);
+					AddOn.getBuildingWithNoAddOn(TerranStarport.getBuildingType()), buildingType);
 			return;
 		}
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -39,7 +38,7 @@ public class TerranControlTower {
 
 	public static Unit getOneNotBusy() {
 		for (Unit unit : xvr.getUnitsOfType(buildingType)) {
-			if (unit.isBuildingNotBusy()) {
+			if (unit.isCompleted() && unit.isBuildingNotBusy()) {
 				return unit;
 			}
 		}

@@ -413,6 +413,9 @@ public class XVR {
 	}
 
 	public Unit getUnitOfTypeNearestTo(UnitTypes type, MapPoint closeTo) {
+		if (closeTo == null) {
+			return null;
+		}
 		return getUnitOfTypeNearestTo(type, closeTo.getX(), closeTo.getY());
 	}
 
@@ -637,6 +640,17 @@ public class XVR {
 				} else if (type.isFlyer() && includeAirUnits) {
 					units.add(unit);
 				}
+			}
+		}
+		return units;
+	}
+
+	public ArrayList<Unit> getEnemyAntiAirUnits() {
+		ArrayList<Unit> units = new ArrayList<Unit>();
+		for (Unit unit : bwapi.getEnemyUnits()) {
+			UnitType type = unit.getType();
+			if (type.canAirAttack()) {
+				units.add(unit);
 			}
 		}
 		return units;
