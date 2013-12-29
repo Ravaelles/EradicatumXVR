@@ -65,7 +65,7 @@ public class StrategyManager {
 	private static Unit _attackTargetUnit;
 
 	private static int retreatsCounter = 0;
-	private static final int EXTRA_UNITS_PER_RETREAT = 5;
+	private static final int EXTRA_UNITS_PER_RETREAT = 1;
 	private static final int MIN_MEDICS = 3;
 	private static final int MIN_TANKS = 3;
 
@@ -82,11 +82,11 @@ public class StrategyManager {
 		boolean haveEnoughMedics = TerranMedic.getNumberOfUnitsCompleted() >= MIN_MEDICS;
 		boolean haveEnoughTanks = TerranSiegeTank.getNumberOfUnitsCompleted() >= MIN_TANKS;
 
-		if (xvr.getTimeSeconds() >= 380 && minUnits < 5) {
-			final int EXTRA = 5;
-			minUnits += EXTRA;
-			_minBattleUnits += EXTRA;
-		}
+		// if (xvr.getTimeSeconds() >= 380 && minUnits < 5) {
+		// final int EXTRA = 5;
+		// minUnits += EXTRA;
+		// _minBattleUnits += EXTRA;
+		// }
 
 		if (haveEnoughMedics && haveEnoughTanks && battleUnits >= minUnits) {
 			return true;

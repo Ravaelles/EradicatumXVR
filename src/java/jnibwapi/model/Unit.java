@@ -24,6 +24,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	private CallForHelp callForHelpMission = null;
 	private MapPoint properPlaceToBe = null;
 	private UnitType type;
+	private boolean beingRepaired = false;
 	// ========
 
 	private int ID;
@@ -941,16 +942,8 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public boolean isHidden() {
-		return (isCloaked() || isBurrowed() || !isDetected());
+		return !isDetected();
 	}
-
-	// public void markUnitToScrap() {
-	// shouldScrapUnit = true;
-	// }
-	//
-	// public boolean isShouldScrapUnit() {
-	// return shouldScrapUnit;
-	// }
 
 	public boolean canAttackGroundUnits() {
 		return getType().getGroundWeaponID() != WeaponTypes.None.ordinal();
@@ -1019,6 +1012,14 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	public boolean isRepairable() {
 		return type.isFlyer() || type.isBuilding() || type.isVulture() || type.isTank()
 				|| type.isGoliath();
+	}
+
+	public boolean isBeingRepaired() {
+		return beingRepaired;
+	}
+
+	public void setBeingRepaired(boolean beingRepared) {
+		this.beingRepaired = beingRepared;
 	}
 
 }

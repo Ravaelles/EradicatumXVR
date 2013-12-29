@@ -73,8 +73,9 @@ public class TerranSiegeTank {
 					UnitActions.attackTo(unit, targetForTank);
 				}
 			} else {
-				double nearestEnemyDist = xvr.getNearestEnemyDistance(unit, true, true);
-				if (nearestEnemyDist >= 0 && nearestEnemyDist < 2) {
+				Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+				double nearestEnemyDist = nearestEnemy.distanceTo(unit);
+				if (nearestEnemyDist >= 0 && (nearestEnemyDist < 2 || nearestEnemyDist <= 7)) {
 					unit.unsiege();
 				}
 			}

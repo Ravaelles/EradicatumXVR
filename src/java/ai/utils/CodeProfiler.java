@@ -2,7 +2,7 @@ package ai.utils;
 
 import java.util.HashMap;
 
-public class TimeMeasurer {
+public class CodeProfiler {
 
 	private static HashMap<String, Long> aspectsStart = new HashMap<>();
 	private static HashMap<String, Double> aspectsLength = new HashMap<>();

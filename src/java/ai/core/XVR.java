@@ -23,8 +23,8 @@ import ai.managers.constructing.ConstructingManager;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
+import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
-import ai.utils.TimeMeasurer;
 
 /**
  * Main controller of AI. It contains main method act() and has many, many
@@ -55,8 +55,7 @@ public class XVR {
 	private XVRClient client;
 	private JNIBWAPI bwapi;
 
-	/** Basically it is frame counter. */
-	private int time = 0;
+	private int frameCounter = 0;
 
 	// =====================================================
 
@@ -72,7 +71,7 @@ public class XVR {
 	/** This method is called every 30th frame (approx. once a second). */
 	public void act() {
 		try {
-			time++;
+			frameCounter++;
 
 			// Calculate numbers of units by type, so this info can be used in
 			// other methods.
@@ -87,45 +86,38 @@ public class XVR {
 
 			// See if we're strong enough to attack the enemy
 			if (getTime() % 21 == 0) {
-				TimeMeasurer.startMeasuring("Strategy");
+				CodeProfiler.startMeasuring("Strategy");
 				StrategyManager.evaluateMassiveAttackOptions();
-				TimeMeasurer.endMeasuring("Strategy");
+				CodeProfiler.endMeasuring("Strategy");
 			}
 
 			// Handle technologies
 			if (getTime() % 23 == 0) {
-				TimeMeasurer.startMeasuring("Technology");
+				CodeProfiler.startMeasuring("Technology");
 				TechnologyManager.act();
-				TimeMeasurer.endMeasuring("Technology");
+				CodeProfiler.endMeasuring("Technology");
 			}
 
 			// Now let's mine minerals with your idle workers.
 			if (getTime() % 11 == 0) {
-				TimeMeasurer.startMeasuring("Workers");
+				CodeProfiler.startMeasuring("Workers");
 				WorkerManager.act();
-				TimeMeasurer.endMeasuring("Workers");
+				CodeProfiler.endMeasuring("Workers");
 			}
 
 			// Handle behavior of units and buildings.
 			// Handle units in neighborhood of army units.
 			if (getTime() % 22 == 0) {
-				// System.out.println();
-				// for (Unit unit : MapExploration.getEnemyUnitsDiscovered()) {
-				// System.out.println(unit.getName() + " ## visible:"
-				// + unit.isVisible() + ", exists:" + unit.isExists()
-				// + ", HP:" + unit.getHitPoints());
-				// }
-
-				TimeMeasurer.startMeasuring("Army");
+				CodeProfiler.startMeasuring("Army");
 				UnitManager.act();
-				TimeMeasurer.endMeasuring("Army");
+				CodeProfiler.endMeasuring("Army");
 			}
 
 			// Triple the frequency of "anti-hero" code
 			if (getTime() % 22 == 7 || getTime() % 22 == 14) {
-				TimeMeasurer.startMeasuring("Eval forces");
+				CodeProfiler.startMeasuring("Eval forces");
 				UnitManager.applyStrengthEvaluatorToAllUnits();
-				TimeMeasurer.endMeasuring("Eval forces");
+				CodeProfiler.endMeasuring("Eval forces");
 			}
 
 			// Avoid being under psionic storm, disruptive web etc.
@@ -140,26 +132,21 @@ public class XVR {
 
 			// Handle army building.
 			if (getTime() % 11 == 0) {
-				TimeMeasurer.startMeasuring("Army build");
+				CodeProfiler.startMeasuring("Army build");
 				ArmyCreationManager.act();
-				TimeMeasurer.endMeasuring("Army build");
+				CodeProfiler.endMeasuring("Army build");
 			}
 
 			// Handle constructing new buildings
 			if (getTime() % 9 == 0) {
-				TimeMeasurer.startMeasuring("Construct");
+				CodeProfiler.startMeasuring("Construct");
 				ConstructingManager.act();
-				TimeMeasurer.endMeasuring("Construct");
+				CodeProfiler.endMeasuring("Construct");
 			}
-
-			// if (getTime() % 70 == 0) {
-			// MapExploration.removeNonExistingEnemyUnits();
-			// }
 		} catch (Exception e) {
 			System.err.println("--------------------------------------");
 			System.err.println("---------- NON CRITICAL ERROR OCCURED: ");
 			e.printStackTrace();
-			// RUtilities.displayException(e, "Error", "An error occured:");
 		}
 	}
 
@@ -177,20 +164,6 @@ public class XVR {
 		// if (unitType.isBuilding()) {
 		// TerranConstructing.removeIsBeingBuilt(unitType);
 		// }
-	}
-
-	// =========================================================
-
-	public static boolean isEnemyTerran() {
-		return enemyTerran;
-	}
-
-	public static boolean isEnemyZerg() {
-		return enemyZerg;
-	}
-
-	public static boolean isEnemyProtoss() {
-		return enemyProtoss;
 	}
 
 	// =========================================================
@@ -212,19 +185,31 @@ public class XVR {
 		return bwapi.getMap();
 	}
 
+	public static boolean isEnemyTerran() {
+		return enemyTerran;
+	}
+
+	public static boolean isEnemyZerg() {
+		return enemyZerg;
+	}
+
+	public static boolean isEnemyProtoss() {
+		return enemyProtoss;
+	}
+
 	// =========================================================
 	// UTILITIES
 
 	public int getTime() {
-		return time;
+		return frameCounter;
 	}
 
 	public int getTimeSeconds() {
-		return time / 30;
+		return frameCounter / 30;
 	}
 
 	public int getTimeDifferenceBetweenNowAnd(int oldTime) {
-		return time - oldTime;
+		return frameCounter - oldTime;
 	}
 
 	public void buildUnit(Unit building, UnitTypes type) {
@@ -869,31 +854,29 @@ public class XVR {
 	}
 
 	public boolean isEnemyDefensiveGroundBuildingNear(MapPoint point) {
-		return isEnemyDefensiveAirBuildingNear(point.getX(), point.getY());
-	}
-
-	public boolean isEnemyDefensiveGroundBuildingNear(int x, int y) {
-		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y), 11,
-				getEnemyBuildings());
+		ArrayList<Unit> enemiesNearby = getUnitsInRadius(point, 11, getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackGroundUnits()) {
-				return true;
+				int maxEnemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles();
+				if (point.distanceTo(enemy) <= maxEnemyRange + 1) {
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 
 	public boolean isEnemyDefensiveAirBuildingNear(MapPoint point) {
-		return isEnemyDefensiveAirBuildingNear(point.getX(), point.getY());
-	}
-
-	public boolean isEnemyDefensiveAirBuildingNear(int x, int y) {
-		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y),
-				WHAT_IS_NEAR_DISTANCE, getEnemyBuildings());
+		ArrayList<Unit> enemiesNearby = getUnitsInRadius(point, WHAT_IS_NEAR_DISTANCE,
+				getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackAirUnits()) {
+				int maxEnemyRange = enemy.getType().getAirWeapon().getMaxRangeInTiles();
+				if (point.distanceTo(enemy) <= maxEnemyRange + 1) {
+					return true;
+				}
 				return true;
 			}
 		}
@@ -947,6 +930,19 @@ public class XVR {
 		for (Unit unit : bwapi.getMyUnits()) {
 			UnitType type = unit.getType();
 			if (!type.isBuilding() && !type.isWorker()) {
+				objectsOfThisType.add(unit);
+			}
+		}
+
+		return objectsOfThisType;
+	}
+
+	public ArrayList<Unit> getUnitsArmyFlyers() {
+		ArrayList<Unit> objectsOfThisType = new ArrayList<Unit>();
+
+		for (Unit unit : bwapi.getMyUnits()) {
+			UnitType type = unit.getType();
+			if (type.isFlyer()) {
 				objectsOfThisType.add(unit);
 			}
 		}

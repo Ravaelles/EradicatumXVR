@@ -3,6 +3,7 @@ package ai.managers.units;
 import java.util.HashMap;
 
 import jnibwapi.model.Unit;
+import ai.handling.units.UnitActions;
 import ai.managers.WorkerManager;
 
 public class RepairAndSons {
@@ -12,7 +13,31 @@ public class RepairAndSons {
 	private static HashMap<Unit, Unit> unitsToRepairers = new HashMap<>();
 	private static HashMap<Unit, Unit> repairersToUnits = new HashMap<>();
 
-	public static void issueTicketToRepair(Unit unit) {
+	public static boolean tryRepairingSomethingIfNeeded(Unit worker) {
+		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
+		if (repairThisUnit != null) {
+			if (repairThisUnit.isWounded()) {
+
+				// Don't repair Vultures that are far away. They must come to
+				// the worker. It's because they tend to be wounded all the time
+				// and this way SCV gets killed too often.
+				if (repairThisUnit.getType().isVulture() && repairThisUnit.distanceTo(worker) >= 6) {
+					return false;
+				} else {
+					UnitActions.repair(worker, repairThisUnit);
+					return true;
+				}
+			}
+
+			// This repair order is obsolete, remove it.
+			else {
+				RepairAndSons.removeTicketFor(repairThisUnit, worker);
+			}
+		}
+		return false;
+	}
+
+	public static void issueTicketToRepairIfHasnt(Unit unit) {
 		if (unit == null) {
 			return;
 		}
@@ -31,6 +56,7 @@ public class RepairAndSons {
 		}
 		unitsToRepairers.put(unit, repairer);
 		repairersToUnits.put(repairer, unit);
+		unit.setBeingRepaired(true);
 	}
 
 	public static Unit getUnitAssignedToRepairBy(Unit worker) {

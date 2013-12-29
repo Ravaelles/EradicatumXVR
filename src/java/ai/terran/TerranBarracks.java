@@ -198,6 +198,22 @@ public class TerranBarracks {
 		// ===========================================================
 		UnitTypes typeToBuild = MARINE;
 
+		// FIREBATS
+		// Don't build firebats at all against Terran
+		if (!XVR.isEnemyTerran()) {
+			if (firebatAllowed) {
+				int minFirebats = XVR.isEnemyProtoss() ? 3 : 1;
+				if (firebats < minFirebats && xvr.canAfford(50, 25)) {
+					return FIREBAT;
+				}
+
+				double firebatPercent = (double) firebats / totalInfantry;
+				if (firebatPercent < firebatBuildRatio / totalRatio) {
+					return FIREBAT;
+				}
+			}
+		}
+
 		// MEDICS
 		if (weHaveAcademy && xvr.getTimeSeconds() >= 270) {
 			int medics = UnitCounter.getNumberOfUnits(MEDIC);
@@ -212,17 +228,6 @@ public class TerranBarracks {
 			double medicPercent = (double) medics / totalInfantry;
 			if (medics < MIN_MEDICS || medicPercent < medicBuildRatio / totalRatio) {
 				return MEDIC;
-			}
-		}
-
-		// FIREBATS
-		if (firebats < 1 && firebatAllowed && xvr.canAfford(50, 25)) {
-			return FIREBAT;
-		}
-		if (firebatAllowed) {
-			double firebatPercent = (double) firebats / totalInfantry;
-			if (firebatPercent < firebatBuildRatio / totalRatio) {
-				return FIREBAT;
 			}
 		}
 

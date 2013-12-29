@@ -283,12 +283,16 @@ public class Explorer {
 	}
 
 	private static boolean tryScoutingNextBaseLocation() {
+
+		// DOESNT WORK !!!
+		// Explore place behind our minerals
 		if (!_exploredBackOfMainBase) {
 			scoutBackOfMainBase();
 			_exploredBackOfMainBase = true;
 			return true;
 		}
 
+		// Explore the place where the second base will be built
 		if (!_exploredSecondBase) {
 			MapPoint secondBase = TerranCommandCenter.getSecondBaseLocation();
 			UnitActions.moveTo(explorer, secondBase);
@@ -296,6 +300,12 @@ public class Explorer {
 			return true;
 		}
 
+		// Explore random base location
+		if (!explorer.isMoving() && RUtilities.rand(0, 1) == 0) {
+			scoutRandomBaseLocation();
+		}
+
+		// Explore place for the 3rd and later bases
 		if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
 			MapPoint tileForNextBase = TerranCommandCenter.findTileForNextBase(false);
 			if (!xvr.getBwapi().isVisible(tileForNextBase.getTx(), tileForNextBase.getTy())) {
@@ -313,7 +323,22 @@ public class Explorer {
 				}
 			}
 		}
+
 		return false;
+	}
+
+	private static void scoutRandomBaseLocation() {
+		BaseLocation base = null;
+
+		boolean isOkay = false;
+		while (!isOkay) {
+			base = (BaseLocation) RUtilities.getRandomListElement(xvr.getMap().getBaseLocations());
+			if (!TerranCommandCenter.existsBaseNear(base)) {
+				isOkay = true;
+			}
+		}
+
+		UnitActions.moveTo(explorer, base);
 	}
 
 	private static void scoutBackOfMainBase() {

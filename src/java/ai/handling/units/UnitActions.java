@@ -6,7 +6,6 @@ import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
 import jnibwapi.types.TechType.TechTypes;
 import jnibwapi.types.UnitType;
-import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.army.ArmyPlacing;
 import ai.handling.army.StrengthEvaluator;
@@ -15,7 +14,6 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.managers.StrategyManager;
-import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.utils.RUtilities;
 
@@ -132,7 +130,7 @@ public class UnitActions {
 		// Act when enemy detector is nearby, run away
 		if (!StrategyManager.isAttackPending()
 				&& (xvr.isEnemyDetectorNear(unit.getX(), unit.getY()) || xvr
-						.isEnemyDefensiveGroundBuildingNear(unit.getX(), unit.getY()))) {
+						.isEnemyDefensiveGroundBuildingNear(unit))) {
 			Unit goTo = xvr.getLastBase();
 			UnitActions.attackTo(unit, goTo.getX(), goTo.getY());
 			return;
@@ -178,7 +176,7 @@ public class UnitActions {
 			UnitActions.moveTo(unit, xvr.getFirstBase());
 		}
 
-		if (unit.isAttacking() && !StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
 			UnitActions.moveToSafePlace(unit);
 		}
 	}
@@ -244,8 +242,8 @@ public class UnitActions {
 			}
 		}
 
-		boolean isEnemyBuildingNear = isAirUnit ? xvr.isEnemyDefensiveAirBuildingNear(unit.getX(),
-				unit.getY()) : xvr.isEnemyDefensiveGroundBuildingNear(unit.getX(), unit.getY());
+		boolean isEnemyBuildingNear = isAirUnit ? xvr.isEnemyDefensiveAirBuildingNear(unit) : xvr
+				.isEnemyDefensiveGroundBuildingNear(unit);
 		if (isEnemyBuildingNear) {
 			Unit enemyBuilding = isAirUnit ? xvr.getEnemyDefensiveAirBuildingNear(unit.getX(),
 					unit.getY()) : xvr
@@ -285,41 +283,47 @@ public class UnitActions {
 			}
 		}
 
-		// Unit has almost all shields
-		if (currHP >= maxHP / 2) {
-			return;
-		}
+		// // Unit has almost all shields
+		// if (currHP >= maxHP / 2) {
+		// return;
+		// }
 
-		// =============================
-		// Disallow running from some critical units
+		// // =============================
+		// // Disallow running from some critical units
+		//
+		// // If there's BUNKER
+		// if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 3, unit,
+		// false).size() > 0) {
+		// return;
+		// }
+		//
+		// // If there's CANNON
+		// if (xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(),
+		// 3, unit, false).size() > 0) {
+		// return;
+		// }
+		//
+		// // If there's enemy ARCHON
+		// if (xvr.getUnitsInRadius(unit, 3,
+		// xvr.getEnemyUnitsOfType(UnitTypes.Protoss_Archon)).size() > 0) {
+		// return;
+		// }
+		//
+		// // If there's SUKEN COLONY
+		// if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Zerg_Sunken_Colony, 3,
+		// unit, false).size() > 0) {
+		// return;
+		// }
 
-		// If there's BUNKER
-		if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 3, unit, false).size() > 0) {
-			return;
-		}
-
-		// If there's CANNON
-		if (xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3, unit, false).size() > 0) {
-			return;
-		}
-
-		// If there's enemy ARCHON
-		if (xvr.getUnitsInRadius(unit, 3, xvr.getEnemyUnitsOfType(UnitTypes.Protoss_Archon)).size() > 0) {
-			return;
-		}
-
-		// If there's SUKEN COLONY
-		if (xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Zerg_Sunken_Colony, 3, unit, false).size() > 0) {
-			return;
-		}
-
+		// //
 		// =====================================================================
-		// If unit is close to base then run away only if critically wounded.
-		if (xvr.countUnitsOfGivenTypeInRadius(UnitManager.BASE, 13, unit, true) >= 1) {
-			if (unit.getHP() > (type.getMaxHitPoints() / 3 + 3)) {
-				return;
-			}
-		}
+		// // If unit is close to base then run away only if critically wounded.
+		// if (xvr.countUnitsOfGivenTypeInRadius(UnitManager.BASE, 13, unit,
+		// true) >= 1) {
+		// if (unit.getHP() > (type.getMaxHitPoints() / 3 + 3)) {
+		// return;
+		// }
+		// }
 
 		// =====================================================================
 
@@ -355,6 +359,10 @@ public class UnitActions {
 		xvr.getBwapi().useTech(wizard.getID(), tech.getID(), place.getX(), place.getY());
 	}
 
+	public static void useTech(Unit wizard, TechTypes tech) {
+		xvr.getBwapi().useTech(wizard.getID(), tech.getID());
+	}
+
 	public static void moveToSafePlace(Unit unit) {
 		ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
 	}
@@ -373,6 +381,31 @@ public class UnitActions {
 
 	public static void holdPosition(Unit unit) {
 		xvr.getBwapi().holdPosition(unit.getID());
+	}
+
+	public static void moveAwayFromNearestEnemy(Unit unit) {
+		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		moveAwayFromUnit(unit, nearestEnemy);
+	}
+
+	public static void moveAwayFromUnit(Unit unit, Unit enemy) {
+		boolean unitHasMovedItsAss = false;
+
+		// Try to move away from unit and if can't (e.g. a wall
+		// behind), try to increase tiles away from current location
+		for (int i = 3; i <= 7; i += 2) {
+			if (UnitActions.moveAwayFromUnitIfPossible(unit, enemy, i)) {
+				unitHasMovedItsAss = true;
+				break;
+			}
+		}
+
+		// If unit still didn't move (e.g. nowhere to go, a dead-end),
+		// then just go back to the safe place.
+		if (!unitHasMovedItsAss) {
+			unitHasMovedItsAss = true;
+			UnitActions.moveToSafePlace(unit);
+		}
 	}
 
 }

@@ -33,23 +33,23 @@ public class WorkerManager {
 	// ======================
 
 	public static void act() {
-
-		ArrayList<Unit> workers = xvr.getUnitsOfType(UnitManager.WORKER);
-		// MapExploration.explorer = workers.size() > EXPLORER_INDEX ? workers
-		// .get(EXPLORER_INDEX) : null;
-
-		// ==================================
-		// Detect Zergling rush, if it's early and we have just 1 infantry
-		// completed, use Probes
-		// _maxWorkerCounterToDefendBase =
-		// defineMaxWorkerCounterToEarlyDefendBase();
-
-		// ==================================
 		_counter = 0;
+
+		// ==================================
 		// boolean shouldStopExploring = Debug.ourDeaths >= 2
 		// && !MapExploration.getEnemyBuildingsDiscovered().isEmpty();
+
+		ArrayList<Unit> workers = xvr.getUnitsOfType(UnitManager.WORKER);
 		for (Unit worker : workers) {
-			if (!tryRepairingSomethingIfNeeded(worker)) {
+			if (!worker.isCompleted()) {
+				continue;
+			}
+
+			// It may happen that this unit is supposed to repair other unit. If
+			// so, it's the priority.
+			if (!RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
+
+				// Unit can act as either a simple worker or as an explorer.
 				if (_counter != WORKER_INDEX_EXPLORER) {
 					WorkerManager.act(worker);
 				} else {
@@ -59,22 +59,6 @@ public class WorkerManager {
 
 			_counter++;
 		}
-	}
-
-	private static boolean tryRepairingSomethingIfNeeded(Unit worker) {
-		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
-		if (repairThisUnit != null) {
-			if (repairThisUnit.isWounded()) {
-				UnitActions.repair(worker, repairThisUnit);
-				return true;
-			}
-
-			// This repair order is obsolete, remove it.
-			else {
-				RepairAndSons.removeTicketFor(repairThisUnit, worker);
-			}
-		}
-		return false;
 	}
 
 	private static void defendBase(Unit worker) {
@@ -113,7 +97,7 @@ public class WorkerManager {
 					UnitActions.moveTo(worker, safeCannon);
 					return;
 				} else {
-					UnitActions.moveAwayFromUnitIfPossible(worker, enemyToFight, 5);
+					UnitActions.moveAwayFromUnit(worker, enemyToFight);
 					return;
 				}
 			}
@@ -436,7 +420,8 @@ public class WorkerManager {
 			}
 
 			double distance = xvr.getDistanceBetween(otherUnit, unit);
-			if (distance < nearestDistance) {
+			if (distance < nearestDistance
+					&& RepairAndSons.getUnitAssignedToRepairBy(otherUnit) == null) {
 				nearestDistance = distance;
 				nearestUnit = otherUnit;
 			}

@@ -23,6 +23,8 @@ public class TankTargeting {
 	private static final int OPTION_PENALTY_WOUNDING_ONE_HP_OUR_UNIT = 5;
 	private static final int OPTION_PENALTY_KILLING_ONE_OUR_UNIT = 80;
 
+	private static final int MINIMUM_OPTION_VALUE = 30;
+
 	// =====================================
 
 	public static MapPoint defineTargetForSiegeTank(Unit unit) {
@@ -90,7 +92,12 @@ public class TankTargeting {
 	private static Unit defineOptimalStandardTarget(Unit unit, ArrayList<Unit> enemiesInRange) {
 		Map<Unit, Double> bestTargets = defineBestTargets(unit, enemiesInRange);
 		if (!bestTargets.isEmpty()) {
-			return (Unit) RUtilities.getFirstMapElement(bestTargets);
+			Unit bestTarget = (Unit) RUtilities.getFirstMapElement(bestTargets);
+			if (bestTargets.get(bestTarget) >= MINIMUM_OPTION_VALUE) {
+				return bestTarget;
+			} else {
+				return null;
+			}
 		} else {
 			return null;
 		}

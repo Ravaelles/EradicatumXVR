@@ -1,5 +1,7 @@
 package ai.managers;
 
+import java.util.HashMap;
+
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
@@ -18,7 +20,9 @@ public class BuildingManager {
 			return;
 		}
 
-		handleDamagedBuilding(building);
+		// ===========================================
+		// Repairing of building works slightly differently than repairing units
+		handleBuildingsNeedingRepair(building);
 
 		// If under attack always call for help
 		if (building.isUnderAttack()) {
@@ -28,28 +32,14 @@ public class BuildingManager {
 		// Cancel construction of buildings under attack and severely damaged
 		handleUnfinishedBuildings(building, type);
 
-		// // Bunker
-		// // if (buildingType.isBunker()) {
-		// if (building.isUnderAttack()
-		// || building.getHitPoints() < building.getInitialHitPoints()) {
-		// for (int workerCounter = 0; workerCounter <
-		// REPAIR_BUILDING_WITH_WORKERS; workerCounter++) {
-		// Unit repairer = WorkerManager.findNearestRepairerTo(building);
-		// UnitActions.repair(repairer, building);
-		// }
-		//
-		// if (building.isUnderAttack()) {
-		// UnitActions.callForHelp(building);
-		// }
-		// }
-		// // }
-
+		// ==========================================
+		// Act with SPECIAL BUILDINGS
 		if (type.getID() == UnitTypes.Terran_Comsat_Station.ordinal()) {
 			TerranComsatStation.act(building);
 		}
 	}
 
-	private static void handleDamagedBuilding(Unit building) {
+	private static void handleBuildingsNeedingRepair(Unit building) {
 		UnitType buildingType = building.getType();
 
 		// Act only if building is not fully healthy
@@ -75,10 +65,12 @@ public class BuildingManager {
 		}
 	}
 
+	private static HashMap<Unit, Integer> _buildingsInConstructionHP = new HashMap<>();
+
 	private static void handleUnfinishedBuildings(Unit building, UnitType buildingType) {
 		// System.out.println("TEST " + building.isUnderAttack() + " " +
 		// !building.isCompleted());
-		if (building.isUnderAttack() && !building.isCompleted()) {
+		if (!building.isCompleted() && isBuildingAttacked(building)) {
 			System.out.println("BUILDING ATTACKED");
 			boolean shouldCancelConstruction = false;
 
@@ -128,6 +120,17 @@ public class BuildingManager {
 					UnitActions.rightClick(newBuilder, building);
 				}
 			}
+		}
+	}
+
+	private static boolean isBuildingAttacked(Unit building) {
+		if (!_buildingsInConstructionHP.containsKey(building)) {
+			_buildingsInConstructionHP.put(building, building.getHP());
+			return false;
+		} else {
+			int oldHP = _buildingsInConstructionHP.get(building);
+			_buildingsInConstructionHP.put(building, building.getHP());
+			return building.getHP() < oldHP;
 		}
 	}
 

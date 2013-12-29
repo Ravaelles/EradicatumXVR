@@ -7,7 +7,7 @@ import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 
-public class TerranScienceLab {
+public class TerranScienceFacility {
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Science_Facility;
 	private static XVR xvr = XVR.getInstance();

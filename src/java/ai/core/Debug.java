@@ -20,8 +20,8 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
+import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
-import ai.utils.TimeMeasurer;
 
 public class Debug {
 
@@ -34,7 +34,7 @@ public class Debug {
 	public static int enemyDeaths = 0;
 
 	public static void drawDebug(XVR xvr) {
-		TimeMeasurer.startMeasuring("Painting");
+		CodeProfiler.startMeasuring("Painting");
 
 		int oldMainMessageRowCounter = mainMessageRowCounter;
 		mainMessageRowCounter = 0;
@@ -95,7 +95,7 @@ public class Debug {
 		// ========
 		mainMessageRowCounter = oldMainMessageRowCounter;
 
-		TimeMeasurer.endMeasuring("Painting");
+		CodeProfiler.endMeasuring("Painting");
 	}
 
 	private static final int timeConsumptionLeftOffset = 575;
@@ -108,7 +108,7 @@ public class Debug {
 		JNIBWAPI bwapi = xvr.getBwapi();
 
 		int counter = 0;
-		double maxValue = RUtilities.getMaxElement(TimeMeasurer.getAspectsTimeConsumption()
+		double maxValue = RUtilities.getMaxElement(CodeProfiler.getAspectsTimeConsumption()
 				.values());
 
 		// System.out.println();
@@ -118,11 +118,11 @@ public class Debug {
 		// }
 
 		// System.out.println(TimeMeasurer.getAspectsTimeConsumption().keySet().size());
-		for (String aspectTitle : TimeMeasurer.getAspectsTimeConsumption().keySet()) {
+		for (String aspectTitle : CodeProfiler.getAspectsTimeConsumption().keySet()) {
 			int x = timeConsumptionLeftOffset;
 			int y = timeConsumptionTopOffset + timeConsumptionYInterval * counter++;
 
-			int value = TimeMeasurer.getAspectsTimeConsumption().get(aspectTitle).intValue();
+			int value = CodeProfiler.getAspectsTimeConsumption().get(aspectTitle).intValue();
 
 			// Draw aspect time consumption bar
 			int barWidth = (int) (timeConsumptionBarMaxWidth * value / maxValue);
@@ -317,6 +317,10 @@ public class Debug {
 		// if gas, yellow if they're constructing).
 		JNIBWAPI bwapi = xvr.getBwapi();
 		for (Unit u : bwapi.getMyUnits()) {
+			if (!u.isCompleted()) {
+				continue;
+			}
+
 			boolean isBuilding = u.getType().isBuilding();
 			if (FULL_DEBUG && !isBuilding) {
 				// if (u.isMoving()) {
@@ -331,57 +335,61 @@ public class Debug {
 					// bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(),
 					// u.getTargetY(),
 					// BWColor.WHITE, false);
-				} else if (u.isAttacking()) {
-					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.RED, false, false);
-					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.RED, false, false);
-
-					bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(), BWColor.RED,
-							false);
+				} else if (u.isMoving()) {
+					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false, false);
 				} else if (u.isRepairing()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.PURPLE, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.PURPLE, false, false);
 				} else if (u.isConstructing()
 						|| u.getLastCommandID() == UnitCommandTypes.Build.ordinal()) {
-					// if (u.getBuildTypeID() == UnitManager.BASE.ordinal()) {
-					// bwapi.drawCircle(u.getX(), u.getY(), 16, BWColor.ORANGE,
-					// false, false);
-					// bwapi.drawCircle(u.getX(), u.getY(), 14, BWColor.ORANGE,
-					// false, false);
-					// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE,
-					// false, false);
-					// bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.ORANGE,
-					// false, false);
-					// bwapi.drawCircle(u.getX(), u.getY(), 8, BWColor.ORANGE,
-					// false, false);
-					// bwapi.drawCircle(u.getX(), u.getY(), 6, BWColor.ORANGE,
-					// false, false);
-					// } else {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.ORANGE, false, false);
-					// }
 				} else if (u.isStuck()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.TEAL, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.TEAL, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.TEAL, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 9, BWColor.TEAL, false, false);
 				}
-				// } else if (u.isIdle()) {
-				// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.WHITE,
-				// false, false);
-				// bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.WHITE,
-				// false, false);
-				// bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.WHITE,
-				// false, false);
-				// }
 
+				// ATTACKING: Display red circle around unit and paint a
+				// line to the target
+				else if (u.isAttacking()) {
+					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.RED, false, false);
+					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.RED, false, false);
+
+					// bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(),
+					// u.getTargetY(), BWColor.RED,
+					// false);
+				}
+
+				// HEALED unit, draw Red Cross on white background
+				else if (u.isBeingHealed() || u.isBeingRepaired()) {
+					bwapi.drawBox(u.getX() - 8, u.getY() - 8, u.getX() + 8, u.getY() + 8,
+							BWColor.WHITE, true, false);
+					bwapi.drawBox(u.getX() - 5, u.getY() - 2, u.getX() + 5, u.getY() + 2,
+							BWColor.RED, true, false);
+					bwapi.drawBox(u.getX() - 2, u.getY() - 5, u.getX() + 2, u.getY() + 5,
+							BWColor.RED, true, false);
+				}
+
+				// IDLE unit, draw question mark
+				else if (u.isIdle() && !u.getType().isBuilding()) {
+					bwapi.drawText(u.getX() - 2, u.getY() - 2,
+							BWColor.getToStringHex(BWColor.YELLOW) + "?", false);
+				}
+
+				// CONSTRUCTING: display building name
 				if (u.isConstructing()) {
 					String name = (UnitType.getUnitTypesByID(u.getBuildTypeID()) + "").replace(
 							"Terran_", "");
 					bwapi.drawText(u.getX() - 30, u.getY(), BWColor.getToStringHex(BWColor.GREY)
 							+ "-> " + name, false);
 				}
-			} else if (isBuilding) {
+			}
+
+			// IS BUILDING: display action name that's currently pending.
+			else if (isBuilding) {
 				if (u.isTraining()) {
 					String name = (bwapi.getUnitCommandType(u.getLastCommandID()).getName() + "")
 							.replace("Terran_", "");
@@ -390,13 +398,6 @@ public class Debug {
 				}
 			}
 		}
-		// } else if ((u.isMoving() || u.isAttacking()) && !u.isSCV()) {
-		// // xvr.getBwapi().drawCircle(u.getX(), u.getY(), 12,
-		// // BWColor.GREEN, false, false);
-		// xvr.getBwapi().drawText(u.getX(), u.getY(),
-		// String.format("->[%d,%d]",u.getTargetX() / 32, u.getTargetY() /
-		// 32), false);
-		// }
 	}
 
 	@SuppressWarnings("static-access")

@@ -19,9 +19,9 @@ import ai.terran.TerranFactory;
 import ai.terran.TerranMachineShop;
 import ai.terran.TerranMissileTurret;
 import ai.terran.TerranRefinery;
+import ai.terran.TerranScienceFacility;
 import ai.terran.TerranStarport;
 import ai.terran.TerranSupplyDepot;
-import ai.utils.RUtilities;
 
 public class ConstructingManager {
 
@@ -36,6 +36,7 @@ public class ConstructingManager {
 
 	private static int _recentConstructionsCounter = 0;
 	private static int _actCounter = 0;
+	private static int _lastCheckedForProlongated = -1;
 
 	// ====================================
 
@@ -74,11 +75,13 @@ public class ConstructingManager {
 			TerranStarport.buildIfNecessary();
 			TerranMachineShop.buildIfNecessary();
 			TerranArmory.buildIfNecessary();
+			TerranScienceFacility.buildIfNecessary();
 		}
 
 		// It can happen that damned worker will stuck somewhere (what a retard)
-		if (RUtilities.rand(0, 20) == 0) {
+		if (xvr.getTimeSeconds() - _lastCheckedForProlongated >= 8) {
 			checkForProlongatedConstructions();
+			_lastCheckedForProlongated = xvr.getTimeSeconds();
 		}
 	}
 

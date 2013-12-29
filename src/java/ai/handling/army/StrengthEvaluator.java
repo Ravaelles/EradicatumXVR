@@ -11,6 +11,7 @@ import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.managers.StrategyManager;
 import ai.terran.TerranBarracks;
+import ai.terran.TerranBunker;
 import ai.terran.TerranSiegeTank;
 
 public class StrengthEvaluator {
@@ -34,6 +35,7 @@ public class StrengthEvaluator {
 
 	private static ArrayList<Unit> _ourUnits;
 	private static ArrayList<Unit> _enemyUnits;
+	private static double _distToNearestTank = -1;
 
 	// =====================================================
 
@@ -47,22 +49,25 @@ public class StrengthEvaluator {
 		_rangeBonus = 0;
 		UnitType type = unit.getType();
 		double ratio = 0;
-		boolean isTank = type.isTank();
+		// boolean isTank = type.isTank();
 		boolean isWorker = type.isWorker();
-		boolean canAttackLonely = type.isWorker() || type.isVulture() || type.isGhost();
+		boolean canAttackLonely = isWorker || type.isVulture() || type.isGhost();
 
 		// ===================================================
 		// SPECIAL unit actions
 
 		// If Vulture can't shoot (cooldown), make it go back.
-		if (type.isVulture() && unit.getGroundWeaponCooldown() > 0) {
-			return 0;
-		}
+		// if (type.isVulture() && unit.getGroundWeaponCooldown() > 0) {
+		// if (!type.isTank() && (unit.getGroundWeaponCooldown() > 0 &&
+		// !type.isFlyer())) {
+		// return 0;
+		// }
 
 		// ===================================================
-		// Check if unit should always be near one of the tanks
-		Unit shouldBeHere = isTooFarFromTank(unit);
-		if (shouldBeHere != null) {
+		// Check if unit should always be near one of the tanks, but it's too
+		// far from it/them
+		boolean shouldBeHere = isTooFarFromTank(unit);
+		if (shouldBeHere) {
 			return 0;
 		}
 
@@ -80,7 +85,7 @@ public class StrengthEvaluator {
 		_enemyUnits = enemyUnits;
 
 		// If there's no enemy units
-		if (isWorker && enemyUnits.isEmpty()) {
+		if (canAttackLonely && enemyUnits.isEmpty()) {
 			_rangeBonus = 0;
 			return -1;
 		}
@@ -89,7 +94,7 @@ public class StrengthEvaluator {
 		int ourUnitsGroupSize = ourUnits.size();
 		_ourUnits = ourUnits;
 
-		// if (canAttackLonely && ourUnitsGroupSize >= 4) {
+		// if (canAttackLonely && ourUnitsGroupSize >= 2) {
 		// _rangeBonus = 0;
 		// return -1;
 		// }
@@ -102,15 +107,21 @@ public class StrengthEvaluator {
 		// Disallow attacking lonely
 		boolean ourGroupToSmall = ourUnitsGroupSize <= 3;
 		if (!canAttackLonely && ourGroupToSmall) {
-			boolean forTank = isTank && (ourGroupToSmall || unit.getHP() < 80);
-			if (forTank) {
-				return 0;
-			}
+			// boolean forTank = isTank && (ourGroupToSmall || unit.getHP() <
+			// 80);
+			// if (forTank) {
+			return 0;
+			// }
 		}
 
-		if (type.isVulture() && ourUnitsGroupSize <= 4) {
+		boolean shouldGoBackNearBunker = shouldGoBackNearBunker(unit);
+		if (!canAttackLonely && shouldGoBackNearBunker && ourUnitsGroupSize <= 4) {
 			return 0;
 		}
+
+		// if (type.isVulture() && ourUnitsGroupSize <= 4) {
+		// return 0;
+		// }
 
 		// ==================================
 		// Calculate hit points and ground attack values of units nearby
@@ -167,9 +178,9 @@ public class StrengthEvaluator {
 			return 0;
 		}
 
-		if (!isWorker && ourUnitsGroupSize <= 7) {
-			return 0;
-		}
+		// if (!isWorker && ourUnitsGroupSize <= 7) {
+		// return 0;
+		// }
 
 		// ========================================
 
@@ -177,10 +188,27 @@ public class StrengthEvaluator {
 		return ratio;
 	}
 
+	private static boolean shouldGoBackNearBunker(Unit unit) {
+		Unit nearestBunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), unit);
+		if (nearestBunker != null) {
+			double distanceToBunker = nearestBunker.distanceTo(unit);
+			if (distanceToBunker >= 5 && distanceToBunker <= 11) {
+				Unit nearestTank = xvr.getNearestTankTo(unit);
+				if (nearestTank == null || nearestTank.distanceTo(unit) >= 9) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	private static boolean isEnemyAirUnitNearbyThatCanShootGround(Unit unit) {
 		for (Unit enemy : _enemyUnits) {
 			UnitType type = enemy.getType();
-			if (type.isFlyer() && type.canGroundAttack()) {
+			if (type.isFlyer()
+					&& type.canGroundAttack()
+					&& enemy.distanceTo(unit) <= enemy.getType().getGroundWeapon()
+							.getMinRangeInTiles() + 2) {
 				return true;
 			}
 		}
@@ -188,28 +216,28 @@ public class StrengthEvaluator {
 		return false;
 	}
 
-	private static Unit isTooFarFromTank(Unit unit) {
+	private static boolean isTooFarFromTank(Unit unit) {
 		Unit nearestTank = null;
 
 		if (TerranSiegeTank.getNumberOfUnitsCompleted() == 0) {
-			return nearestTank;
+			return false;
 		}
 
 		UnitType type = unit.getType();
 		boolean shouldBeAlwaysNearTank = !type.isFlyer() && !type.isWorker() && !type.isTank()
 				&& !type.isVulture();
-		double distToTank = -1;
+		_distToNearestTank = -1;
 		if (shouldBeAlwaysNearTank) {
 			nearestTank = xvr.getNearestTankTo(unit);
 			if (nearestTank != null) {
-				distToTank = nearestTank.distanceTo(unit);
+				_distToNearestTank = nearestTank.distanceTo(unit);
 			}
 
-			if (distToTank > MAX_TILES_FROM_TANK) {
-				return nearestTank;
+			if (_distToNearestTank > MAX_TILES_FROM_TANK) {
+				return true;
 			}
 		}
-		return null;
+		return false;
 	}
 
 	private static boolean isCriticallyCloseToChokePoint(Unit unit) {
@@ -245,7 +273,7 @@ public class StrengthEvaluator {
 				continue;
 			}
 
-			if (type.getGroundWeapon().getMaxRange() > 100) {
+			if (type.getGroundWeapon().getMaxRangeInTiles() >= 3) {
 				attackValue *= ENEMY_RANGE_WEAPON_STRENGTH_BONUS;
 			}
 			if (forEnemy) {

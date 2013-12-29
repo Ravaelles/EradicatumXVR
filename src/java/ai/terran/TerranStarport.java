@@ -16,7 +16,9 @@ public class TerranStarport {
 	public static UnitTypes DROPSHIP = UnitTypes.Terran_Dropship;
 	public static UnitTypes VALKYRIE = UnitTypes.Terran_Valkyrie;
 	public static UnitTypes WRAITH = UnitTypes.Terran_Wraith;
+	public static UnitTypes SCIENCE_VESSEL = UnitTypes.Terran_Science_Vessel;
 
+	private static final int MIN_VESSELS = 1;
 	// private static final int MINIMUM_BATTLECRUISERS = 2;
 	// private static final int MINIMUM_WRAITHS = 2;
 	// private static final int MINIMUM_VALKYRIES = 3;
@@ -94,12 +96,19 @@ public class TerranStarport {
 		// boolean arbiterAllowed =
 		// UnitCounter.weHaveBuilding(UnitTypes.Protoss_Arbiter_Tribunal);
 		boolean valkyrieAllowed = UnitCounter.weHaveBuilding(UnitTypes.Terran_Control_Tower);
+		boolean scienceVesselAllowed = UnitCounter
+				.weHaveBuilding(UnitTypes.Terran_Science_Facility);
 
 		// // BATTLECRUISER
 		// if (arbiterAllowed && xvr.countUnitsOfType(BATTLECRUISER) <
 		// MINIMUM_BATTLECRUISERS) {
 		// return BATTLECRUISER;
 		// }
+
+		// SCIENCE VESSEL
+		if (scienceVesselAllowed && TerranScienceVessel.getNumberOfUnits() < MIN_VESSELS) {
+			return SCIENCE_VESSEL;
+		}
 
 		// VALKYRIE
 		if (valkyrieAllowed) {

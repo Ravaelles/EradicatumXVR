@@ -1,6 +1,9 @@
 package ai.handling.army;
 
+import java.util.ArrayList;
+
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
@@ -53,18 +56,35 @@ public class ArmyPlacing {
 	}
 
 	private static MapPoint defineRendezvousBunkerIfPossible() {
-		MapPoint bunkerNearThisPoint = MapExploration.getNearestEnemyBase();
-		if (bunkerNearThisPoint == null) {
-			bunkerNearThisPoint = TerranCommandCenter.getSecondBaseLocation();
-		}
-
-		Unit bunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
-				bunkerNearThisPoint);
-		if (bunker != null) {
-			return bunker;
-		} else {
+		if (TerranBunker.getNumberOfUnits() == 0) {
 			return null;
 		}
+
+		Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
+		MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding
+				: TerranCommandCenter.getSecondBaseLocation();
+
+		// Get the list of bunkers that are near to the specified point.
+		ArrayList<Unit> bunkersNearby = xvr.getUnitsInRadius(bunkersNearestTo, 300,
+				xvr.getUnitsOfType(UnitTypes.Terran_Bunker));
+		for (Unit bunker : bunkersNearby) {
+			return bunker;
+		}
+		return null;
+
+		// MapPoint bunkerNearThisPoint = MapExploration.getNearestEnemyBase();
+		// if (bunkerNearThisPoint == null) {
+		// bunkerNearThisPoint = TerranCommandCenter.getSecondBaseLocation();
+		// }
+		//
+		// Unit bunker =
+		// xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
+		// bunkerNearThisPoint);
+		// if (bunker != null) {
+		// return bunker;
+		// } else {
+		// return null;
+		// }
 	}
 
 	public static void goToSafePlaceIfNotAlreadyThere(Unit unit) {
@@ -84,10 +104,10 @@ public class ArmyPlacing {
 			}
 		}
 
-		if (xvr.getDistanceSimple(unit, safePlace) >= 30) {
+		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
 			UnitActions.moveTo(unit, safePlace);
 		} else {
-			UnitActions.moveTo(unit, safePlace);
+			// UnitActions.moveTo(unit, safePlace);
 		}
 	}
 

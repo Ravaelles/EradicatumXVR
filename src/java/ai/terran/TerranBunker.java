@@ -259,22 +259,22 @@ public class TerranBunker {
 	private static MapPoint findProperBuildTile(MapPoint mapPoint) {
 
 		// Define approximate tile for cannon
-		MapPointInstance initialBuildTile = new MapPointInstance(mapPoint.getX(), mapPoint.getY());
+		MapPoint initialBuildTile = mapPoint;
 
 		// Define random worker, for technical reasons
 		Unit workerUnit = xvr.getRandomWorker();
 
 		// ================================
-		// Define maximum distance from a choke point for a cannon
+		// Define minimum and maximum distance from a choke point for a bunker
 		int minimumDistance = 5;
-		int numberOfCannonsNearby = calculateBunkersNearby(mapPoint);
+		int numberOfBunkersNearby = calculateBunkersNearby(mapPoint);
 		if (mapPoint instanceof ChokePoint) {
 			ChokePoint choke = (ChokePoint) mapPoint;
 			if (choke.getRadius() / 32 >= 8) {
 				minimumDistance = 3;
 			}
 		}
-		int maximumDistance = minimumDistance + (10 / Math.max(1, numberOfCannonsNearby));
+		int maximumDistance = minimumDistance + (10 / Math.max(1, numberOfBunkersNearby));
 
 		// ================================
 		// Find proper build tile

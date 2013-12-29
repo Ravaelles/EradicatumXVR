@@ -240,6 +240,15 @@ public class Constructing {
 	}
 
 	public static boolean isTooCloseToAnyChokePoint(MapPointInstance place) {
+		ChokePoint nearestChoke = MapExploration.getNearestChokePointFor(place);
+		int chokeTiles = (int) (nearestChoke.getRadius() / 32);
+
+		if (chokeTiles >= 6) {
+			return false;
+		} else {
+			return place.distanceToChokePoint(nearestChoke) <= 4.5;
+		}
+
 		// for (ChokePoint choke : MapExploration.getChokePoints()) {
 		// if (choke.getRadius() < 210
 		// && (xvr.getDistanceBetween(choke, place) - choke.getRadius() / 32) <=
@@ -247,13 +256,12 @@ public class Constructing {
 		// return true;
 		// }
 		// }
-		return false;
 	}
 
 	private static boolean isOverlappingNextBase(MapPoint place, UnitType type) {
 		if (!type.isBase()
 				&& UnitCounter.getNumberOfUnits(TerranSupplyDepot.getBuildingType()) >= 1) {
-			return xvr.getDistanceSimple(place, TerranCommandCenter.findTileForNextBase(false)) <= 6;
+			return xvr.getDistanceSimple(place, TerranCommandCenter.findTileForNextBase(false)) <= 7;
 		} else {
 			return false;
 		}
@@ -267,7 +275,7 @@ public class Constructing {
 
 		// ==============================
 		// Define building dimensions
-		int wHalf = type.getTileWidth();
+		int wHalf = type.getTileWidth() + (type.canHaveAddOn() ? 2 : 0);
 		int hHalf = type.getTileHeight();
 		int maxDimension = wHalf > hHalf ? wHalf : hHalf;
 
@@ -281,10 +289,10 @@ public class Constructing {
 
 		// If this building can have an Add-On, it is essential we keep place
 		// for it.
-		int baseBonus = 0;
+		int spaceBonus = 0;
 		if (type.canHaveAddOn()) {
-			baseBonus += 2;
-			center = center.translate(40, 0);
+			spaceBonus += 2;
+			center = center.translate(64, 0);
 		}
 
 		// For each building nearby define if it's not too close to this build
@@ -305,13 +313,13 @@ public class Constructing {
 			// Also: don't build in the place where there COULD BE Add-On for a
 			// different, already existing building
 			int dx = 0;
-			int bonus = baseBonus;
+			int bonus = spaceBonus;
 			UnitType unitType = unit.getType();
 			if (type.canHaveAddOn()) {
 				bonus++;
-				dx = 45;
+				dx = 64;
 				if (unitType.isBase()) {
-					bonus += 2;
+					bonus += 3;
 				}
 			}
 
@@ -529,20 +537,36 @@ public class Constructing {
 	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
 		boolean canProceed = false;
 
-		// Disallow multiple building of all buildings, except cannons.
+		// Disallow multiple building of all buildings, except barracks,
+		// bunkers.
 		if (building.getType().isBarracks()) {
 			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			// int barracks = TerranBarracks.getNumberOfUnits();
-			canProceed = builders == 0;
+			int barracks = TerranBarracks.getNumberOfUnits();
+			if (barracks != 1) {
+				canProceed = builders == 0;
+			}
+			if (barracks == 1) {
+				canProceed = builders <= 1;
+			}
+		} else if (building.getType().isBunker()) {
+			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+			int bunkers = TerranBunker.getNumberOfUnits();
+			if (bunkers != 1) {
+				canProceed = builders == 0;
+			}
+			if (bunkers == 1) {
+				canProceed = builders <= 1;
+			}
 		} else {
 			canProceed = !weAreBuilding(building);
 		}
 
+		// If there aren't multiple orders to build one building given, we can
+		// proceed
 		if (canProceed) {
 			xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
 					building.ordinal());
 			ConstructingManager.addInfoAboutConstruction(building, builder, buildTile);
-			// removeDuplicateConstructionsPending(builder);
 		}
 	}
 

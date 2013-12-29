@@ -111,7 +111,7 @@ public class TerranComsatStation {
 	}
 
 	private static Unit getOneWithMostEnergy() {
-		int maxEnergy = -1;
+		int maxEnergy = 49;
 		Unit bestObject = null;
 		for (Unit unit : xvr.getUnitsOfType(UnitTypes.Terran_Comsat_Station)) {
 			if (unit.getEnergy() > maxEnergy) {
@@ -124,7 +124,19 @@ public class TerranComsatStation {
 	}
 
 	public static void hiddenUnitDetected(Unit unit) {
-		if (UnitCounter.weHaveBuilding(UnitTypes.Terran_Comsat_Station)) {
+		if (UnitCounter.weHaveBuildingFinished(UnitTypes.Terran_Comsat_Station)) {
+			// Debug.message(xvr, "Hidden " + unit.getName());
+
+			// if you'll discover Protoss Observer, don't waste energy if you
+			// don't have too much of it
+			if (unit.getType().isObserver()) {
+				Unit comsat = getOneWithMostEnergy();
+				if (comsat != null && comsat.getEnergy() < 150) {
+					return;
+				}
+			}
+
+			// Scout the point where the unit is
 			tryToScanPoint(unit);
 		}
 	}

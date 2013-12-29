@@ -11,7 +11,6 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
-import ai.managers.StrategyManager;
 import ai.managers.TechnologyManager;
 import ai.utils.RUtilities;
 
@@ -27,23 +26,22 @@ public class TerranVulture {
 
 	public static void act(Unit unit) {
 		// int alliedUnitsNearby = xvr.countUnitsInRadius(unit, 10, true);
-		boolean shouldConsiderRunningAway = !StrategyManager.isAnyAttackFormPending();
+		// boolean shouldConsiderRunningAway =
+		// !StrategyManager.isAnyAttackFormPending();
 
 		// =========================
 
-		if (shouldConsiderRunningAway
-				&& UnitActions.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, true, true,
-						false)) {
+		if (UnitActions
+				.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, false, true, false)) {
+			return;
+		}
+		if (xvr.isEnemyDefensiveGroundBuildingNear(unit)) {
+			UnitActions.moveToSafePlace(unit);
 			return;
 		}
 
 		// Don't interrupt unit on march
 		if (unit.isStartingAttack()) {
-			return;
-		}
-
-		if (xvr.isEnemyDefensiveGroundBuildingNear(unit)) {
-			UnitActions.moveToSafePlace(unit);
 			return;
 		}
 

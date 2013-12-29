@@ -31,6 +31,7 @@ public class TerranCommandCenter {
 
 	private static MapPoint _secondBase = null;
 	private static MapPoint _cachedNextBaseTile = null;
+	private static int _lastTimeCalculatedTileForBase = -1;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Command_Center;
 
@@ -60,12 +61,12 @@ public class TerranCommandCenter {
 			return true;
 		}
 
-		if (bases >= 2 && battleUnits <= bases * 9 && !xvr.canAfford(700)) {
+		if (bases >= 2 && (battleUnits <= bases * 8 && !xvr.canAfford(600))) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			return false;
 		}
 
-		if (battleUnits < StrategyManager.getMinBattleUnits() + 2) {
+		if (battleUnits < StrategyManager.getMinBattleUnits() + 2 && !xvr.canAfford(550)) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			return false;
 		}
@@ -268,6 +269,15 @@ public class TerranCommandCenter {
 			return _cachedNextBaseTile;
 		}
 
+		// Make sure you're not calculating base location all the time
+		if (forceNewSolution) {
+			int now = xvr.getTimeSeconds();
+			if (_lastTimeCalculatedTileForBase != -1 && now - _lastTimeCalculatedTileForBase <= 1) {
+				return _cachedNextBaseTile;
+			}
+			_lastTimeCalculatedTileForBase = now;
+		}
+
 		// ===============================
 		BaseLocation nearestFreeBaseLocation = getNearestFreeBaseLocation();
 		// System.out.println("BaseLocation nearestFreeBaseLocation = " +
@@ -340,7 +350,11 @@ public class TerranCommandCenter {
 		return nearestFreeBaseLocation;
 	}
 
-	private static boolean existsBaseNear(int x, int y) {
+	public static boolean existsBaseNear(MapPoint point) {
+		return existsBaseNear(point.getX(), point.getY());
+	}
+
+	public static boolean existsBaseNear(int x, int y) {
 		for (Unit unit : xvr.getUnitsInRadius(x, y, 14)) {
 			if (unit.getType().isBase()) {
 				return true;

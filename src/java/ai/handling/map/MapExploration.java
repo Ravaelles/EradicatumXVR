@@ -40,6 +40,7 @@ public class MapExploration {
 	public static synchronized void enemyUnitDiscovered(Unit enemyUnit) {
 		UnitType type = enemyUnit.getType();
 		if (type.isBase()) {
+			TerranCommandCenter.findTileForNextBase(true);
 			synchronized (enemyBasesDiscovered) {
 				enemyBasesDiscovered.put(enemyUnit.getID(), enemyUnit);
 			}
