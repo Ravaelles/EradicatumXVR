@@ -1,10 +1,12 @@
 package ai.terran;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 
@@ -19,10 +21,10 @@ public class TerranMedic {
 	}
 
 	public static void act(Unit unit) {
-		Unit goTo = null;
-		Unit marine = xvr.getUnitOfTypeNearestTo(UnitTypes.Terran_Marine, unit);
-		if (marine != null) {
-			goTo = marine;
+		MapPoint goTo = null;
+		MapPoint unitPlace = getNearestInfantryPreferablyOutsideBunker(unit);
+		if (unitPlace != null) {
+			goTo = unitPlace;
 		}
 
 		// If there's someone to protect, go there
@@ -47,6 +49,28 @@ public class TerranMedic {
 				return;
 			}
 		}
+	}
+
+	private static MapPoint getNearestInfantryPreferablyOutsideBunker(Unit unit) {
+
+		// Define list of all infantry units that we could possibly follow
+		Collection<Unit> allInfantry = xvr.getUnitsOurOfTypes(UnitTypes.Terran_Marine,
+				UnitTypes.Terran_Firebat);
+		ArrayList<Unit> nearestInfantry = xvr.getUnitsInRadius(unit, 300, allInfantry);
+
+		// Try to go there, where's a marine/firebat not in a bunker
+		for (Unit infantry : nearestInfantry) {
+			if (!infantry.isLoaded()) {
+				return infantry;
+			}
+		}
+
+		// Units in bunkers will do fine...
+		for (Unit infantry : nearestInfantry) {
+			return infantry;
+		}
+
+		return TerranCommandCenter.getSecondBaseLocation();
 	}
 
 	public static int getNumberOfUnits() {

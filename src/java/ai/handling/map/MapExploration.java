@@ -57,6 +57,10 @@ public class MapExploration {
 	}
 
 	public static BaseLocation getMostDistantBaseLocation(Unit unit) {
+		if (unit == null) {
+			return null;
+		}
+
 		double mostFarDistance = 2;
 		BaseLocation nearestObject = null;
 

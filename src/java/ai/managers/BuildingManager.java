@@ -5,6 +5,7 @@ import java.util.HashMap;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
+import ai.core.Debug;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
@@ -42,11 +43,21 @@ public class BuildingManager {
 	private static void handleBuildingsNeedingRepair(Unit building) {
 		UnitType buildingType = building.getType();
 
+		int specialCaseRepairersNeeded = isSpecialCaseRepair(building);
+		if (specialCaseRepairersNeeded > 0) {
+			Debug.message(xvr,
+					specialCaseRepairersNeeded + " SCV should repair " + building.getName());
+			for (int i = 0; i < specialCaseRepairersNeeded; i++) {
+				Unit repairer = WorkerManager.findNearestRepairerTo(building);
+				UnitActions.repair(repairer, building);
+			}
+		}
+
 		// Act only if building is not fully healthy
 		if (building.getHP() < buildingType.getMaxHitPoints()) {
 
 			// Define number of repairers for this building
-			int numberOfRequiredRepairers = defineNumberOfRepairersFor(building);
+			int numberOfRequiredRepairers = defineOptimalNumberOfRepairersFor(building);
 
 			for (int i = 0; i < numberOfRequiredRepairers; i++) {
 				Unit repairer = WorkerManager.findNearestRepairerTo(building);
@@ -55,7 +66,28 @@ public class BuildingManager {
 		}
 	}
 
-	private static int defineNumberOfRepairersFor(Unit building) {
+	private static int isSpecialCaseRepair(Unit building) {
+
+		// It makes sense to foresee enemy attack on bunker and send repairers
+		// before the bunker is actually damaged, otherwise we will never make
+		// it
+		if (xvr.getTimeSeconds() < 700 && building.getType().isBunker()) {
+			int enemiesNearBunker = xvr.countUnitsEnemyInRadius(building, 17);
+			if (enemiesNearBunker >= 2) {
+				int oursNearBunker = xvr.countUnitsOursInRadius(building, 8);
+				if (XVR.isEnemyProtoss()) {
+					oursNearBunker /= 2;
+				}
+
+				int enemyAdvantage = enemiesNearBunker - oursNearBunker;
+				System.out.println("enemyAdvantage = " + enemyAdvantage);
+				return Math.min(1, (int) (enemyAdvantage / 2.5));
+			}
+		}
+		return 0;
+	}
+
+	private static int defineOptimalNumberOfRepairersFor(Unit building) {
 		if (building.getType().isBunker()) {
 			int enemiesNearBunker = xvr.getNumberOfUnitsInRadius(building, 11,
 					xvr.getEnemyArmyUnits());

@@ -82,6 +82,9 @@ public class UnitBasicBehavior {
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
 		UnitType type = unit.getType();
+		if (unit.isRunningFromEnemy()) {
+			return true;
+		}
 
 		// Don't interrupt when just starting an attack
 		if ((unit.isStartingAttack() && !unit.isWounded()) || unit.isLoaded()
@@ -96,6 +99,10 @@ public class UnitBasicBehavior {
 		// If there's dangerous enemy nearby and he's close, try to move away.
 		boolean unitHasMovedItsAss = false;
 		if (nearestEnemy != null && !nearestEnemy.isWorker()) {
+			if (unit.isStartingAttack() && nearestEnemy.distanceTo(unit) >= 2) {
+				return false;
+			}
+
 			int ourShootRange = type.getGroundWeapon().getMaxRangeInTiles();
 			boolean isEnemyVeryClose = nearestEnemy.distanceTo(unit) <= ourShootRange - 1;
 			if (isEnemyVeryClose) {
@@ -116,7 +123,15 @@ public class UnitBasicBehavior {
 				// Check if we have bigger shoot range than the enemy. If not,
 				// it doesn't make any sense to run away from him.
 				if (weHaveBiggerRangeThanEnemy) {
-					UnitActions.moveAwayFromUnit(unit, nearestEnemy);
+					if (type.isTerranInfantry()
+							&& UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
+						unit.setIsRunningFromEnemyNow();
+						return true;
+					} else {
+						UnitActions.moveAwayFromUnit(unit, nearestEnemy);
+						unit.setIsRunningFromEnemyNow();
+						return true;
+					}
 				}
 			}
 		}
@@ -138,6 +153,7 @@ public class UnitBasicBehavior {
 				return false;
 			}
 			if (loadIntoBunkerNearbyIfPossible(unit)) {
+				unit.setIsRunningFromEnemyNow();
 				return true;
 			}
 		}
@@ -232,6 +248,7 @@ public class UnitBasicBehavior {
 	public static boolean tryRunningFromCloseDefensiveBuilding(Unit unit) {
 		if (xvr.isEnemyDefensiveGroundBuildingNear(unit)) {
 			UnitActions.moveToSafePlace(unit);
+			unit.setIsRunningFromEnemyNow();
 			return true;
 		} else {
 			return false;

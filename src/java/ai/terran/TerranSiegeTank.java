@@ -1,5 +1,8 @@
 package ai.terran;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
@@ -74,9 +77,11 @@ public class TerranSiegeTank {
 				}
 			} else {
 				Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-				double nearestEnemyDist = nearestEnemy.distanceTo(unit);
-				if (nearestEnemyDist >= 0 && (nearestEnemyDist < 2 || nearestEnemyDist <= 7)) {
-					unit.unsiege();
+				if (nearestEnemy != null) {
+					double nearestEnemyDist = nearestEnemy.distanceTo(unit);
+					if (nearestEnemyDist >= 0 && (nearestEnemyDist < 2 || nearestEnemyDist <= 7)) {
+						unit.unsiege();
+					}
 				}
 			}
 		}
@@ -141,6 +146,16 @@ public class TerranSiegeTank {
 
 	public static UnitTypes getUnitType() {
 		return unitType;
+	}
+
+	public static Collection<Unit> getAllCompletedTanks() {
+		ArrayList<Unit> all = new ArrayList<>();
+		for (Unit unit : xvr.getBwapi().getMyUnits()) {
+			if (unit.getType().isTank()) {
+				all.add(unit);
+			}
+		}
+		return all;
 	}
 
 }

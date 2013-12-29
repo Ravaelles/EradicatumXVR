@@ -9,6 +9,7 @@ import jnibwapi.types.UnitType;
 import ai.core.Debug;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
+import ai.handling.map.MapPoint;
 import ai.managers.StrategyManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
@@ -56,6 +57,16 @@ public class StrengthEvaluator {
 		// ===================================================
 		// SPECIAL unit actions
 
+		if (isWorker && unit.isRepairing() && unit.getHP() > 15) {
+			return 10;
+		}
+
+		if (!type.isFlyer() && !isWorker && unit.getGroundWeaponCooldown() == 0) {
+			if (xvr.getNearestEnemyDistance(unit, true, type.canAirAttack()) >= 2) {
+				return 10;
+			}
+		}
+
 		// If Vulture can't shoot (cooldown), make it go back.
 		// if (type.isVulture() && unit.getGroundWeaponCooldown() > 0) {
 		// if (!type.isTank() && (unit.getGroundWeaponCooldown() > 0 &&
@@ -63,11 +74,20 @@ public class StrengthEvaluator {
 		// return 0;
 		// }
 
+		if (StrategyManager.isAnyAttackFormPending()) {
+			MapPoint properPlace = unit.getProperPlaceToBe();
+			if (properPlace != null
+					&& properPlace.distanceTo(unit) > StrategyManager
+							.getAllowedDistanceFromSafePoint()) {
+				return 0;
+			}
+		}
+
 		// ===================================================
 		// Check if unit should always be near one of the tanks, but it's too
 		// far from it/them
 		boolean shouldBeHere = isTooFarFromTank(unit);
-		if (shouldBeHere) {
+		if (!canAttackLonely && shouldBeHere) {
 			return 0;
 		}
 
@@ -114,9 +134,11 @@ public class StrengthEvaluator {
 			// }
 		}
 
-		boolean shouldGoBackNearBunker = shouldGoBackNearBunker(unit);
-		if (!canAttackLonely && shouldGoBackNearBunker && ourUnitsGroupSize <= 4) {
-			return 0;
+		if (!canAttackLonely) {
+			boolean shouldGoBackNearBunker = shouldGoBackNearBunker(unit);
+			if (shouldGoBackNearBunker && ourUnitsGroupSize <= 4) {
+				return 0;
+			}
 		}
 
 		// if (type.isVulture() && ourUnitsGroupSize <= 4) {
@@ -171,7 +193,7 @@ public class StrengthEvaluator {
 		// Coordinate troops
 
 		// Ensure we're attacking in large groups
-		if (ourUnitsGroupSize >= 3 && ratio < 0.8) {
+		if (ourUnitsGroupSize >= 5 && ratio < 0.8) {
 			StrategyManager.waitForMoreUnits();
 		}
 		if (_enemyDefensiveBuildings >= 1 && ourUnitsGroupSize <= 6) {

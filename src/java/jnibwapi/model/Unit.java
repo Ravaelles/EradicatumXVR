@@ -1022,4 +1022,14 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		this.beingRepaired = beingRepared;
 	}
 
+	private int lastTimeRunFromEnemy = -1;
+
+	public boolean isRunningFromEnemy() {
+		return XVR.getInstance().getTimeSeconds() - lastTimeRunFromEnemy < 2;
+	}
+
+	public void setIsRunningFromEnemyNow() {
+		lastTimeRunFromEnemy = XVR.getInstance().getTimeSeconds();
+	}
+
 }

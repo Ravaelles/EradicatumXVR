@@ -261,7 +261,7 @@ public class Constructing {
 	private static boolean isOverlappingNextBase(MapPoint place, UnitType type) {
 		if (!type.isBase()
 				&& UnitCounter.getNumberOfUnits(TerranSupplyDepot.getBuildingType()) >= 1) {
-			return xvr.getDistanceSimple(place, TerranCommandCenter.findTileForNextBase(false)) <= 7;
+			return xvr.getDistanceSimple(place, TerranCommandCenter.findTileForNextBase(false)) <= 8;
 		} else {
 			return false;
 		}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import jnibwapi.model.Unit;
 import ai.core.XVR;
+import ai.handling.army.ArmyPlacing;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 
@@ -31,19 +32,25 @@ public class FlyerManager {
 		}
 
 		// =====================
-		// Avoid units like: photon cannons, missile turrets, goliaths, marines.
-		boolean isAABuildingNearby = xvr.isEnemyDefensiveAirBuildingNear(unit);
-		boolean isAAUnitNearby = isAAUnitNearby(unit);
-		boolean shouldRunFromHere = isAABuildingNearby || isAAUnitNearby;
-		if (shouldRunFromHere && !unit.isStartingAttack()) {
-			UnitActions.moveToSafePlace(unit);
-		}
+		// Define place where to be
+		MapPoint point = ArmyPlacing.getFlyersGatheringPoint();
+		UnitActions.attackTo(unit, point);
 
 		// =====================
 		// Move away from other flyers, thus enhancing the range
+		boolean isAAUnitNearby = isAAUnitNearby(unit);
 		Unit otherFlyer = getNearestFlyerToFlyer(unit);
-		if (otherFlyer != null && otherFlyer.distanceTo(unit) < MIN_DIST_BETWEEN_FLYERS) {
+		if (!isAAUnitNearby && otherFlyer != null
+				&& otherFlyer.distanceTo(unit) < MIN_DIST_BETWEEN_FLYERS) {
 			UnitActions.moveAwayFromUnitIfPossible(unit, otherFlyer, 4);
+		}
+
+		// =====================
+		// Avoid units like: photon cannons, missile turrets, goliaths, marines.
+		boolean isAABuildingNearby = xvr.isEnemyDefensiveAirBuildingNear(unit);
+		boolean shouldRunFromHere = isAABuildingNearby || isAAUnitNearby;
+		if (shouldRunFromHere && !unit.isStartingAttack()) {
+			UnitActions.moveToSafePlace(unit);
 		}
 	}
 

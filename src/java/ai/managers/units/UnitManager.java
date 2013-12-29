@@ -62,7 +62,7 @@ public class UnitManager {
 			// would mess the things up.
 
 			// Don't interrupt when shooting or don't move when being repaired.
-			if (unit.isStartingAttack() || unit.isBeingRepaired()) {
+			if (unit.isStartingAttack() || unit.isBeingRepaired() || unit.isRunningFromEnemy()) {
 				continue;
 			}
 
@@ -75,7 +75,7 @@ public class UnitManager {
 			}
 
 			// If enemy has got very close near to us, move away
-			if (unit.isWounded() && UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
+			if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
 				continue;
 			}
 
@@ -94,7 +94,7 @@ public class UnitManager {
 			// ATTACK CLOSE targets (Tactics phase)
 			boolean canTryAttackingCloseTargets = !type.isVulture() && !type.isTank()
 					&& !type.isMedic();
-			if (canTryAttackingCloseTargets) {
+			if (canTryAttackingCloseTargets && !unit.isRunningFromEnemy()) {
 				AttackCloseTargets.attackCloseTargets(unit);
 			}
 
@@ -172,6 +172,10 @@ public class UnitManager {
 		for (Unit unit : xvr.getUnitsNonBuilding()) {
 			UnitType type = unit.getType();
 			if (type.equals(UnitManager.WORKER)) {
+				continue;
+			}
+
+			if (unit.isRunningFromEnemy()) {
 				continue;
 			}
 
@@ -325,7 +329,7 @@ public class UnitManager {
 	}
 
 	protected static void actWhenNoMassiveAttack(Unit unit) {
-		if (shouldUnitBeExplorer(unit)) {
+		if (shouldUnitBeExplorer(unit) && !unit.isRunningFromEnemy()) {
 			UnitActions.spreadOutRandomly(unit);
 		} else {
 			if (isUnitAttackingSomeone(unit)) {
@@ -369,6 +373,10 @@ public class UnitManager {
 
 		// If there is attack target defined, go for it.
 		if (StrategyManager.isSomethingToAttackDefined()) {
+			if (unitIsTooFarFromSafePlaceWhenAttackPending(unit)) {
+				return;
+			}
+
 			if (isUnitAttackingSomeone(unit)) {
 				return;
 			}
@@ -394,6 +402,15 @@ public class UnitManager {
 		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
 			UnitActions.moveToSafePlace(unit);
 		}
+	}
+
+	private static boolean unitIsTooFarFromSafePlaceWhenAttackPending(Unit unit) {
+		if (unit.distanceTo(ArmyPlacing.getArmyGatheringPointFor(unit)) > StrategyManager
+				.getAllowedDistanceFromSafePoint()) {
+			ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
+			return true;
+		}
+		return false;
 	}
 
 	protected static boolean isUnitFullyIdle(Unit unit) {

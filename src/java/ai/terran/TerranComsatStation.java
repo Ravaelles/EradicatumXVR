@@ -3,9 +3,11 @@ package ai.terran;
 import jnibwapi.model.Unit;
 import jnibwapi.types.TechType.TechTypes;
 import jnibwapi.types.UnitType.UnitTypes;
+import ai.core.Debug;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
+import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.AddOn;
 import ai.managers.constructing.Constructing;
@@ -106,8 +108,7 @@ public class TerranComsatStation {
 		if (point == null) {
 			return;
 		}
-		xvr.getBwapi().useTech(comsat.getID(), TechTypes.Scanner_Sweep.ordinal(), point.getX(),
-				point.getY());
+		UnitActions.useTech(comsat, TechTypes.Scanner_Sweep, point);
 	}
 
 	private static Unit getOneWithMostEnergy() {
@@ -125,7 +126,6 @@ public class TerranComsatStation {
 
 	public static void hiddenUnitDetected(Unit unit) {
 		if (UnitCounter.weHaveBuildingFinished(UnitTypes.Terran_Comsat_Station)) {
-			// Debug.message(xvr, "Hidden " + unit.getName());
 
 			// if you'll discover Protoss Observer, don't waste energy if you
 			// don't have too much of it
@@ -135,6 +135,7 @@ public class TerranComsatStation {
 					return;
 				}
 			}
+			Debug.message(xvr, "Hidden " + unit.getName());
 
 			// Scout the point where the unit is
 			tryToScanPoint(unit);

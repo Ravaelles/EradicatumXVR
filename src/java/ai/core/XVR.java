@@ -525,7 +525,7 @@ public class XVR {
 		int result = 0;
 
 		for (Unit unit : units) {
-			if (getDistanceBetween(unit, point) <= tileRadius) {
+			if (!unit.getType().isBuilding() && getDistanceBetween(unit, point) <= tileRadius) {
 				result++;
 			}
 		}

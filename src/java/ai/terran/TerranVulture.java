@@ -76,8 +76,7 @@ public class TerranVulture {
 		// Use mines if possible
 		handleMines(unit);
 
-		if (unit.getGroundWeaponCooldown() > 0
-				&& !StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
 			UnitActions.moveToSafePlace(unit);
 		}
 

@@ -127,4 +127,17 @@ public class ArmyPlacing {
 				(int) ((double) totalY / counter));
 	}
 
+	public static MapPoint getFlyersGatheringPoint() {
+		MapPoint attackPoint = null;
+		if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
+			attackPoint = MapExploration.getNearestEnemyBuilding();
+			if (attackPoint == null) {
+				attackPoint = MapExploration.getMostDistantBaseLocation(xvr.getFirstBase());
+			}
+			return xvr.getUnitNearestFromList(attackPoint, TerranSiegeTank.getAllCompletedTanks());
+		} else {
+			return TerranCommandCenter.getSecondBaseLocation();
+		}
+	}
+
 }

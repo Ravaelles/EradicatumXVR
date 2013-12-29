@@ -72,6 +72,9 @@ public class StrategyManager {
 	private static int _minBattleUnits = INITIAL_MIN_UNITS;
 	private static int _lastTimeWaitCalled = 0;
 
+	private static double allowedDistanceFromSafePoint = 0;
+	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.2;
+
 	// private static boolean pushedInitially = false;
 
 	// ====================================================
@@ -119,6 +122,7 @@ public class StrategyManager {
 
 		// We are either attacking or retreating.
 		if (isAnyAttackFormPending()) {
+			allowedDistanceFromSafePoint += STEP_DISTANCE_WHEN_ATTACK_PENDING;
 			decisionWhenAttacking();
 		}
 	}
@@ -285,6 +289,7 @@ public class StrategyManager {
 	private static void armyIsNotReadyToAttack() {
 		_attackPoint = null;
 		_attackTargetUnit = null;
+		allowedDistanceFromSafePoint = 0;
 	}
 
 	private static void defineInitialAttackTarget() {
@@ -342,11 +347,16 @@ public class StrategyManager {
 	}
 
 	public static void forcePeace() {
+		allowedDistanceFromSafePoint = 0;
 		changeStateTo(STATE_PEACE);
 	}
 
 	public static void waitForMoreUnits() {
 		waitUntilMinBattleUnits();
+	}
+
+	public static double getAllowedDistanceFromSafePoint() {
+		return allowedDistanceFromSafePoint;
 	}
 
 }

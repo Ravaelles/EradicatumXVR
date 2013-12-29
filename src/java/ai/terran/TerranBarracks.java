@@ -215,7 +215,7 @@ public class TerranBarracks {
 		}
 
 		// MEDICS
-		if (weHaveAcademy && xvr.getTimeSeconds() >= 270) {
+		if (weHaveAcademy) {
 			int medics = UnitCounter.getNumberOfUnits(MEDIC);
 			int ghosts = UnitCounter.getNumberOfUnits(GHOST);
 
@@ -225,9 +225,16 @@ public class TerranBarracks {
 				return GHOST;
 			}
 
-			double medicPercent = (double) medics / totalInfantry;
-			if (medics < MIN_MEDICS || medicPercent < medicBuildRatio / totalRatio) {
-				return MEDIC;
+			if (xvr.getTimeSeconds() >= 270) {
+				double medicPercent = (double) medics / totalInfantry;
+				if (medics < MIN_MEDICS || medicPercent < medicBuildRatio / totalRatio) {
+					return MEDIC;
+				}
+			} else {
+				int marinesMinusBunkers = marines - TerranBunker.MAX_STACK * 4;
+				if (medics < marinesMinusBunkers / 3) {
+					return MEDIC;
+				}
 			}
 		}
 

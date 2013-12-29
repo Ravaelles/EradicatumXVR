@@ -18,7 +18,6 @@ import ai.managers.ArmyCreationManager;
 import ai.managers.StrategyManager;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
-import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
@@ -232,15 +231,17 @@ public class Debug {
 		}
 
 		// Paint next BUNKER position
-		if (TerranBunker.getNumberOfUnits() == 0) {
-			building = TerranBunker.findTileForBunker();
-			if (building != null) {
-				xvr.getBwapi().drawBox(building.getX(), building.getY(), building.getX() + 2 * 32,
-						building.getY() + 2 * 32, BWColor.TEAL, false, false);
-				xvr.getBwapi()
-						.drawText(building.getX() + 10, building.getY() + 30, "Bunker", false);
-			}
-		}
+		// if (TerranBunker.getNumberOfUnits() == 0) {
+		// building = TerranBunker.findTileForBunker();
+		// if (building != null) {
+		// xvr.getBwapi().drawBox(building.getX(), building.getY(),
+		// building.getX() + 2 * 32,
+		// building.getY() + 2 * 32, BWColor.TEAL, false, false);
+		// xvr.getBwapi()
+		// .drawText(building.getX() + 10, building.getY() + 30, "Bunker",
+		// false);
+		// }
+		// }
 
 		// // Paint next PYLON position
 		// building = ProtossPylon.findTileForPylon();
