@@ -263,6 +263,9 @@ public class TerranCommandCenter {
 
 	/** Find building tile for new base. */
 	public static MapPoint findTileForNextBase(boolean forceNewSolution) {
+		if (xvr.getFirstBase() == null) {
+			return null;
+		}
 
 		// Try to get cached value
 		if (_cachedNextBaseTile != null && !forceNewSolution) {

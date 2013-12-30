@@ -9,7 +9,6 @@ import jnibwapi.types.UnitCommandType.UnitCommandTypes;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.util.BWColor;
-import ai.handling.army.StrengthEvaluator;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.other.NukeHandling;
@@ -157,7 +156,7 @@ public class Debug {
 
 			// ==========================
 			// Strength evaluation
-			strength = StrengthEvaluator.calculateStrengthRatioFor(unit);
+			strength = unit.getStrengthEvaluation();
 			if (strength != -1) {
 				strength -= 1; // make +/- values display
 				if (strength < 99998) {
@@ -338,6 +337,11 @@ public class Debug {
 					// BWColor.WHITE, false);
 				} else if (u.isMoving()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false, false);
+
+					if (xvr.getDistanceBetween(u, u.getTargetX(), u.getTargetY()) <= 15) {
+						bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(),
+								BWColor.WHITE, false);
+					}
 				} else if (u.isRepairing()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.PURPLE, false, false);

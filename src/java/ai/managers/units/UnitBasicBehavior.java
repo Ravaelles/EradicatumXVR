@@ -14,7 +14,6 @@ import ai.terran.TerranBunker;
 import ai.terran.TerranMedic;
 import ai.terran.TerranSiegeTank;
 import ai.terran.TerranVulture;
-import ai.terran.TerranWraith;
 
 public class UnitBasicBehavior {
 
@@ -73,22 +72,17 @@ public class UnitBasicBehavior {
 		if (unitType.isTank()) {
 			TerranSiegeTank.act(unit);
 		}
-
-		// Wraith
-		else if (unitType.isWraith()) {
-			TerranWraith.act(unit);
-		}
 	}
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
 		UnitType type = unit.getType();
 		if (unit.isRunningFromEnemy()) {
+			UnitActions.moveAwayFromNearestEnemy(unit);
 			return true;
 		}
 
 		// Don't interrupt when just starting an attack
-		if ((unit.isStartingAttack() && !unit.isWounded()) || unit.isLoaded()
-				|| unit.getType().isFirebat()) {
+		if (unit.isLoaded() || (unit.getType().isFirebat() && unit.getHP() > 20)) {
 			return false;
 		}
 
@@ -99,12 +93,14 @@ public class UnitBasicBehavior {
 		// If there's dangerous enemy nearby and he's close, try to move away.
 		boolean unitHasMovedItsAss = false;
 		if (nearestEnemy != null && !nearestEnemy.isWorker()) {
-			if (unit.isStartingAttack() && nearestEnemy.distanceTo(unit) >= 2) {
+			if (unit.isStartingAttack() && nearestEnemy.distanceTo(unit) >= 2.8) {
 				return false;
 			}
 
 			int ourShootRange = type.getGroundWeapon().getMaxRangeInTiles();
-			boolean isEnemyVeryClose = nearestEnemy.distanceTo(unit) <= ourShootRange - 1;
+			boolean isEnemyVeryClose = nearestEnemy.distanceTo(unit) <= 2.5;
+
+			// If enemy is close, run!
 			if (isEnemyVeryClose) {
 
 				// ===================================
@@ -114,6 +110,10 @@ public class UnitBasicBehavior {
 					unit.unsiege();
 					return true;
 				}
+			}
+
+			// Enemy isn't critically close
+			else {
 
 				// ===================================
 				// Define attack range
@@ -121,17 +121,12 @@ public class UnitBasicBehavior {
 				boolean weHaveBiggerRangeThanEnemy = ourShootRange > enemyShootRange;
 
 				// Check if we have bigger shoot range than the enemy. If not,
-				// it doesn't make any sense to run away from him.
+				// it doesn't make any sense to run away from him just because
+				// he's near.
 				if (weHaveBiggerRangeThanEnemy) {
-					if (type.isTerranInfantry()
-							&& UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
-						unit.setIsRunningFromEnemyNow();
-						return true;
-					} else {
-						UnitActions.moveAwayFromUnit(unit, nearestEnemy);
-						unit.setIsRunningFromEnemyNow();
-						return true;
-					}
+					UnitActions.moveAwayFromUnit(unit, nearestEnemy);
+					unit.setIsRunningFromEnemyNow();
+					return true;
 				}
 			}
 		}
@@ -145,14 +140,21 @@ public class UnitBasicBehavior {
 		}
 
 		boolean isUnitInsideBunker = unit.isLoaded();
-		boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 11, true, true) != null;
+		boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 12, true, true) != null;
+
+		if (!enemyIsNearby) {
+			if (unit.isLoaded()) {
+				unit.unload();
+			}
+			return false;
+		}
 
 		// If unit should be inside bunker, try to load it inside.
 		if (!isUnitInsideBunker) {
 			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending()) {
 				return false;
 			}
-			if (loadIntoBunkerNearbyIfPossible(unit)) {
+			if (enemyIsNearby && loadIntoBunkerNearbyIfPossible(unit)) {
 				unit.setIsRunningFromEnemyNow();
 				return true;
 			}

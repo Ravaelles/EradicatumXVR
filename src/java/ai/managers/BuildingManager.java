@@ -80,7 +80,7 @@ public class BuildingManager {
 				}
 
 				int enemyAdvantage = enemiesNearBunker - oursNearBunker;
-				System.out.println("enemyAdvantage = " + enemyAdvantage);
+				// System.out.println("enemyAdvantage = " + enemyAdvantage);
 				return Math.min(1, (int) (enemyAdvantage / 2.5));
 			}
 		}

@@ -13,6 +13,7 @@ import ai.handling.map.Explorer;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.units.RepairAndSons;
+import ai.managers.units.UnitBasicBehavior;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -45,6 +46,12 @@ public class WorkerManager {
 				continue;
 			}
 
+			// Disallow units to move close to the defensive building like
+			// Photon Cannon
+			if (UnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(worker)) {
+				return;
+			}
+
 			// It may happen that this unit is supposed to repair other unit. If
 			// so, it's the priority.
 			if (!RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
@@ -62,7 +69,7 @@ public class WorkerManager {
 	}
 
 	private static void defendBase(Unit worker) {
-		if (TerranCommandCenter.getNumberOfUnits() > 1 || xvr.getTimeSeconds() >= 300) {
+		if (TerranCommandCenter.getNumberOfUnits() > 1 || xvr.getTimeSeconds() >= 280) {
 			return;
 		}
 

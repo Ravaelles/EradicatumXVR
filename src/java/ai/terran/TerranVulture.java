@@ -6,7 +6,6 @@ import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.army.StrengthEvaluator;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
@@ -30,11 +29,6 @@ public class TerranVulture {
 		// !StrategyManager.isAnyAttackFormPending();
 
 		// =========================
-
-		if (UnitActions
-				.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, false, true, false)) {
-			return;
-		}
 		if (xvr.isEnemyDefensiveGroundBuildingNear(unit)) {
 			UnitActions.moveToSafePlace(unit);
 			return;
@@ -70,17 +64,17 @@ public class TerranVulture {
 		}
 
 		// Attack this randomly chosen base location.
-		UnitActions.attackTo(unit, goTo.getX(), goTo.getY());
+		UnitActions.attackTo(unit, goTo);
 
 		// =================================
 		// Use mines if possible
 		handleMines(unit);
 
-		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
-			UnitActions.moveToSafePlace(unit);
-		}
-
-		UnitActions.actWhenLowHitPointsOrShields(unit, false);
+		// if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+		// UnitActions.moveToSafePlace(unit);
+		// }
+		//
+		// UnitActions.actWhenLowHitPointsOrShields(unit, false);
 	}
 
 	private static void handleMines(Unit unit) {
@@ -89,11 +83,15 @@ public class TerranVulture {
 			// Make sure mine will be safely far from our buildings
 			boolean isSafelyFarFromBuildings = isSafelyFarFromBuildings(unit);
 
-			if (isQuiteNearChokePoint(unit) && isSafelyFarFromBuildings
-					&& minesArentStackedTooMuchNear(unit)) {
+			if ((isQuiteNearBunker(unit) || isQuiteNearChokePoint(unit))
+					&& isSafelyFarFromBuildings && minesArentStackedTooMuchNear(unit)) {
 				placeSpiderMine(unit, unit);
 			}
 		}
+	}
+
+	private static boolean isQuiteNearBunker(Unit unit) {
+		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 18, unit, true) > 0;
 	}
 
 	private static boolean isQuiteNearChokePoint(Unit unit) {
@@ -106,7 +104,7 @@ public class TerranVulture {
 	}
 
 	private static boolean minesArentStackedTooMuchNear(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 2.3, unit,
+		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 2.15, unit,
 				true) == 0;
 	}
 
@@ -118,7 +116,7 @@ public class TerranVulture {
 
 			double distanceToBuilding = nearestBuilding.distanceTo(unit);
 			if (nearestBuilding.getType().isBunker()) {
-				if (distanceToBuilding <= 11) {
+				if (distanceToBuilding <= 8) {
 					isSafelyFarFromBuilding = false;
 				}
 			} else {

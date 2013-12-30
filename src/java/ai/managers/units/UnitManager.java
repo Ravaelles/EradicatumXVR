@@ -45,6 +45,8 @@ public class UnitManager {
 			updateBeingRepairedStatus(unit);
 
 			// ===============================
+			// IF UNIT SHOULD BE HANDLED BY DIFFERENT MANAGE
+
 			// BUILDINGS have their own manager.
 			if (type.isBuilding()) {
 				BuildingManager.act(unit);
@@ -57,56 +59,8 @@ public class UnitManager {
 				continue;
 			}
 
-			// ==============================
-			// Should not listen to any actions that we announce here because it
-			// would mess the things up.
-
-			// Don't interrupt when shooting or don't move when being repaired.
-			if (unit.isStartingAttack() || unit.isBeingRepaired() || unit.isRunningFromEnemy()) {
-				continue;
-			}
-
-			// ======================================
-			// TOP PRIORITY ACTIONS, order is important!
-
-			// Try to load infantry inside bunkers if possible.
-			if (type.isTerranInfantry() && UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
-				continue;
-			}
-
-			// If enemy has got very close near to us, move away
-			if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
-				continue;
-			}
-
-			// Disallow units to move close to the defensive building like
-			// Photon Cannon
-			if (UnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
-				continue;
-			}
-
 			// ===============================
-			// Act according to STRATEGY, attack strategic targets,
-			// define proper place for a unit.
-			UnitBasicBehavior.act(unit);
-
-			// ===============================
-			// ATTACK CLOSE targets (Tactics phase)
-			boolean canTryAttackingCloseTargets = !type.isVulture() && !type.isTank()
-					&& !type.isMedic();
-			if (canTryAttackingCloseTargets && !unit.isRunningFromEnemy()) {
-				AttackCloseTargets.attackCloseTargets(unit);
-			}
-
-			// ===============================
-			// Run from hidden Lurkers, Dark Templars etc.
-			avoidHiddenUnitsIfNecessary(unit);
-
-			// Wounded units should avoid being killed if possible
-			handleWoundedUnitBehaviourIfNecessary(unit);
-
-			// If units is jammed and is attacked, attack back
-			// handleAntiStuckCode(unit);
+			act(unit);
 
 			// ======================================
 			// Increase unit counter, so we can know which unit in order it was.
@@ -117,6 +71,66 @@ public class UnitManager {
 		// Reset variables
 		_unitCounter = 0;
 		CallForHelp.clearOldOnes();
+	}
+
+	private static void act(Unit unit) {
+		UnitType type = unit.getType();
+
+		// ==============================
+		// Should not listen to any actions that we announce here because it
+		// would mess the things up.
+
+		// Don't interrupt when shooting or don't move when being repaired.
+		if (unit.isStartingAttack() || unit.isBeingRepaired() || unit.isRunningFromEnemy()) {
+			return;
+		}
+
+		// ======================================
+		// TOP PRIORITY ACTIONS, order is important!
+
+		// Try to load infantry inside bunkers if possible.
+		if (type.isTerranInfantry() && UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
+			return;
+		}
+
+		// If enemy has got very close near to us, move away
+		if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
+			return;
+		}
+
+		// Disallow units to move close to the defensive building like
+		// Photon Cannon
+		if (UnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+			return;
+		}
+
+		// Disallow fighting when overwhelmed.
+		if (tryRetreatingIfChancesNotFavorable(unit)) {
+			return;
+		}
+
+		// ===============================
+		// Act according to STRATEGY, attack strategic targets,
+		// define proper place for a unit.
+		UnitBasicBehavior.act(unit);
+
+		// ===============================
+		// ATTACK CLOSE targets (Tactics phase)
+		boolean canTryAttackingCloseTargets = !type.isVulture() && !type.isTank()
+				&& !type.isMedic();
+		if (canTryAttackingCloseTargets && !unit.isRunningFromEnemy()) {
+			AttackCloseTargets.attackCloseTargets(unit);
+		}
+
+		// ===============================
+		// Run from hidden Lurkers, Dark Templars etc.
+		avoidHiddenUnitsIfNecessary(unit);
+
+		// Wounded units should avoid being killed if possible
+		handleWoundedUnitBehaviourIfNecessary(unit);
+
+		// If units is jammed and is attacked, attack back
+		// handleAntiStuckCode(unit);
 	}
 
 	// protected static void handleAntiStuckCode(Unit unit) {
@@ -168,24 +182,24 @@ public class UnitManager {
 	// // }
 	// }
 
-	public static void applyStrengthEvaluatorToAllUnits() {
-		for (Unit unit : xvr.getUnitsNonBuilding()) {
-			UnitType type = unit.getType();
-			if (type.equals(UnitManager.WORKER)) {
-				continue;
-			}
-
-			if (unit.isRunningFromEnemy()) {
-				continue;
-			}
-
-			// ============================
-			decideSkirmishIfToFightOrRetreat(unit);
-			handleWoundedUnitBehaviourIfNecessary(unit);
-			UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit);
-			// handleAntiStuckCode(unit);
-		}
-	}
+	// public static void applyStrengthEvaluatorToAllUnits() {
+	// for (Unit unit : xvr.getUnitsNonBuilding()) {
+	// UnitType type = unit.getType();
+	// if (type.equals(UnitManager.WORKER)) {
+	// continue;
+	// }
+	//
+	// if (unit.isRunningFromEnemy()) {
+	// continue;
+	// }
+	//
+	// // ============================
+	// decideSkirmishIfToFightOrRetreat(unit);
+	// handleWoundedUnitBehaviourIfNecessary(unit);
+	// UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit);
+	// // handleAntiStuckCode(unit);
+	// }
+	// }
 
 	protected static void handleWoundedUnitBehaviourIfNecessary(Unit unit) {
 		if (unit.getHP() <= unit.getMaxHP() * 0.4) {
@@ -239,12 +253,12 @@ public class UnitManager {
 		}
 	}
 
-	protected static void decideSkirmishIfToFightOrRetreat(Unit unit) {
+	protected static boolean tryRetreatingIfChancesNotFavorable(Unit unit) {
 
 		// If no base isn't existing, screw this.
 		Unit firstBase = xvr.getFirstBase();
 		if (firstBase == null) {
-			return;
+			return false;
 		}
 
 		// ============================================
@@ -252,7 +266,7 @@ public class UnitManager {
 
 		// Don't interrupt unit that has just started shooting.
 		if (unit.isStartingAttack()) {
-			return;
+			return false;
 		}
 
 		// If unit isn't attacking or is very close to the critical first base,
@@ -277,7 +291,7 @@ public class UnitManager {
 		// than fighting here, near the bunker.
 		if (unit.getGroundWeaponCooldown() > 0
 				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3, unit, true) > 0) {
-			return;
+			return false;
 		}
 
 		// ===============================================
@@ -287,7 +301,10 @@ public class UnitManager {
 		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
 			// UnitActions.moveToSafePlace(unit);
 			UnitActions.moveAwayFromNearestEnemy(unit);
+			return true;
 		}
+
+		return false;
 	}
 
 	protected static void actWhenOnCallForHelpMission(Unit unit) {
@@ -405,6 +422,10 @@ public class UnitManager {
 	}
 
 	private static boolean unitIsTooFarFromSafePlaceWhenAttackPending(Unit unit) {
+		if (StrategyManager.getMinBattleUnits() <= 5) {
+			return false;
+		}
+
 		if (unit.distanceTo(ArmyPlacing.getArmyGatheringPointFor(unit)) > StrategyManager
 				.getAllowedDistanceFromSafePoint()) {
 			ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);

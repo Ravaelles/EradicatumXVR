@@ -225,7 +225,7 @@ public class XVRClient implements BWAPIEventListener {
 		// Add info that we discovered enemy unit
 		MapExploration.enemyUnitDiscovered(unit);
 
-		if (unit.isEnemy() && unit.isHidden()) {
+		if (unit.isEnemy() && !unit.isDetected()) {
 			TerranComsatStation.hiddenUnitDetected(unit);
 		}
 
@@ -270,7 +270,7 @@ public class XVRClient implements BWAPIEventListener {
 			return;
 		}
 
-		if (unit.isHidden()) {
+		if (!unit.isDetected()) {
 			TerranComsatStation.hiddenUnitDetected(unit);
 		}
 

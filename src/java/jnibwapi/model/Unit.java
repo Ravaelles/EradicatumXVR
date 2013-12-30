@@ -25,6 +25,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	private MapPoint properPlaceToBe = null;
 	private UnitType type;
 	private boolean beingRepaired = false;
+	private double strengthEvaluation = 667;
 	// ========
 
 	private int ID;
@@ -1030,6 +1031,14 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public void setIsRunningFromEnemyNow() {
 		lastTimeRunFromEnemy = XVR.getInstance().getTimeSeconds();
+	}
+
+	public double getStrengthEvaluation() {
+		return strengthEvaluation;
+	}
+
+	public void setStrengthEvaluation(double strengthEvaluation) {
+		this.strengthEvaluation = strengthEvaluation;
 	}
 
 }

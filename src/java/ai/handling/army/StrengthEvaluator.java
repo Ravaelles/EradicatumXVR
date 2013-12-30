@@ -46,12 +46,13 @@ public class StrengthEvaluator {
 	 * For convenience, use other static methods of this class that return
 	 * boolean type.
 	 */
-	public static double calculateStrengthRatioFor(Unit unit) {
+	private static double calculateStrengthRatioFor(Unit unit) {
 		_rangeBonus = 0;
 		UnitType type = unit.getType();
 		double ratio = 0;
 		// boolean isTank = type.isTank();
 		boolean isWorker = type.isWorker();
+		boolean noTanksYet = TerranSiegeTank.getNumberOfUnitsCompleted() == 0;
 		boolean canAttackLonely = isWorker || type.isVulture() || type.isGhost();
 
 		// ===================================================
@@ -61,9 +62,21 @@ public class StrengthEvaluator {
 			return 10;
 		}
 
+		// Check if unit should always be near one of the tanks, but it's too
+		// far from it/them
+		boolean isTooFarFromTank = isTooFarFromTank(unit)
+				&& TerranSiegeTank.getNumberOfUnitsCompleted() >= 2;
+		// if (!canAttackLonely && shouldBeHere) {
+		// return 0;
+		// }
+
 		if (!type.isFlyer() && !isWorker && unit.getGroundWeaponCooldown() == 0) {
-			if (xvr.getNearestEnemyDistance(unit, true, type.canAirAttack()) >= 2) {
-				return 10;
+			double enemyDistance = xvr.getNearestEnemyDistance(unit, true, type.canAirAttack());
+			if (!isTooFarFromTank && (enemyDistance < 0 || enemyDistance >= 2)) {
+				ratio += 2;
+			} else if (!noTanksYet) {
+				System.out.println("A");
+				return 0;
 			}
 		}
 
@@ -74,22 +87,17 @@ public class StrengthEvaluator {
 		// return 0;
 		// }
 
-		if (StrategyManager.isAnyAttackFormPending()) {
+		if (!noTanksYet && !canAttackLonely && StrategyManager.isAnyAttackFormPending()) {
 			MapPoint properPlace = unit.getProperPlaceToBe();
 			if (properPlace != null
 					&& properPlace.distanceTo(unit) > StrategyManager
 							.getAllowedDistanceFromSafePoint()) {
+				System.out.println("B");
 				return 0;
 			}
 		}
 
 		// ===================================================
-		// Check if unit should always be near one of the tanks, but it's too
-		// far from it/them
-		boolean shouldBeHere = isTooFarFromTank(unit);
-		if (!canAttackLonely && shouldBeHere) {
-			return 0;
-		}
 
 		// ===================================================
 
@@ -126,17 +134,19 @@ public class StrengthEvaluator {
 		// ==================================
 		// Disallow attacking lonely
 		boolean ourGroupToSmall = ourUnitsGroupSize <= 3;
-		if (!canAttackLonely && ourGroupToSmall) {
+		if (!noTanksYet && !canAttackLonely && ourGroupToSmall) {
 			// boolean forTank = isTank && (ourGroupToSmall || unit.getHP() <
 			// 80);
 			// if (forTank) {
+			System.out.println("C");
 			return 0;
 			// }
 		}
 
-		if (!canAttackLonely) {
+		if (!noTanksYet && !canAttackLonely) {
 			boolean shouldGoBackNearBunker = shouldGoBackNearBunker(unit);
 			if (shouldGoBackNearBunker && ourUnitsGroupSize <= 4) {
+				System.out.println("D");
 				return 0;
 			}
 		}
@@ -197,6 +207,7 @@ public class StrengthEvaluator {
 			StrategyManager.waitForMoreUnits();
 		}
 		if (_enemyDefensiveBuildings >= 1 && ourUnitsGroupSize <= 6) {
+			System.out.println("E");
 			return 0;
 		}
 
@@ -455,6 +466,8 @@ public class StrengthEvaluator {
 	 */
 	public static boolean isStrengthRatioFavorableFor(Unit unit) {
 		double strengthRatio = calculateStrengthRatioFor(unit);
+		unit.setStrengthEvaluation(strengthRatio);
+
 		if (strengthRatio < 0) {
 			return true;
 		}
@@ -467,6 +480,8 @@ public class StrengthEvaluator {
 	 */
 	public static boolean isStrengthRatioCriticalFor(Unit unit) {
 		double strengthRatio = calculateStrengthRatioFor(unit);
+		unit.setStrengthEvaluation(strengthRatio);
+
 		if (strengthRatio < 0) {
 			return false;
 		}

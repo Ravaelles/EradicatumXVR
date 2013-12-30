@@ -28,10 +28,10 @@ public class AttackCloseTargets {
 		// =================================
 		// If unit is infantry it should try to go inside bunkers, instead of
 		// attacking any targets.
-		if (unit.getType().isTerranInfantry()
-				&& UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
-			return;
-		}
+		// if (unit.getType().isTerranInfantry()
+		// && UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
+		// return;
+		// }
 
 		// ============================================
 

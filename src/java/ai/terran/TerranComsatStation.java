@@ -3,7 +3,6 @@ package ai.terran;
 import jnibwapi.model.Unit;
 import jnibwapi.types.TechType.TechTypes;
 import jnibwapi.types.UnitType.UnitTypes;
-import ai.core.Debug;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
@@ -135,7 +134,7 @@ public class TerranComsatStation {
 					return;
 				}
 			}
-			Debug.message(xvr, "Hidden " + unit.getName());
+			// Debug.message(xvr, "Hidden " + unit.getName());
 
 			// Scout the point where the unit is
 			tryToScanPoint(unit);

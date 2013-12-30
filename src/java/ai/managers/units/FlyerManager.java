@@ -3,10 +3,12 @@ package ai.managers.units;
 import java.util.ArrayList;
 
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType;
 import ai.core.XVR;
 import ai.handling.army.ArmyPlacing;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
+import ai.terran.TerranWraith;
 
 public class FlyerManager {
 
@@ -16,27 +18,23 @@ public class FlyerManager {
 	// =========================
 
 	public static void act(Unit unit) {
-		if (unit.isHidden()) {
+		UnitType type = unit.getType();
 
-			// TOP PRIORITY: Act when enemy detector or some AA building is
-			// nearby: just run away, no matter what.
-			if (UnitActions.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, true, true,
-					true)) {
-				return;
-			}
-		} else {
-			if (UnitActions.runFromEnemyDetectorOrDefensiveBuildingIfNecessary(unit, false, true,
-					true)) {
-				return;
-			}
+		// ==============================
+		// SPECIAL units
+
+		// Wraith
+		if (type.isWraith()) {
+			TerranWraith.act(unit);
 		}
 
-		// =====================
+		// ==============================
+
 		// Define place where to be
 		MapPoint point = ArmyPlacing.getFlyersGatheringPoint();
 		UnitActions.attackTo(unit, point);
 
-		// =====================
+		// ==============================
 		// Move away from other flyers, thus enhancing the range
 		boolean isAAUnitNearby = isAAUnitNearby(unit);
 		Unit otherFlyer = getNearestFlyerToFlyer(unit);
@@ -45,7 +43,7 @@ public class FlyerManager {
 			UnitActions.moveAwayFromUnitIfPossible(unit, otherFlyer, 4);
 		}
 
-		// =====================
+		// ==============================
 		// Avoid units like: photon cannons, missile turrets, goliaths, marines.
 		boolean isAABuildingNearby = xvr.isEnemyDefensiveAirBuildingNear(unit);
 		boolean shouldRunFromHere = isAABuildingNearby || isAAUnitNearby;

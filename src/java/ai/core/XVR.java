@@ -113,13 +113,6 @@ public class XVR {
 				CodeProfiler.endMeasuring("Army");
 			}
 
-			// Triple the frequency of "anti-hero" code
-			if (getTime() % 22 == 7 || getTime() % 22 == 14) {
-				CodeProfiler.startMeasuring("Eval forces");
-				UnitManager.applyStrengthEvaluatorToAllUnits();
-				CodeProfiler.endMeasuring("Eval forces");
-			}
-
 			// Avoid being under psionic storm, disruptive web etc.
 			if (getTime() % 8 == 0) {
 				UnitManager.avoidSeriousSpellEffectsIfNecessary();
@@ -859,7 +852,7 @@ public class XVR {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackGroundUnits()) {
 				int maxEnemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles();
-				if (point.distanceTo(enemy) <= maxEnemyRange + 1) {
+				if (point.distanceTo(enemy) <= maxEnemyRange + 1.7) {
 					return true;
 				}
 			}

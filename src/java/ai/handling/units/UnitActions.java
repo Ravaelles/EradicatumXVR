@@ -88,13 +88,14 @@ public class UnitActions {
 		int yDirectionToUnit = placeToMoveAwayFrom.getY() - unit.getY();
 
 		double vectorLength = xvr.getDistanceBetween(placeToMoveAwayFrom, unit);
-		double ratio = howManyTiles / vectorLength;
+		double ratio = 32 * howManyTiles / vectorLength;
 
 		MapPoint runTo = new MapPointInstance((int) (unit.getX() - ratio * xDirectionToUnit),
 				(int) (unit.getY() - ratio * yDirectionToUnit));
 
 		if (runTo.isWalkable() && runTo.isConnectedTo(unit)) {
 			moveTo(unit, runTo);
+			// UnitActions.moveToSafePlace(unit);
 			return true;
 		} else {
 			return false;
@@ -172,8 +173,6 @@ public class UnitActions {
 						unit.getY() + 1000 - RUtilities.rand(0, 2000));
 			}
 			// }
-		} else if (unit.isWorker() && unit.isUnderAttack()) {
-			UnitActions.moveTo(unit, xvr.getFirstBase());
 		}
 
 		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
@@ -393,7 +392,7 @@ public class UnitActions {
 
 		// Try to move away from unit and if can't (e.g. a wall
 		// behind), try to increase tiles away from current location
-		for (int i = 3; i <= 7; i += 2) {
+		for (int i = 7; i >= 3; i -= 2) {
 			if (UnitActions.moveAwayFromUnitIfPossible(unit, enemy, i)) {
 				unitHasMovedItsAss = true;
 				break;
