@@ -88,8 +88,9 @@ public class TerranSiegeTank {
 	}
 
 	private static boolean shouldSiege(Unit unit) {
-		if ((_isUnitWhereItShouldBe && notTooManySiegedInArea(unit))
-				|| (_nearestEnemyDist > 0 && _nearestEnemyDist <= 11)) {
+		boolean isEnemyQuiteNear = (_nearestEnemyDist > 0 && _nearestEnemyDist <= (_nearestEnemy
+				.getType().isBuilding() ? 10.8 : 16));
+		if ((_isUnitWhereItShouldBe && notTooManySiegedInArea(unit)) || isEnemyQuiteNear) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)) {
 				return true;
 			}
@@ -110,7 +111,7 @@ public class TerranSiegeTank {
 	}
 
 	private static boolean isNeighborhoodSafeToSiege(Unit unit) {
-		if (xvr.countUnitsEnemyInRadius(unit, 5) <= 0) {
+		if (xvr.countUnitsEnemyInRadius(unit, 4) <= 0) {
 			return true;
 		}
 		return false;

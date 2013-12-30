@@ -25,6 +25,7 @@ public class RepairAndSons {
 					return false;
 				} else {
 					UnitActions.repair(worker, repairThisUnit);
+					worker.setAiOrder("Repair " + repairThisUnit.getName());
 					return true;
 				}
 			}

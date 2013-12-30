@@ -29,8 +29,9 @@ public class TerranVulture {
 		// !StrategyManager.isAnyAttackFormPending();
 
 		// =========================
-		if (xvr.isEnemyDefensiveGroundBuildingNear(unit)) {
-			UnitActions.moveToSafePlace(unit);
+		Unit enemyDefensiveBuilding = xvr.getEnemyDefensiveGroundBuildingNear(unit);
+		if (enemyDefensiveBuilding != null) {
+			UnitActions.moveAwayFromUnit(unit, enemyDefensiveBuilding);
 			return;
 		}
 

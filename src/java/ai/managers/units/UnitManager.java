@@ -6,13 +6,11 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.army.ArmyPlacing;
 import ai.handling.army.StrengthEvaluator;
-import ai.handling.map.MapExploration;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
 import ai.managers.BuildingManager;
 import ai.managers.StrategyManager;
 import ai.terran.TerranBunker;
-import ai.utils.RUtilities;
 
 public class UnitManager {
 
@@ -81,7 +79,8 @@ public class UnitManager {
 		// would mess the things up.
 
 		// Don't interrupt when shooting or don't move when being repaired.
-		if (unit.isStartingAttack() || unit.isBeingRepaired() || unit.isRunningFromEnemy()) {
+		if (unit.isStartingAttack() || unit.isBeingRepaired() || unit.isRunningFromEnemy()
+				|| type.isSpiderMine()) {
 			return;
 		}
 
@@ -89,23 +88,27 @@ public class UnitManager {
 		// TOP PRIORITY ACTIONS, order is important!
 
 		// Try to load infantry inside bunkers if possible.
-		if (type.isTerranInfantry() && UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
+		if (UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
+			unit.setAiOrder("Into bunker");
 			return;
 		}
 
 		// If enemy has got very close near to us, move away
 		if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
+			unit.setAiOrder("Run");
 			return;
 		}
 
 		// Disallow units to move close to the defensive building like
 		// Photon Cannon
 		if (UnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+			unit.setAiOrder("Avoid building");
 			return;
 		}
 
 		// Disallow fighting when overwhelmed.
 		if (tryRetreatingIfChancesNotFavorable(unit)) {
+			unit.setAiOrder("Would lose");
 			return;
 		}
 
@@ -116,141 +119,17 @@ public class UnitManager {
 
 		// ===============================
 		// ATTACK CLOSE targets (Tactics phase)
-		boolean canTryAttackingCloseTargets = !type.isVulture() && !type.isTank()
-				&& !type.isMedic();
-		if (canTryAttackingCloseTargets && !unit.isRunningFromEnemy()) {
-			AttackCloseTargets.attackCloseTargets(unit);
+		if (AttackCloseTargets.tryAttackingCloseTargets(unit)) {
+			UnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
+			unit.setAiOrder("Attack");
 		}
 
 		// ===============================
 		// Run from hidden Lurkers, Dark Templars etc.
-		avoidHiddenUnitsIfNecessary(unit);
+		UnitBasicBehavior.avoidHiddenUnitsIfNecessary(unit);
 
-		// Wounded units should avoid being killed if possible
-		handleWoundedUnitBehaviourIfNecessary(unit);
-
-		// If units is jammed and is attacked, attack back
-		// handleAntiStuckCode(unit);
-	}
-
-	// protected static void handleAntiStuckCode(Unit unit) {
-	// boolean shouldFightBack = false;
-	//
-	// if (unit.getType().isWorker()) {
-	// return;
-	// }
-	//
-	// // If unit is stuck, attack.
-	// if (unit.isStuck() || unit.isUnderAttack() || unit.isMoving()) {
-	// Unit nearestEnemy = xvr.getNearestEnemyInRadius(unit, 1, true, true);
-	// shouldFightBack = nearestEnemy != null && nearestEnemy.isDetected();
-	//
-	// // && xvr.getUnitsInRadius(unit, 2, xvr.getUnitsNonWorker())
-	// // .size() >= 2
-	// if (shouldFightBack
-	// || unit.isStuck()
-	// || (unit.isMoving() && xvr.getUnitsInRadius(unit, 1,
-	// xvr.getUnitsNonWorker())
-	// .size() >= 2) || unit.getGroundWeaponCooldown() == 0) {
-	// actTryAttackingCloseEnemyUnits(unit);
-	// }
-	// }
-	//
-	// else if (unit.getGroundWeaponCooldown() == 0 && unit.isUnderAttack()) {
-	// if (shouldFightBack) {
-	// actTryAttackingCloseEnemyUnits(unit);
-	// }
-	//
-	// // && xvr.getNearestEnemyInRadius(unit, 1) != null
-	// // if (!StrengthEvaluator.isStrengthRatioCriticalFor(unit)) {
-	// // actTryAttackingCloseEnemyUnits(unit);
-	// // }
-	// }
-	//
-	// // // If unit is stuck, attack.
-	// // if (unit.isStuck() || unit.isUnderAttack()) {
-	// // actTryAttackingCloseEnemyUnits(unit);
-	// // }
-	// //
-	// // else if (unit.getGroundWeaponCooldown() == 0 && unit.isUnderAttack())
-	// // {
-	// //
-	// // // && xvr.getNearestEnemyInRadius(unit, 1) != null
-	// // // if (!StrengthEvaluator.isStrengthRatioCriticalFor(unit)) {
-	// // actTryAttackingCloseEnemyUnits(unit);
-	// // // }
-	// // }
-	// }
-
-	// public static void applyStrengthEvaluatorToAllUnits() {
-	// for (Unit unit : xvr.getUnitsNonBuilding()) {
-	// UnitType type = unit.getType();
-	// if (type.equals(UnitManager.WORKER)) {
-	// continue;
-	// }
-	//
-	// if (unit.isRunningFromEnemy()) {
-	// continue;
-	// }
-	//
-	// // ============================
-	// decideSkirmishIfToFightOrRetreat(unit);
-	// handleWoundedUnitBehaviourIfNecessary(unit);
-	// UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit);
-	// // handleAntiStuckCode(unit);
-	// }
-	// }
-
-	protected static void handleWoundedUnitBehaviourIfNecessary(Unit unit) {
-		if (unit.getHP() <= unit.getMaxHP() * 0.4) {
-			// // If there are tanks nearby, DON'T RUN. Rather die first!
-			// if
-			// (xvr.countUnitsEnemyOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
-			// 15,
-			// unit) > 0) {
-			// return;
-			// }
-
-			// // If there are tanks nearby, DON'T RUN. Rather die first!
-			// if (unit.distanceTo(xvr.getFirstBase()) < 17) {
-			// return;
-			// }
-
-			// if (StrategyManager.isAttackPending()) {
-			// return;
-			// }
-
-			UnitActions.actWhenLowHitPointsOrShields(unit, false);
-
-			if (unit.isRepairable()) {
-				RepairAndSons.issueTicketToRepairIfHasnt(unit);
-
-				Unit repairer = RepairAndSons.getRepairerForUnit(unit);
-				if (repairer != null && repairer.distanceTo(unit) >= 1.3) {
-					UnitActions.moveTo(unit, repairer);
-				} else {
-					UnitActions.moveAwayFromNearestEnemy(unit);
-				}
-			}
-		}
-	}
-
-	protected static void avoidHiddenUnitsIfNecessary(Unit unit) {
-		Unit hiddenEnemyUnitNearby = MapExploration.getHiddenEnemyUnitNearbyTo(unit);
-		if (hiddenEnemyUnitNearby != null && unit.isDetected()
-				&& !hiddenEnemyUnitNearby.isDetected()) {
-			UnitActions.moveAwayFromUnit(unit, hiddenEnemyUnitNearby);
-		}
-	}
-
-	protected static void avoidSeriousSpellEffectsIfNecessary(Unit unit) {
-		if (unit.isUnderStorm() || unit.isUnderDisruptionWeb()) {
-			if (unit.isMoving()) {
-				return;
-			}
-			UnitActions.moveTo(unit, unit.getX() + 5 * 32 * (-1 * RUtilities.rand(0, 1)),
-					unit.getY() + 5 * 32 * (-1 * RUtilities.rand(0, 1)));
-		}
+		// Wounded units should avoid being killed (if possible you know...)
+		UnitBasicBehavior.handleWoundedUnitBehaviourIfNecessary(unit);
 	}
 
 	protected static boolean tryRetreatingIfChancesNotFavorable(Unit unit) {
@@ -264,8 +143,18 @@ public class UnitManager {
 		// ============================================
 		// Some top level situations when don't try retreating
 
+		// If no enemy is critically close, don't retreat
+		if (xvr.getNearestEnemyDistance(unit, true, false) <= 2) {
+			return false;
+		}
+
 		// Don't interrupt unit that has just started shooting.
 		if (unit.isStartingAttack()) {
+			return false;
+		}
+
+		// MEDICS can run only if INJURED
+		if (unit.getType().isMedic() && !unit.isWounded()) {
 			return false;
 		}
 
@@ -277,7 +166,7 @@ public class UnitManager {
 		// }
 
 		// ============================================
-		// Now is a huge block of situations where we shouldn't allow a retreat.
+		// Now is a block of situations where we shouldn't allow a retreat.
 
 		// If there's our first base nearby
 		// if (xvr.getDistanceBetween(
@@ -289,9 +178,13 @@ public class UnitManager {
 		// If there's OUR BUNKER nearby, we should be here at all costs, because
 		// if we lose this position, then every other battle will be far tougher
 		// than fighting here, near the bunker.
-		if (unit.getGroundWeaponCooldown() > 0
-				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3, unit, true) > 0) {
+		if (!unit.isWounded()
+				&& unit.getGroundWeaponCooldown() > 0
+				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
+						true) > 0) {
+			// if () {
 			return false;
+			// }
 		}
 
 		// ===============================================
@@ -426,7 +319,7 @@ public class UnitManager {
 			return false;
 		}
 
-		if (unit.distanceTo(ArmyPlacing.getArmyGatheringPointFor(unit)) > StrategyManager
+		if (unit.distanceTo(ArmyPlacing.getSafePointFor(unit)) > StrategyManager
 				.getAllowedDistanceFromSafePoint()) {
 			ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
 			return true;
@@ -443,9 +336,14 @@ public class UnitManager {
 		return unit.getOrderTargetID() != -1 || unit.getTargetUnitID() != -1;
 	}
 
-	public static void avoidSeriousSpellEffectsIfNecessary() {
+	public static void avoidSpellEffectsAndMinesIfNecessary() {
 		for (Unit unit : xvr.getBwapi().getMyUnits()) {
-			avoidSeriousSpellEffectsIfNecessary(unit);
+			if (UnitBasicBehavior.tryAvoidingSeriousSpellEffectsIfNecessary(unit)) {
+				continue;
+			}
+			if (UnitBasicBehavior.tryAvoidingActivatedSpiderMines(unit)) {
+				continue;
+			}
 		}
 	}
 

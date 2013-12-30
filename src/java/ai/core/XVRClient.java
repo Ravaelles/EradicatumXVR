@@ -225,10 +225,6 @@ public class XVRClient implements BWAPIEventListener {
 		// Add info that we discovered enemy unit
 		MapExploration.enemyUnitDiscovered(unit);
 
-		if (unit.isEnemy() && !unit.isDetected()) {
-			TerranComsatStation.hiddenUnitDetected(unit);
-		}
-
 		// System.out.println("Unit discover: " + (unit != null ? unit.getName()
 		// : "null"));
 
@@ -268,10 +264,6 @@ public class XVRClient implements BWAPIEventListener {
 		Unit unit = Unit.getByID(unitID);
 		if (unit == null || !unit.isEnemy()) {
 			return;
-		}
-
-		if (!unit.isDetected()) {
-			TerranComsatStation.hiddenUnitDetected(unit);
 		}
 
 		if (unit.getType().isCarrier() && !TerranBarracks.isPlanAntiAirActive()) {

@@ -22,9 +22,10 @@ public class TerranScienceFacility {
 
 	public static boolean shouldBuild() {
 		int starports = UnitCounter.getNumberOfUnits(TerranStarport.getBuildingType());
+		int scienceFacilities = getNumberOfUnits();
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 
-		if (starports >= 2 && !weAreBuilding) {
+		if (scienceFacilities == 0 && starports >= 2 && !weAreBuilding) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}

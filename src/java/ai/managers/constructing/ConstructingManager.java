@@ -86,7 +86,7 @@ public class ConstructingManager {
 	}
 
 	private static void checkForProlongatedConstructions() {
-		int now = xvr.getTime();
+		int now = xvr.getFrames();
 		for (Unit builder : _recentConstructionsTimes.keySet()) {
 			if (!builder.isConstructing()) {
 				continue;
@@ -129,7 +129,7 @@ public class ConstructingManager {
 		_recentConstructionsInfo.put(building, builder);
 		_recentConstructionsPlaces.put(building, buildTile);
 		_recentConstructionsUnitToType.put(builder, building);
-		_recentConstructionsTimes.put(builder, xvr.getTime());
+		_recentConstructionsTimes.put(builder, xvr.getFrames());
 		ShouldBuildCache.cacheShouldBuildInfo(building, false);
 	}
 

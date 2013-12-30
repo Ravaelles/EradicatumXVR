@@ -17,12 +17,18 @@ public class AttackCloseTargets {
 
 	private static XVR xvr = XVR.getInstance();
 
-	public static void attackCloseTargets(Unit unit) {
+	public static boolean tryAttackingCloseTargets(Unit unit) {
 		UnitType type = unit.getType();
+
+		// !type.isTank() &&
+		boolean canTryAttackingCloseTargets = !type.isWorker() && !type.isMedic();
+		if (!canTryAttackingCloseTargets || unit.isRunningFromEnemy()) {
+			return false;
+		}
 
 		// Some units can never attack close targets.
 		if (type.isMedic() || unit.isBeingHealed() || type.isTankSieged()) {
-			return;
+			return false;
 		}
 
 		// =================================
@@ -44,7 +50,7 @@ public class AttackCloseTargets {
 
 		// Enemy worker is a great target, it will slow down the economy
 		if (tryFindingEnemyWorker(unit)) {
-			return;
+			return false;
 		}
 
 		// Try selecting top priority units like lurkers, siege tanks.
@@ -89,7 +95,7 @@ public class AttackCloseTargets {
 		if (enemyToAttack != null && enemyToAttack.isDetected()) {
 			if (isUnitInPositionToAlwaysAttack(unit)) {
 				UnitActions.attackEnemyUnit(unit, enemyToAttack);
-				return;
+				return true;
 			}
 
 			Unit nearestEnemy = xvr.getUnitNearestFromList(unit,
@@ -107,14 +113,16 @@ public class AttackCloseTargets {
 
 				if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)
 						&& unit.distanceTo(xvr.getFirstBase()) > maxDistance) {
-					return;
+					return false;
 				}
 			}
 
 			if (nearestEnemy != null && isStrengthRatioFavorable) {
 				UnitActions.attackEnemyUnit(unit, nearestEnemy);
+				return true;
 			}
 		}
+		return false;
 	}
 
 	private static boolean tryFindingEnemyWorker(Unit unit) {

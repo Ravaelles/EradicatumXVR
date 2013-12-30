@@ -18,6 +18,7 @@ public class TechnologyManager {
 	public static final TechTypes TANK_SIEGE_MODE = TechTypes.Tank_Siege_Mode;
 	public static final TechTypes SPIDER_MINES = TechTypes.Spider_Mines;
 	public static final TechTypes CLOAKING_FIELD = TechTypes.Cloaking_Field;
+	public static final TechTypes STIMPACKS = TechTypes.Stim_Packs;
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -46,7 +47,7 @@ public class TechnologyManager {
 
 		// Spider Mines
 		technology = SPIDER_MINES;
-		if (vultures >= 1 && isResearchPossible(technology) && !isResearchPossible(TANK_SIEGE_MODE)) {
+		if (vultures >= 1 && isResearchPossible(technology) && !isResearchPossible(technology)) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 
@@ -54,6 +55,12 @@ public class TechnologyManager {
 		upgrade = UpgradeTypes.U_238_Shells;
 		if (marines >= 8 && isUpgradePossible(upgrade)) {
 			tryToUpgrade(TerranAcademy.getOneNotBusy(), upgrade);
+		}
+
+		// Stim Packs
+		technology = STIMPACKS;
+		if (marines >= 8 && isResearchPossible(technology) && !isResearchPossible(technology)) {
+			tryToResearch(TerranAcademy.getOneNotBusy(), technology);
 		}
 
 		// ======================================================
@@ -146,6 +153,10 @@ public class TechnologyManager {
 
 	public static boolean isSpiderMinesResearched() {
 		return isResearched(SPIDER_MINES);
+	}
+
+	public static boolean isStimpacksResearched() {
+		return isResearched(STIMPACKS);
 	}
 
 	public static boolean isWraithCloakingFieldResearched() {

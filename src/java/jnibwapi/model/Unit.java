@@ -20,12 +20,16 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	public static final double fixedScale = 100.0;
 
 	// ========
+	private static XVR xvr = XVR.getInstance();
+
 	private Unit mineralGathered = null;
 	private CallForHelp callForHelpMission = null;
 	private MapPoint properPlaceToBe = null;
 	private UnitType type;
 	private boolean beingRepaired = false;
 	private double strengthEvaluation = 667;
+	private String aiOrderString = null;
+	private int aiOrderTime = -1;
 	// ========
 
 	private int ID;
@@ -757,7 +761,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public static Unit getMyUnitByID(int unitID) {
-		for (Unit unit : XVR.getInstance().getBwapi().getMyUnits()) {
+		for (Unit unit : xvr.getBwapi().getMyUnits()) {
 			if (unit.getID() == unitID) {
 				return unit;
 			}
@@ -766,7 +770,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public static Unit getByID(int unitID) {
-		for (Unit unit : XVR.getInstance().getBwapi().getAllUnits()) {
+		for (Unit unit : xvr.getBwapi().getAllUnits()) {
 			if (unit.getID() == unitID) {
 				return unit;
 			}
@@ -963,7 +967,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public void unload() {
-		XVR.getInstance().getBwapi().unload(getTransportID(), ID);
+		xvr.getBwapi().unload(getTransportID(), ID);
 	}
 
 	public Unit getBunkerThatsIsLoadedInto() {
@@ -983,19 +987,19 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public void siege() {
-		XVR.getInstance().getBwapi().siege(ID);
+		xvr.getBwapi().siege(ID);
 	}
 
 	public void unsiege() {
-		XVR.getInstance().getBwapi().unsiege(ID);
+		xvr.getBwapi().unsiege(ID);
 	}
 
 	public void cloak() {
-		XVR.getInstance().getBwapi().cloak(ID);
+		xvr.getBwapi().cloak(ID);
 	}
 
 	public void decloak() {
-		XVR.getInstance().getBwapi().decloak(ID);
+		xvr.getBwapi().decloak(ID);
 	}
 
 	public int getMaxHP() {
@@ -1026,11 +1030,11 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	private int lastTimeRunFromEnemy = -1;
 
 	public boolean isRunningFromEnemy() {
-		return XVR.getInstance().getTimeSeconds() - lastTimeRunFromEnemy < 2;
+		return xvr.getTimeSeconds() - lastTimeRunFromEnemy < 2;
 	}
 
 	public void setIsRunningFromEnemyNow() {
-		lastTimeRunFromEnemy = XVR.getInstance().getTimeSeconds();
+		lastTimeRunFromEnemy = xvr.getTimeSeconds();
 	}
 
 	public double getStrengthEvaluation() {
@@ -1039,6 +1043,32 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public void setStrengthEvaluation(double strengthEvaluation) {
 		this.strengthEvaluation = strengthEvaluation;
+	}
+
+	public String getAiOrderString() {
+		return aiOrderString;
+	}
+
+	public void setAiOrderString(String aiOrderString) {
+		this.aiOrderString = aiOrderString;
+	}
+
+	public void setAiOrder(String label) {
+		aiOrderString = label;
+		aiOrderTime = xvr.getTimeSeconds();
+	}
+
+	public boolean isAiOrderObsolete() {
+		return aiOrderString != null && (xvr.getTimeSeconds() - aiOrderTime) >= 2;
+	}
+
+	public boolean hasAiOrder() {
+		return aiOrderString != null && (xvr.getTimeSeconds() - aiOrderTime) <= 2;
+	}
+
+	public void removeAiOrderInfo() {
+		aiOrderString = null;
+		aiOrderTime = -1;
 	}
 
 }

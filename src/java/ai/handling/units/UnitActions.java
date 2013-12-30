@@ -254,7 +254,7 @@ public class UnitActions {
 		return false;
 	}
 
-	public static void actWhenLowHitPointsOrShields(Unit unit, boolean isImportantUnit) {
+	public static boolean actWhenLowHitPointsOrShields(Unit unit, boolean isImportantUnit) {
 		UnitType type = unit.getType();
 		Unit goTo = null;
 
@@ -278,7 +278,7 @@ public class UnitActions {
 		// shields, we treat it as healthy, as there's nothing to do about it.
 		if (StrategyManager.isAttackPending()) {
 			if (!isImportantUnit && currHP >= 0.6 * maxHP) {
-				return;
+				return false;
 			}
 		}
 
@@ -339,7 +339,10 @@ public class UnitActions {
 		if (goTo != null) {
 			UnitActions.moveTo(unit, goTo);
 			// UnitActions.attackTo(unit, goTo);
+			return true;
 		}
+
+		return false;
 	}
 
 	public static void rightClick(Unit unit, Unit clickTo) {
@@ -388,14 +391,27 @@ public class UnitActions {
 	}
 
 	public static void moveAwayFromUnit(Unit unit, Unit enemy) {
+		if (enemy == null || unit == null) {
+			return;
+		}
+
 		boolean unitHasMovedItsAss = false;
+
+		MapPoint safePoint = ArmyPlacing.getSafePointFor(unit);
+		double unitToSafePointDist = unit.distanceTo(safePoint);
+		double enemyToSafePointDist = enemy.distanceTo(safePoint);
+
+		boolean shouldRunFromUnitNotGoToSafePlace = unitToSafePointDist > enemyToSafePointDist
+				|| unitToSafePointDist <= 6;
 
 		// Try to move away from unit and if can't (e.g. a wall
 		// behind), try to increase tiles away from current location
-		for (int i = 7; i >= 3; i -= 2) {
-			if (UnitActions.moveAwayFromUnitIfPossible(unit, enemy, i)) {
-				unitHasMovedItsAss = true;
-				break;
+		if (shouldRunFromUnitNotGoToSafePlace) {
+			for (int i = 7; i >= 3; i -= 2) {
+				if (UnitActions.moveAwayFromUnitIfPossible(unit, enemy, i)) {
+					unitHasMovedItsAss = true;
+					break;
+				}
 			}
 		}
 

@@ -13,7 +13,6 @@ import ai.handling.map.Explorer;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.units.RepairAndSons;
-import ai.managers.units.UnitBasicBehavior;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -44,12 +43,6 @@ public class WorkerManager {
 		for (Unit worker : workers) {
 			if (!worker.isCompleted()) {
 				continue;
-			}
-
-			// Disallow units to move close to the defensive building like
-			// Photon Cannon
-			if (UnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(worker)) {
-				return;
 			}
 
 			// It may happen that this unit is supposed to repair other unit. If
@@ -266,8 +259,13 @@ public class WorkerManager {
 		boolean existsAssimilatorNearBase = TerranCommandCenter
 				.isExistingCompletedAssimilatorNearBase(nearestBase);
 
+		int gatheringGas = TerranCommandCenter.getNumberOfGasGatherersForBase(nearestBase);
+		int gatheringMinerals = TerranCommandCenter.getNumberOfMineralGatherersForBase(nearestBase);
+
 		if (existsAssimilatorNearBase
-				&& TerranCommandCenter.getNumberofGasGatherersForBase(nearestBase) < TerranCommandCenter.WORKERS_PER_GEYSER) {
+				&& gatheringGas < TerranCommandCenter.WORKERS_PER_GEYSER
+				&& (gatheringMinerals >= 4 * gatheringGas || TerranCommandCenter
+						.getMineralsNearBase(nearestBase).size() <= 4)) {
 			gatherGas(worker, nearestBase);
 		} else {
 			gatherMinerals(worker, nearestBase);

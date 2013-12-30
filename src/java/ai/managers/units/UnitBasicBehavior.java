@@ -10,14 +10,20 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.StrategyManager;
+import ai.managers.TechnologyManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranMedic;
 import ai.terran.TerranSiegeTank;
 import ai.terran.TerranVulture;
+import ai.utils.RUtilities;
 
 public class UnitBasicBehavior {
 
 	private static XVR xvr = XVR.getInstance();
+
+	private static final double SAFE_DIST_FROM_ENEMY = 1.9;
+
+	// =============================================
 
 	protected static void act(Unit unit) {
 		UnitType unitType = unit.getType();
@@ -76,6 +82,7 @@ public class UnitBasicBehavior {
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
 		UnitType type = unit.getType();
+
 		if (unit.isRunningFromEnemy()) {
 			UnitActions.moveAwayFromNearestEnemy(unit);
 			return true;
@@ -86,19 +93,31 @@ public class UnitBasicBehavior {
 			return false;
 		}
 
+		if ((!unit.isWounded() || unit.getGroundWeaponCooldown() > 0)
+				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
+						true) > 0) {
+			return false;
+		}
+
 		// =============================================
 		// Define nearest enemy (threat)
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		double distToEnemy = nearestEnemy.distanceTo(unit);
+
+		if (distToEnemy <= 3) {
+			return true;
+		}
 
 		// If there's dangerous enemy nearby and he's close, try to move away.
 		boolean unitHasMovedItsAss = false;
 		if (nearestEnemy != null && !nearestEnemy.isWorker()) {
-			if (unit.isStartingAttack() && nearestEnemy.distanceTo(unit) >= 2.8) {
-				return false;
-			}
+			// if (unit.isStartingAttack() && nearestEnemy.distanceTo(unit) >=
+			// SAFE_DIST_FROM_ENEMY) {
+			// return false;
+			// }
 
 			int ourShootRange = type.getGroundWeapon().getMaxRangeInTiles();
-			boolean isEnemyVeryClose = nearestEnemy.distanceTo(unit) <= 2.5;
+			boolean isEnemyVeryClose = distToEnemy <= SAFE_DIST_FROM_ENEMY;
 
 			// If enemy is close, run!
 			if (isEnemyVeryClose) {
@@ -135,12 +154,19 @@ public class UnitBasicBehavior {
 	}
 
 	public static boolean tryLoadingIntoBunkersIfPossible(Unit unit) {
+		if (!unit.getType().isTerranInfantry()) {
+			return false;
+		}
+
 		if (TerranBunker.getNumberOfUnitsCompleted() == 0) {
 			return false;
 		}
 
 		boolean isUnitInsideBunker = unit.isLoaded();
-		boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 12, true, true) != null;
+		// boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 12, true,
+		// true) != null;
+		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		boolean enemyIsNearby = nearestEnemy != null && nearestEnemy.distanceTo(unit) <= 13;
 
 		if (!enemyIsNearby) {
 			if (unit.isLoaded()) {
@@ -154,7 +180,8 @@ public class UnitBasicBehavior {
 			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending()) {
 				return false;
 			}
-			if (enemyIsNearby && loadIntoBunkerNearbyIfPossible(unit)) {
+			// enemyIsNearby &&
+			if (loadIntoBunkerNearbyIfPossible(unit)) {
 				unit.setIsRunningFromEnemyNow();
 				return true;
 			}
@@ -254,6 +281,110 @@ public class UnitBasicBehavior {
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	protected static boolean tryAvoidingSeriousSpellEffectsIfNecessary(Unit unit) {
+		if (unit.isUnderStorm() || unit.isUnderDisruptionWeb()) {
+			if (unit.isMoving()) {
+				return true;
+			}
+			UnitActions.moveTo(unit, unit.getX() + 5 * 32 * (-1 * RUtilities.rand(0, 1)),
+					unit.getY() + 5 * 32 * (-1 * RUtilities.rand(0, 1)));
+			return true;
+		}
+		return false;
+	}
+
+	protected static boolean tryAvoidingActivatedSpiderMines(Unit unit) {
+		if (unit.getType().isFlyer()) {
+			return false;
+		}
+
+		Unit activatedMine = null;
+
+		// Check if there's any activted mine nearby and if so, get the fuck out
+		// of here.
+		for (Unit spiderMine : xvr.getUnitsOfGivenTypeInRadius(
+				UnitTypes.Terran_Vulture_Spider_Mine, 4, unit, true)) {
+			if (spiderMine.isMoving() || spiderMine.isAttacking()) {
+				activatedMine = spiderMine;
+				break;
+			}
+		}
+
+		// Move away from activated mine
+		if (activatedMine != null) {
+			UnitActions.moveAwayFromUnit(unit, activatedMine);
+			unit.setIsRunningFromEnemyNow();
+			unit.setAiOrder("MINE !!!");
+			return true;
+		}
+
+		return false;
+	}
+
+	protected static boolean handleWoundedUnitBehaviourIfNecessary(Unit unit) {
+		if (unit.getHP() <= unit.getMaxHP() * 0.4) {
+			// // If there are tanks nearby, DON'T RUN. Rather die first!
+			// if
+			// (xvr.countUnitsEnemyOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
+			// 15,
+			// unit) > 0) {
+			// return;
+			// }
+
+			// // If there are tanks nearby, DON'T RUN. Rather die first!
+			// if (unit.distanceTo(xvr.getFirstBase()) < 17) {
+			// return;
+			// }
+
+			// if (StrategyManager.isAttackPending()) {
+			// return;
+			// }
+
+			boolean lowLife = UnitActions.actWhenLowHitPointsOrShields(unit, false);
+			if (lowLife) {
+				unit.setAiOrder("Almost dead");
+			}
+
+			if (unit.isRepairable()) {
+				RepairAndSons.issueTicketToRepairIfHasnt(unit);
+
+				Unit repairer = RepairAndSons.getRepairerForUnit(unit);
+				if (repairer != null) {
+					if (repairer.distanceTo(unit) >= 1.3) {
+						UnitActions.moveTo(unit, repairer);
+						unit.setAiOrder("Go to repair");
+					} else {
+						if (xvr.getNearestEnemyDistance(unit, true, true) <= 5) {
+							unit.setAiOrder("Run");
+							UnitActions.moveAwayFromNearestEnemy(unit);
+						}
+					}
+				}
+
+			}
+			return lowLife;
+		}
+		return false;
+	}
+
+	protected static void avoidHiddenUnitsIfNecessary(Unit unit) {
+		Unit hiddenEnemyUnitNearby = MapExploration.getHiddenEnemyUnitNearbyTo(unit);
+		if (hiddenEnemyUnitNearby != null && unit.isDetected()
+				&& !hiddenEnemyUnitNearby.isDetected()) {
+			UnitActions.moveAwayFromUnit(unit, hiddenEnemyUnitNearby);
+			unit.setAiOrder("Avoid hidden unit");
+		}
+	}
+
+	public static void tryUsingStimpacksIfNeeded(Unit unit) {
+		if (unit.getType().canUseStimpacks() && TechnologyManager.isStimpacksResearched()
+				&& !unit.isStimmed()) {
+			if (!unit.isWounded() && xvr.countUnitsEnemyInRadius(unit, 8) >= 2) {
+				UnitActions.useTech(unit, TechnologyManager.STIMPACKS);
+			}
 		}
 	}
 

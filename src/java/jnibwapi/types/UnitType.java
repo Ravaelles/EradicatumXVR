@@ -587,6 +587,11 @@ public class UnitType {
 				|| ID == UnitTypes.Terran_Medic.ordinal() || ID == UnitTypes.Terran_Ghost.ordinal();
 	}
 
+	public boolean canUseStimpacks() {
+		return ID == UnitTypes.Terran_Marine.ordinal() || ID == UnitTypes.Terran_Firebat.ordinal()
+				|| ID == UnitTypes.Terran_Ghost.ordinal();
+	}
+
 	public boolean isReaver() {
 		return getID() == UnitTypes.Protoss_Reaver.ordinal();
 	}

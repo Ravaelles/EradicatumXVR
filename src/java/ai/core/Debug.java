@@ -323,24 +323,16 @@ public class Debug {
 
 			boolean isBuilding = u.getType().isBuilding();
 			if (FULL_DEBUG && !isBuilding) {
-				// if (u.isMoving()) {
-				// continue;
-				// }
-
 				if (u.isGatheringMinerals()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.BLUE, false, false);
 				} else if (u.isGatheringGas()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREEN, false, false);
-					// } else if (u.isMoving()) {
-					// bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(),
-					// u.getTargetY(),
-					// BWColor.WHITE, false);
-				} else if (u.isMoving()) {
+				} else if (u.isMoving() && !u.isConstructing()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false, false);
 
 					if (xvr.getDistanceBetween(u, u.getTargetX(), u.getTargetY()) <= 15) {
 						bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(),
-								BWColor.WHITE, false);
+								BWColor.GREY, false);
 					}
 				} else if (u.isRepairing()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false, false);
@@ -362,10 +354,6 @@ public class Debug {
 				else if (u.isAttacking()) {
 					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.RED, false, false);
 					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.RED, false, false);
-
-					// bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(),
-					// u.getTargetY(), BWColor.RED,
-					// false);
 				}
 
 				// HEALED unit, draw Red Cross on white background
@@ -391,6 +379,12 @@ public class Debug {
 					bwapi.drawText(u.getX() - 30, u.getY(), BWColor.getToStringHex(BWColor.GREY)
 							+ "-> " + name, false);
 				}
+
+				// ACTION LABEL: display action like #RUN, #LOAD
+				if (u.hasAiOrder()) {
+					bwapi.drawText(u.getX() - u.getAiOrderString().length() * 4, u.getY(),
+							BWColor.getToStringHex(BWColor.WHITE) + u.getAiOrderString(), false);
+				}
 			}
 
 			// IS BUILDING: display action name that's currently pending.
@@ -411,7 +405,7 @@ public class Debug {
 			return;
 		}
 
-		int time = xvr.getTime();
+		int time = xvr.getFrames();
 		paintMainMessage(xvr, "Time: " + (time / 30) + "s"); // (" + time + ")"
 		paintMainMessage(xvr, "Killed: " + enemyDeaths);
 		paintMainMessage(xvr, "Lost: " + ourDeaths);
@@ -450,22 +444,29 @@ public class Debug {
 			paintMainMessage(
 					xvr,
 					"Gath. gas: ("
-							+ TerranCommandCenter.getNumberofGasGatherersForBase(xvr.getFirstBase())
+							+ TerranCommandCenter.getNumberOfGasGatherersForBase(xvr.getFirstBase())
 							+ ")");
 
 			UnitTypes type;
 
-			type = UnitTypes.Terran_Marine;
-			if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
-				paintMainMessage(xvr, "Marines: " + UnitCounter.getNumberOfUnitsCompleted(type));
+			// type = UnitTypes.Terran_Marine;
+			// if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
+			// paintMainMessage(xvr, "Marines: " +
+			// UnitCounter.getNumberOfUnitsCompleted(type));
+			//
+			// type = UnitTypes.Terran_Medic;
+			// if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
+			// paintMainMessage(xvr, "Medics: " +
+			// UnitCounter.getNumberOfUnitsCompleted(type));
+			//
+			// type = UnitTypes.Terran_Firebat;
+			// if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
+			// paintMainMessage(xvr, "Firebats: " +
+			// UnitCounter.getNumberOfUnitsCompleted(type));
 
-			type = UnitTypes.Terran_Medic;
-			if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
-				paintMainMessage(xvr, "Medics: " + UnitCounter.getNumberOfUnitsCompleted(type));
-
-			type = UnitTypes.Terran_Firebat;
-			if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
-				paintMainMessage(xvr, "Firebats: " + UnitCounter.getNumberOfUnitsCompleted(type));
+			int infantry = UnitCounter.getNumberOfInfantryUnitsCompleted();
+			if (infantry > 0)
+				paintMainMessage(xvr, "Infantry: " + infantry);
 
 			type = UnitTypes.Terran_Vulture;
 			if (UnitCounter.getNumberOfUnitsCompleted(type) > 0)
@@ -495,14 +496,22 @@ public class Debug {
 				buildArmy = "# FALSE #";
 			}
 			paintMainMessage(xvr, "Build army: " + buildArmy);
-			paintMainMessage(xvr, "Attack ready: "
-					+ (StrategyManager.isAttackPending() ? "YES" : "no"));
+
+			boolean attackPending = StrategyManager.isAttackPending();
+			paintMainMessage(xvr, "Attack ready: " + (attackPending ? "YES" : "no"));
+
+			if (attackPending) {
+				paintMainMessage(
+						xvr,
+						"(distance allowed: "
+								+ (int) StrategyManager.getAllowedDistanceFromSafePoint() + ")");
+			}
 
 			paintMainMessage(xvr, "--------------------");
 
 		}
 
-		if (xvr.getTime() % 10 == 0) {
+		if (xvr.getFrames() % 10 == 0) {
 
 		}
 

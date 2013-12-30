@@ -18,7 +18,7 @@ public class ArmyPlacing {
 
 	private static XVR xvr = XVR.getInstance();
 
-	public static MapPoint getArmyGatheringPointFor(Unit unit) {
+	public static MapPoint getSafePointFor(Unit unit) {
 		MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
 
 		// Initially, go to the second base location
@@ -98,7 +98,7 @@ public class ArmyPlacing {
 		}
 
 		if (safePlace == null) {
-			safePlace = getArmyGatheringPointFor(unit);
+			safePlace = getSafePointFor(unit);
 			if (safePlace == null) {
 				return;
 			}

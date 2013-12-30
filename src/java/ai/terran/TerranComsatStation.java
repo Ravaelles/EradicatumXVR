@@ -130,7 +130,7 @@ public class TerranComsatStation {
 			// don't have too much of it
 			if (unit.getType().isObserver()) {
 				Unit comsat = getOneWithMostEnergy();
-				if (comsat != null && comsat.getEnergy() < 150) {
+				if (comsat != null && comsat.getEnergy() < 130) {
 					return;
 				}
 			}

@@ -16,6 +16,7 @@ import ai.managers.WorkerManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
+import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
 
 public class TerranCommandCenter {
@@ -166,7 +167,7 @@ public class TerranCommandCenter {
 			return;
 		}
 
-		int gasGatherersForBase = getNumberofGasGatherersForBase(base);
+		int gasGatherersForBase = getNumberOfGasGatherersForBase(base);
 		if (gasGatherersForBase > WORKERS_PER_GEYSER) {
 			int overLimitWorkers = gasGatherersForBase - WORKERS_PER_GEYSER;
 
@@ -281,6 +282,8 @@ public class TerranCommandCenter {
 			_lastTimeCalculatedTileForBase = now;
 		}
 
+		CodeProfiler.startMeasuring("New base");
+
 		// ===============================
 		BaseLocation nearestFreeBaseLocation = getNearestFreeBaseLocation();
 		// System.out.println("BaseLocation nearestFreeBaseLocation = " +
@@ -305,6 +308,8 @@ public class TerranCommandCenter {
 			// }
 			_cachedNextBaseTile = null;
 		}
+
+		CodeProfiler.endMeasuring("New base");
 
 		return _cachedNextBaseTile;
 	}
@@ -360,7 +365,11 @@ public class TerranCommandCenter {
 	public static boolean existsBaseNear(int x, int y) {
 		for (Unit unit : xvr.getUnitsInRadius(x, y, 14)) {
 			if (unit.getType().isBase()) {
-				return true;
+				if (!unit.isEnemy() && !unit.isExists()) {
+					return false;
+				} else {
+					return true;
+				}
 			}
 		}
 
@@ -489,7 +498,7 @@ public class TerranCommandCenter {
 		return nearestBase;
 	}
 
-	public static int getNumberofGasGatherersForBase(Unit base) {
+	public static int getNumberOfGasGatherersForBase(Unit base) {
 		int result = 0;
 		int MAX_DISTANCE = 10;
 

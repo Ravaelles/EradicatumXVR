@@ -63,6 +63,10 @@ public class ArmyCreationManager {
 	}
 
 	public static boolean weShouldBuildBattleUnits() {
+		if (xvr.getTimeSeconds() >= 800 && TerranCommandCenter.getNumberOfUnits() <= 1) {
+			return false;
+		}
+
 		if (isCriticallyFewInfantry()) {
 			return true;
 		}

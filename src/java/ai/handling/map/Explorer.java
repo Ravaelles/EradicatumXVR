@@ -9,6 +9,7 @@ import ai.core.XVR;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.WorkerManager;
+import ai.managers.units.UnitBasicBehavior;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranCommandCenter;
 import ai.utils.RUtilities;
@@ -31,6 +32,12 @@ public class Explorer {
 			return;
 		}
 		Explorer.explorer = explorer;
+
+		// Disallow units to move close to the defensive building like
+		// Photon Cannon
+		if (UnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(explorer)) {
+			return;
+		}
 
 		// If explorer is marked to be discovering enemy base, but he's
 		// attacked, then unmark him from his task, thus allowing him to run.

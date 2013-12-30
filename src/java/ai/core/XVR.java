@@ -20,6 +20,7 @@ import ai.managers.StrategyManager;
 import ai.managers.TechnologyManager;
 import ai.managers.WorkerManager;
 import ai.managers.constructing.ConstructingManager;
+import ai.managers.units.HiddenUnits;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
@@ -56,6 +57,7 @@ public class XVR {
 	private JNIBWAPI bwapi;
 
 	private int frameCounter = 0;
+	private int secondCounter = 0;
 
 	// =====================================================
 
@@ -72,34 +74,40 @@ public class XVR {
 	public void act() {
 		try {
 			frameCounter++;
+			secondCounter = frameCounter / 30;
 
 			// Calculate numbers of units by type, so this info can be used in
 			// other methods.
-			if (getTime() % 4 == 0) {
+			if (getFrames() % 4 == 0) {
 				UnitCounter.recalculateUnits();
 			}
 
 			// If there are some enemy units invisible
-			if (getTime() % 10 == 0) {
+			if (getFrames() % 10 == 0) {
 				MapExploration.updateInfoAboutHiddenUnits();
 			}
 
+			// Try to detect hidden enemy units
+			if (getFrames() % 13 == 0) {
+				HiddenUnits.act();
+			}
+
 			// See if we're strong enough to attack the enemy
-			if (getTime() % 21 == 0) {
+			if (getFrames() % 21 == 0) {
 				CodeProfiler.startMeasuring("Strategy");
 				StrategyManager.evaluateMassiveAttackOptions();
 				CodeProfiler.endMeasuring("Strategy");
 			}
 
 			// Handle technologies
-			if (getTime() % 23 == 0) {
+			if (getFrames() % 23 == 0) {
 				CodeProfiler.startMeasuring("Technology");
 				TechnologyManager.act();
 				CodeProfiler.endMeasuring("Technology");
 			}
 
 			// Now let's mine minerals with your idle workers.
-			if (getTime() % 11 == 0) {
+			if (getFrames() % 11 == 0) {
 				CodeProfiler.startMeasuring("Workers");
 				WorkerManager.act();
 				CodeProfiler.endMeasuring("Workers");
@@ -107,31 +115,31 @@ public class XVR {
 
 			// Handle behavior of units and buildings.
 			// Handle units in neighborhood of army units.
-			if (getTime() % 22 == 0) {
+			if (getFrames() % 22 == 0) {
 				CodeProfiler.startMeasuring("Army");
 				UnitManager.act();
 				CodeProfiler.endMeasuring("Army");
 			}
 
 			// Avoid being under psionic storm, disruptive web etc.
-			if (getTime() % 8 == 0) {
-				UnitManager.avoidSeriousSpellEffectsIfNecessary();
+			if (getFrames() % 8 == 0) {
+				UnitManager.avoidSpellEffectsAndMinesIfNecessary();
 			}
 
 			// Handle Nexus behavior differently, more often.
-			if (getTime() % 8 == 0) {
+			if (getFrames() % 8 == 0) {
 				TerranCommandCenter.act();
 			}
 
 			// Handle army building.
-			if (getTime() % 11 == 0) {
+			if (getFrames() % 11 == 0) {
 				CodeProfiler.startMeasuring("Army build");
 				ArmyCreationManager.act();
 				CodeProfiler.endMeasuring("Army build");
 			}
 
 			// Handle constructing new buildings
-			if (getTime() % 9 == 0) {
+			if (getFrames() % 9 == 0) {
 				CodeProfiler.startMeasuring("Construct");
 				ConstructingManager.act();
 				CodeProfiler.endMeasuring("Construct");
@@ -193,12 +201,12 @@ public class XVR {
 	// =========================================================
 	// UTILITIES
 
-	public int getTime() {
+	public int getFrames() {
 		return frameCounter;
 	}
 
 	public int getTimeSeconds() {
-		return frameCounter / 30;
+		return secondCounter;
 	}
 
 	public int getTimeDifferenceBetweenNowAnd(int oldTime) {
@@ -852,7 +860,7 @@ public class XVR {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackGroundUnits()) {
 				int maxEnemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles();
-				if (point.distanceTo(enemy) <= maxEnemyRange + 1.7) {
+				if (point.distanceTo(enemy) <= maxEnemyRange + 2.5) {
 					return true;
 				}
 			}

@@ -73,7 +73,7 @@ public class StrategyManager {
 	private static int _lastTimeWaitCalled = 0;
 
 	private static double allowedDistanceFromSafePoint = 0;
-	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.9;
+	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.6;
 
 	// private static boolean pushedInitially = false;
 
