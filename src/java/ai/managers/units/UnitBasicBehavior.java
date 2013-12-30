@@ -93,19 +93,19 @@ public class UnitBasicBehavior {
 			return false;
 		}
 
-		if ((!unit.isWounded() || unit.getGroundWeaponCooldown() > 0)
-				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
-						true) > 0) {
-			return false;
-		}
-
 		// =============================================
 		// Define nearest enemy (threat)
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		double distToEnemy = nearestEnemy.distanceTo(unit);
-
-		if (distToEnemy <= 3) {
+		double distToEnemy = unit.distanceTo(nearestEnemy);
+		if (distToEnemy >= 0 && distToEnemy <= 2) {
 			return true;
+		}
+
+		if ((!unit.isWounded() || unit.getGroundWeaponCooldown() > 0)
+				&& !unit.isUnderAttack()
+				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
+						true) > 0) {
+			return false;
 		}
 
 		// If there's dangerous enemy nearby and he's close, try to move away.

@@ -145,6 +145,8 @@ public class XVR {
 				CodeProfiler.endMeasuring("Construct");
 			}
 		} catch (Exception e) {
+			Painter.errorOcurred = true;
+			Painter.errorOcurredDetails = e.getStackTrace()[0].toString();
 			System.err.println("--------------------------------------");
 			System.err.println("---------- NON CRITICAL ERROR OCCURED: ");
 			e.printStackTrace();

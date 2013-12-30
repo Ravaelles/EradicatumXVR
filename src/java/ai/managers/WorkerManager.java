@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
-import ai.core.Debug;
+import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.army.StrengthEvaluator;
 import ai.handling.map.Explorer;
@@ -129,7 +129,7 @@ public class WorkerManager {
 					enemyBuildingNearBase);
 			if (distToBuilding > 0 && distToBuilding <= DEFEND_BASE_RADIUS
 					&& enemyBuildingNearBase.getType().isBuilding()) {
-				Debug.message(xvr, "Attack building: " + enemyBuildingNearBase.getName());
+				Painter.message(xvr, "Attack building: " + enemyBuildingNearBase.getName());
 				UnitActions.attackEnemyUnit(worker, enemyBuildingNearBase);
 				return;
 			}

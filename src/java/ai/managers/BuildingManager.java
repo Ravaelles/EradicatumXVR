@@ -5,7 +5,7 @@ import java.util.HashMap;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
-import ai.core.Debug;
+import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
@@ -45,7 +45,7 @@ public class BuildingManager {
 
 		int specialCaseRepairersNeeded = isSpecialCaseRepair(building);
 		if (specialCaseRepairersNeeded > 0) {
-			Debug.message(xvr,
+			Painter.message(xvr,
 					specialCaseRepairersNeeded + " SCV should repair " + building.getName());
 			for (int i = 0; i < specialCaseRepairersNeeded; i++) {
 				Unit repairer = WorkerManager.findNearestRepairerTo(building);

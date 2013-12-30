@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import jnibwapi.model.Unit;
-import ai.core.Debug;
+import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.army.ArmyPlacing;
 import ai.handling.army.TargetHandling;
@@ -237,7 +237,7 @@ public class StrategyManager {
 		} else {
 			_attackPoint = null;
 			if (_attackTargetUnit != target && _attackTargetUnit == null) {
-				Debug.message(xvr, "Next target is null... =/");
+				Painter.message(xvr, "Next target is null... =/");
 			}
 		}
 
@@ -309,7 +309,7 @@ public class StrategyManager {
 
 	private static void changeNextTargetTo(Unit attackTarget) {
 		if (attackTarget == null) {
-			Debug.message(xvr, "ERROR! ATTACK TARGET UNKNOWN!");
+			Painter.message(xvr, "ERROR! ATTACK TARGET UNKNOWN!");
 			return;
 		}
 		// Debug.message(xvr, "Next to attack: "

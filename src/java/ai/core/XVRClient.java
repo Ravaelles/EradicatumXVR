@@ -101,7 +101,7 @@ public class XVRClient implements BWAPIEventListener {
 	public void gameUpdate() {
 		// if (xvr.getTime() % 10 == 0) {
 		// }
-		Debug.drawDebug(xvr);
+		Painter.paintAll(xvr);
 
 		xvr.act();
 	}
@@ -113,9 +113,9 @@ public class XVRClient implements BWAPIEventListener {
 	}
 
 	public void matchEnded(boolean winner) {
-		Debug.message(xvr, "###############", false);
-		Debug.message(xvr, "## For Adun! ##", false);
-		Debug.message(xvr, "###############", false);
+		Painter.message(xvr, "###############", false);
+		Painter.message(xvr, "## For Adun! ##", false);
+		Painter.message(xvr, "###############", false);
 	}
 
 	public void sendText(String text) {
@@ -171,9 +171,9 @@ public class XVRClient implements BWAPIEventListener {
 	public void unitDestroy(int unitID) {
 		boolean wasOurUnit = historyOfOurUnits.contains(unitID);
 		if (wasOurUnit) {
-			Debug.ourDeaths++;
+			Painter.ourDeaths++;
 		} else {
-			Debug.enemyDeaths++;
+			Painter.enemyDeaths++;
 		}
 
 		if (!wasOurUnit) {

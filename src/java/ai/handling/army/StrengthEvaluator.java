@@ -6,7 +6,7 @@ import java.util.Iterator;
 import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
-import ai.core.Debug;
+import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
@@ -421,7 +421,7 @@ public class StrengthEvaluator {
 			boolean changeOfPlans = false;
 
 			if (countEnemyAirUnits() > 5) {
-				Debug.message(xvr, "Start building Anti-Air units");
+				Painter.message(xvr, "Start building Anti-Air units");
 				changeOfPlans = true;
 			}
 

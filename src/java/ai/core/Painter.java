@@ -21,9 +21,11 @@ import ai.terran.TerranCommandCenter;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
 
-public class Debug {
+public class Painter {
 
 	public static final boolean FULL_DEBUG = true;
+	public static boolean errorOcurred = false;
+	public static String errorOcurredDetails = "";
 
 	private static int messageCounter = 1;
 	private static int mainMessageRowCounter = 0;
@@ -31,7 +33,7 @@ public class Debug {
 	public static int ourDeaths = 0;
 	public static int enemyDeaths = 0;
 
-	public static void drawDebug(XVR xvr) {
+	public static void paintAll(XVR xvr) {
 		CodeProfiler.startMeasuring("Painting");
 
 		int oldMainMessageRowCounter = mainMessageRowCounter;
@@ -89,6 +91,13 @@ public class Debug {
 
 		// Statistics
 		paintStatistics(xvr);
+
+		if (Painter.errorOcurred) {
+			xvr.getBwapi().drawText(
+					new Point(280, 20),
+					BWColor.getToStringHex(BWColor.RED) + "!!! EXCEPTION (" + errorOcurredDetails
+							+ ") !!!", true);
+		}
 
 		// ========
 		mainMessageRowCounter = oldMainMessageRowCounter;
