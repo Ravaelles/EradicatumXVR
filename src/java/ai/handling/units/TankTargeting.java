@@ -20,8 +20,8 @@ public class TankTargeting {
 	private static final double OUTER_SPLASH_TILES = (double) 40 / 32;
 
 	private static final int OPTION_BONUS_KILLING_ONE_ENEMY = 40;
-	private static final int OPTION_PENALTY_WOUNDING_ONE_HP_OUR_UNIT = 5;
-	private static final int OPTION_PENALTY_KILLING_ONE_OUR_UNIT = 80;
+	private static final int OPTION_PENALTY_WOUNDING_ONE_HP_OUR_UNIT = 10;
+	private static final int OPTION_PENALTY_KILLING_ONE_OUR_UNIT = 100;
 
 	private static final int MINIMUM_OPTION_VALUE = 30;
 

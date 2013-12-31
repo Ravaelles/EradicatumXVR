@@ -31,6 +31,8 @@ public class WorkerManager {
 	private static XVR xvr = XVR.getInstance();
 
 	private static int _counter;
+	private static Unit professionalRepairer = null;
+	private static Unit guyToChaseOthers = null;
 
 	// ======================
 
@@ -70,6 +72,7 @@ public class WorkerManager {
 
 		// Check for any enemy workers
 		if (_counter == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
+			guyToChaseOthers = worker;
 			Unit enemyWorkerNearMainBase = xvr.getEnemyWorkerInRadius(38, xvr.getFirstBase());
 			UnitActions.attackEnemyUnit(worker, enemyWorkerNearMainBase);
 			return;
@@ -152,9 +155,12 @@ public class WorkerManager {
 			return;
 		}
 
-		defendBase(unit);
+		if (xvr.getTimeSeconds() < 300) {
+			defendBase(unit);
+		}
 
-		if (unit.isAttacking() && unit.distanceTo(xvr.getFirstBase()) < 17) {
+		if (unit.isAttacking()
+				&& (unit.distanceTo(xvr.getFirstBase()) < 17 || unit.distanceTo(xvr.getFirstBase()) < 17)) {
 			return;
 		}
 
@@ -251,6 +257,7 @@ public class WorkerManager {
 
 	private static void handleProfessionalRepairer(Unit unit) {
 		Unit beHere = null;
+		professionalRepairer = unit;
 
 		if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
 			MapPoint centerPoint = MapExploration.getNearestEnemyBuilding();
@@ -277,7 +284,7 @@ public class WorkerManager {
 
 		if (existsAssimilatorNearBase
 				&& gatheringGas < TerranCommandCenter.WORKERS_PER_GEYSER
-				&& (gatheringMinerals >= 4 * gatheringGas || TerranCommandCenter
+				&& (gatheringMinerals >= 5 * gatheringGas || TerranCommandCenter
 						.getMineralsNearBase(nearestBase).size() <= 4)) {
 			gatherGas(worker, nearestBase);
 		} else {
@@ -399,7 +406,7 @@ public class WorkerManager {
 	}
 
 	public static Unit findNearestWorkerTo(int x, int y) {
-		Unit base = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, x, y);
+		Unit base = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, x, y, false);
 		if (base == null) {
 			return null;
 		}
@@ -446,6 +453,14 @@ public class WorkerManager {
 		}
 
 		return nearestUnit;
+	}
+
+	public static Unit getProfessionalRepairer() {
+		return professionalRepairer;
+	}
+
+	public static Unit getGuyToChaseOthers() {
+		return guyToChaseOthers;
 	}
 
 }

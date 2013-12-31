@@ -216,6 +216,8 @@ public class XVRClient implements BWAPIEventListener {
 		// UnitType unitType = UnitType.getUnitTypeByID(unit.getTypeID());
 	}
 
+	private static int distantEnemyUnitsDiscovered = 0;
+
 	public void unitDiscover(int unitID) {
 		Unit unit = Unit.getByID(unitID);
 		if (unit == null || !unit.isEnemy()) {
@@ -227,6 +229,18 @@ public class XVRClient implements BWAPIEventListener {
 
 		// System.out.println("Unit discover: " + (unit != null ? unit.getName()
 		// : "null"));
+
+		if (StrategyManager.getMinBattleUnits() < 10) {
+			UnitType type = unit.getType();
+			boolean isAdvUnit = type.isDragoon() || type.isCarrier() || type.isVulture()
+					|| type.isTank() || type.isHydralisk() || type.isLurker() || type.isMutalisk();
+			if (isAdvUnit) {
+				distantEnemyUnitsDiscovered++;
+			}
+			if (distantEnemyUnitsDiscovered >= 1) {
+				StrategyManager.waitForMoreUnits();
+			}
+		}
 
 		// if (XVR.isEnemyProtoss()) {
 		// if (unit.getType().isDragoon()) {

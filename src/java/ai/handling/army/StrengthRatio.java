@@ -109,12 +109,10 @@ public class StrengthRatio {
 		int ourUnitsGroupSize = ourUnits.size();
 		_ourUnits = ourUnits;
 
-		if (isTank && ourUnitsGroupSize <= 2) {
-			_ourUnits.remove(unit);
-			if (weHaveOnlyMedics(unit)) {
+		if (isTank && ourUnitsGroupSize <= 4) {
+			if (!weHaveTankProtectors()) {
 				return STRENGTH_RATIO_VERY_BAD;
 			}
-			_ourUnits.add(unit);
 		}
 
 		if (weHaveOnlyMedics(unit)) {
@@ -204,6 +202,16 @@ public class StrengthRatio {
 
 		_rangeBonus = 0;
 		return ratio;
+	}
+
+	private static boolean weHaveTankProtectors() {
+		for (Unit unit : _ourUnits) {
+			UnitType type = unit.getType();
+			if (!type.isMedic() && !type.isTank() && !type.isWorker()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean weHaveOnlyMedics(Unit unit) {

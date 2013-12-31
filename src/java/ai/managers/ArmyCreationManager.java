@@ -33,17 +33,19 @@ public class ArmyCreationManager {
 			}
 
 			// BARRACKS
-			int infantry = UnitCounter.getNumberOfInfantryUnits();
-			boolean noFactories = TerranFactory.getNumberOfUnitsCompleted() == 0;
-			boolean fewInfantry = infantry <= MINIMUM_MARINES;
-			boolean haveFreeFactorySpots = TerranFactory.getOneNotBusy() != null;
-			boolean shouldBuildInfantry = fewInfantry || noFactories
-					|| (!haveFreeFactorySpots && fewInfantry);
-			if (shouldBuildInfantry) {
-				ArrayList<Unit> barracks = TerranBarracks.getAllObjects();
-				if (!barracks.isEmpty()) {
-					for (Unit barrack : barracks) {
-						TerranBarracks.act(barrack);
+			if (factories.isEmpty() || xvr.canAfford(100)) {
+				int infantry = UnitCounter.getNumberOfInfantryUnits();
+				boolean noFactories = TerranFactory.getNumberOfUnitsCompleted() == 0;
+				boolean fewInfantry = infantry <= MINIMUM_MARINES;
+				boolean haveFreeFactorySpots = TerranFactory.getOneNotBusy() != null;
+				boolean shouldBuildInfantry = fewInfantry || noFactories
+						|| (!haveFreeFactorySpots && fewInfantry);
+				if (shouldBuildInfantry) {
+					ArrayList<Unit> barracks = TerranBarracks.getAllObjects();
+					if (!barracks.isEmpty()) {
+						for (Unit barrack : barracks) {
+							TerranBarracks.act(barrack);
+						}
 					}
 				}
 			}
@@ -68,11 +70,17 @@ public class ArmyCreationManager {
 			return false;
 		}
 
+		int battleUnits = UnitCounter.getNumberOfBattleUnits();
+
+		if (xvr.getTimeSeconds() >= 350 && TerranFactory.getNumberOfUnits() == 0
+				&& battleUnits >= 10) {
+			return false;
+		}
+
 		if (isCriticallyFewInfantry()) {
 			return true;
 		}
 
-		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 		int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
 
 		if (battleUnits <= MINIMUM_UNITS) {

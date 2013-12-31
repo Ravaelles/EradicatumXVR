@@ -37,6 +37,9 @@ public class UnitActions {
 	}
 
 	public static void moveTo(Unit unit, MapPoint point) {
+		if (point == null) {
+			return;
+		}
 		moveTo(unit, point.getX(), point.getY());
 	}
 

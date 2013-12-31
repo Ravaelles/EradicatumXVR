@@ -1,0 +1,42 @@
+dont produce medics / firebats if have machine shop and not researching siege
+
+
+buildings NOT RE BUILDED IF BUILDER DEAD
+
+- make wounded marines run to medics, but avoid enemies
+
+# - Modify maximum distance from bunker allowed, to be as much, as enemy max range or 4 or sumfin
+
+
+- Tank escape  to the bunker, and then just stood there, waiting to be killed
+
+
+
+
+
+WORKERS is slow, why?
+
+
+
+
+
+
+- Explorer should attack always closest unit (worker?)
+
+
+
+
+
+
+scv should avoid cannons, didnt
+
+! Explorer doesnt explore unknown base locations
+- Vulture doesnt run from enemies
+
+
+
+
+
+
+
++ Fire concentration on one unit

@@ -138,8 +138,18 @@ public class TerranSiegeTank {
 	}
 
 	private static boolean notTooManySiegedUnitHere(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7, unit,
-				true) <= 2;
+		Unit nearBuilding = xvr.getUnitNearestFromList(unit, xvr.getUnitsBuildings());
+		boolean isNearBuilding = nearBuilding != null && nearBuilding.distanceTo(unit) <= 8;
+
+		ChokePoint nearChoke = MapExploration.getNearestChokePointFor(unit);
+		boolean isNearChoke = nearChoke != null && unit.distanceToChokePoint(nearChoke) <= 3;
+
+		if (isNearBuilding || isNearChoke) {
+			return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7,
+					unit, true) <= 2;
+		} else {
+			return false;
+		}
 	}
 
 	private static boolean isNeighborhoodSafeToSiege(Unit unit) {

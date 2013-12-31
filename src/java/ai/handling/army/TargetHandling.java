@@ -97,9 +97,15 @@ public class TargetHandling {
 		boolean isProper;
 		UnitType type = target.getType();
 
-		if (type.isOnGeyser() || target.isStasised()) {
+		if (target.isStasised()) {
 			return false;
 		}
+		if (type.isOnGeyser() && type.isInvincible()) {
+			return false;
+		}
+		// if (type.isOnGeyser() || target.isStasised()) {
+		// return false;
+		// }
 
 		if (type.isBuilding()) {
 			isProper = target.isExists() || !target.isVisible();

@@ -11,13 +11,18 @@ import ai.managers.constructing.ShouldBuildCache;
 
 public class TerranFactory {
 
-	public static UnitTypes TANK = UnitTypes.Terran_Siege_Tank_Tank_Mode;
+	private static UnitTypes TANK_TANK_MODE = UnitTypes.Terran_Siege_Tank_Tank_Mode;
 	public static UnitTypes VULTURE = UnitTypes.Terran_Vulture;
 	public static UnitTypes GOLIATH = UnitTypes.Terran_Goliath;
 
-	private static final int MINIMUM_VULTURES = 8;
+	private static final int MINIMUM_VULTURES = 3;
+	private static final int MINIMUM_TANKS = 2;
 	private static final int MINIMUM_GOLIATHS_EARLY = 2;
 	private static final int MINIMUM_GOLIATHS_LATER = 6;
+
+	private static final int tanksPercentage = 30;
+	private static final int vulturesPercentage = 40;
+	private static final int goliathsPercentage = 30;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Factory;
 	private static XVR xvr = XVR.getInstance();
@@ -41,13 +46,18 @@ public class TerranFactory {
 			}
 		}
 
-		if (factories >= 2 && factories <= 4 && xvr.canAfford(600, 200)) {
+		// If all buildings are busy, build new one.
+		if (factories >= 2 && xvr.canAfford(300, 100) && areAllBuildingsBusy()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		return false;
+	}
+
+	private static boolean areAllBuildingsBusy() {
+		return getOneNotBusy() == null;
 	}
 
 	public static Unit getOneNotBusy() {
@@ -96,57 +106,99 @@ public class TerranFactory {
 	}
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
-		// if (xvr.canAfford(900)) {
-		// return VULTURE;
-		// }
-
 		boolean tanksAllowed = (freeMinerals >= 125 && freeGas >= 50)
 				&& UnitCounter.weHaveBuildingFinished(TerranMachineShop.getBuildingType());
-		// && (freeMinerals >= 125 && freeGas >= 50)
 		boolean goliathsAllowed = (freeMinerals >= 125 && freeGas >= 50)
 				&& UnitCounter.weHaveBuildingFinished(TerranArmory.getBuildingType());
 
 		// ==================
 
 		int vultures = UnitCounter.getNumberOfUnits(VULTURE);
-		int tanks = UnitCounter.getNumberOfUnits(TANK);
+		int tanks = TerranSiegeTank.getNumberOfUnits();
 		int goliaths = UnitCounter.getNumberOfUnits(GOLIATH);
 
 		boolean notEnoughVultures = vultures < MINIMUM_VULTURES;
+		boolean notEnoughTanks = vultures < MINIMUM_TANKS;
 		boolean notEnoughGoliaths = xvr.getTimeSeconds() < 800 ? goliaths < MINIMUM_GOLIATHS_EARLY
 				: goliaths < MINIMUM_GOLIATHS_LATER;
 
 		// ==================
+		// If very little units, below critical limit
 
 		// TANK
-		if (tanksAllowed) {
-			if (tanks >= 2) {
-				if (notEnoughGoliaths) {
-					return GOLIATH;
-				} else if (notEnoughVultures) {
-					return VULTURE;
-				}
-			} else {
-				return TANK;
-			}
+		if (tanksAllowed && notEnoughTanks) {
+			return TANK_TANK_MODE;
 		}
 
 		// GOLIATH
-		if (goliathsAllowed) {
-			if (notEnoughGoliaths) {
-				return GOLIATH;
-			}
+		if (goliathsAllowed && notEnoughGoliaths) {
+			return TANK_TANK_MODE;
 		}
 
 		// VULTURE
-		if (notEnoughVultures || !tanksAllowed) {
+		if (notEnoughVultures) {
 			return VULTURE;
 		}
 
-		if (xvr.canAfford(800)) {
-			return VULTURE;
+		// =================
+		// Standard production, based on units percentage in our army
+
+		int totalRatio = vulturesPercentage + (tanksAllowed ? tanksPercentage : 0)
+				+ (goliathsAllowed ? goliathsPercentage : 0);
+		int totalVehicles = UnitCounter.getNumberOfVehicleUnits();
+
+		// TANK
+		if (notEnoughPercentOf(tanks, totalVehicles, tanksPercentage, totalRatio)) {
+			return TANK_TANK_MODE;
 		}
-		return null;
+
+		// GOLIATH
+		if (notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage, totalRatio)) {
+			return GOLIATH;
+		}
+
+		return VULTURE;
+
+		// // TANK
+		// if (tanksAllowed) {
+		// if (tanks >= 2) {
+		// if (notEnoughGoliaths) {
+		// return GOLIATH;
+		// } else if (notEnoughVultures) {
+		// return VULTURE;
+		// }
+		// } else {
+		// return TANK_TANK_MODE;
+		// }
+		// }
+		//
+		// // GOLIATH
+		// if (goliathsAllowed) {
+		// if (notEnoughGoliaths) {
+		// return GOLIATH;
+		// }
+		// }
+		//
+		// // VULTURE
+		// if (notEnoughVultures || !tanksAllowed) {
+		// return VULTURE;
+		// }
+		//
+		// if (xvr.canAfford(800)) {
+		// return VULTURE;
+		// }
+		// return null;
+	}
+
+	private static boolean notEnoughPercentOf(int vehiclesOfThisType, int totalVehicles,
+			int minPercentInArmy, int totalOfPercentage) {
+		double percentOfVehicles = (double) vehiclesOfThisType / totalVehicles;
+		double minPercentOfVehicles = (double) minPercentInArmy / totalOfPercentage;
+		if (percentOfVehicles < minPercentOfVehicles) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public static int getNumberOfUnits() {

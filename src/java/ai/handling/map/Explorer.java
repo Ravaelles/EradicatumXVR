@@ -304,8 +304,12 @@ public class Explorer {
 			if (backOfTheBasePoint == null) {
 				_exploredBackOfMainBase = true;
 			}
-			if (_explorerForBackOfBase.distanceTo(backOfTheBasePoint) <= 1.5) {
+			if (_explorerForBackOfBase == null
+					|| _explorerForBackOfBase.distanceTo(backOfTheBasePoint) <= 1.5) {
 				_exploredBackOfMainBase = true;
+				MapPoint nearBaseLoc = MapExploration
+						.getNearestBaseLocation(_explorerForBackOfBase);
+				UnitActions.moveTo(_explorerForBackOfBase, nearBaseLoc);
 				// System.out.println("_exploredBackOfMainBase");
 			}
 			// return true;

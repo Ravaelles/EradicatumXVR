@@ -83,8 +83,8 @@ public class UnitBasicBehavior {
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
 		UnitType type = unit.getType();
-		boolean hasPrettyGoodChances = unit.getStrengthRatio() > 1.4;
-		int criticallyCloseDistance = 2;
+		boolean hasPrettyGoodChances = unit.getStrengthRatio() > 1.5;
+		double criticallyCloseDistance = 3 + (unit.isWounded() ? 0.6 : 0);
 
 		// Define nearest enemy (threat)
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
@@ -102,7 +102,7 @@ public class UnitBasicBehavior {
 		}
 
 		// Don't interrupt when just starting an attack
-		if (unit.isLoaded() || (unit.getType().isFirebat() && unit.getHP() > 20)) {
+		if (unit.isLoaded() || (unit.getType().isFirebat() && unit.getHP() > 25)) {
 			return false;
 		}
 
@@ -113,7 +113,7 @@ public class UnitBasicBehavior {
 			return true;
 		}
 
-		if ((!unit.isWounded() || unit.getGroundWeaponCooldown() > 0)
+		if ((!unit.isWounded() || (unit.getGroundWeaponCooldown() > 0 && !isEnemyCriticallyClose))
 				&& !unit.isUnderAttack()
 				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
 						true) > 0) {
@@ -174,10 +174,6 @@ public class UnitBasicBehavior {
 			return false;
 		}
 
-		if (unit.getStrengthRatio() > 1.4) {
-			return false;
-		}
-
 		boolean isUnitInsideBunker = unit.isLoaded();
 		// boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 12, true,
 		// true) != null;
@@ -187,7 +183,7 @@ public class UnitBasicBehavior {
 		}
 
 		// Calculate max safe distance to the enemy, so we can shoot at him
-		int enemyIsNearThreshold = (int) Math.max(3, nearestEnemy.getType().getGroundWeapon()
+		double enemyIsNearThreshold = Math.max(3, nearestEnemy.getType().getGroundWeapon()
 				.getMaxRangeInTiles() + 2.5);
 		boolean enemyIsNearby = nearestEnemy != null
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
@@ -205,7 +201,7 @@ public class UnitBasicBehavior {
 				return false;
 			}
 			// enemyIsNearby &&
-			if (loadIntoBunkerNearbyIfPossible(unit)) {
+			if (unit.getStrengthRatio() < 1.5 && loadIntoBunkerNearbyIfPossible(unit)) {
 				unit.setIsRunningFromEnemyNow();
 				return true;
 			}

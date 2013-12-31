@@ -11,7 +11,6 @@ import ai.terran.TerranArmory;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranControlTower;
 import ai.terran.TerranMachineShop;
-import ai.terran.TerranSiegeTank;
 
 public class TechnologyManager {
 
@@ -31,42 +30,43 @@ public class TechnologyManager {
 
 		int marines = UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine);
 		int vultures = UnitCounter.getNumberOfUnits(UnitTypes.Terran_Vulture);
-		int tanks = TerranSiegeTank.getNumberOfUnits();
+		// int tanks = TerranSiegeTank.getNumberOfUnits();
 		// int infantry = UnitCounter.getNumberOfInfantryUnits();
 
 		// ======================================================
 		// TOP PRIORITY
 		// Technologies that are crucial and we don't need to have second base
 		// in order to upgrade them
+		boolean isPossibleSiegeResearch = !isResearchPossible(TANK_SIEGE_MODE);
 
 		// Tank Siege Mode
 		technology = TANK_SIEGE_MODE;
-		if (isResearchPossible(technology)) {
+		if (isPossibleSiegeResearch) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 
 		// Spider Mines
 		technology = SPIDER_MINES;
-		if (vultures >= 1 && isResearchPossible(technology)) {
+		if (!isPossibleSiegeResearch && vultures >= 2 && isResearchPossible(technology)) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 
 		// U-238 Shells
 		upgrade = UpgradeTypes.U_238_Shells;
-		if (marines >= 8 && isUpgradePossible(upgrade)) {
+		if (!isPossibleSiegeResearch && marines >= 8 && isUpgradePossible(upgrade)) {
 			tryToUpgrade(TerranAcademy.getOneNotBusy(), upgrade);
 		}
 
 		// Stim Packs
 		technology = STIMPACKS;
-		if (marines >= 8 && isResearchPossible(technology)) {
+		if (!isPossibleSiegeResearch && marines >= 8 && isResearchPossible(technology)) {
 			tryToResearch(TerranAcademy.getOneNotBusy(), technology);
 		}
 
 		// ======================================================
 		// LOWER PRIORITY
 		// To research technologies below we must have second base built.
-		if (TerranCommandCenter.getNumberOfUnits() <= 1 || !isResearched(TANK_SIEGE_MODE)
+		if (TerranCommandCenter.getNumberOfUnits() <= 1 || !isPossibleSiegeResearch
 				|| !isResearched(SPIDER_MINES)) {
 			return;
 		}
@@ -79,8 +79,7 @@ public class TechnologyManager {
 
 		// Vehicle Weapons
 		upgrade = UpgradeTypes.Terran_Vehicle_Weapons;
-		if (TerranArmory.getNumberOfUnitsCompleted() > 0 && tanks >= 5
-				&& isUpgradePossible(upgrade)) {
+		if (TerranArmory.getNumberOfUnitsCompleted() > 0 && isUpgradePossible(upgrade)) {
 			tryToUpgrade(TerranArmory.getOneNotBusy(), upgrade);
 		}
 

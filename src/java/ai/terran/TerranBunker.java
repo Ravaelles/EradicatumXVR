@@ -278,21 +278,28 @@ public class TerranBunker {
 
 		// ================================
 		// Find proper build tile
-		MapPoint properBuildTile = Constructing.getLegitTileToBuildNear(workerUnit, type,
-				initialBuildTile, minimumDistance, maximumDistance);
+		Unit nearBunker = xvr.getUnitOfTypeNearestTo(type, initialBuildTile, true);
+		MapPoint properBuildTile = null;
+		if (nearBunker != null && nearBunker.distanceTo(initialBuildTile) <= maximumDistance) {
+			properBuildTile = Constructing.getLegitTileToBuildNear(workerUnit, type, nearBunker, 0,
+					maximumDistance);
+		} else {
+			properBuildTile = Constructing.getLegitTileToBuildNear(workerUnit, type,
+					initialBuildTile, minimumDistance, maximumDistance);
+		}
 
 		return properBuildTile;
 	}
 
 	public static MapPoint findTileForBunker() {
-		MapPoint tileForCannon = null;
+		MapPoint tileForBunker = null;
 
 		// Protected main base
 		// if (shouldBuildNearMainBase()) {
 		// tileForCannon = findBuildTileNearMainBase();
 		// } else {
-		if (getNumberOfUnits() <= MAX_STACK - 1) {
-			tileForCannon = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());
+		if (getNumberOfUnits() < MAX_STACK) {
+			tileForBunker = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());
 		} else {
 
 			// return findProperBuildTile(_chokePointToReinforce, true);
@@ -302,22 +309,22 @@ public class TerranBunker {
 			}
 
 			// Try to find normal tile.
-			tileForCannon = findProperBuildTile(_placeToReinforceWithCannon);
+			tileForBunker = findProperBuildTile(_placeToReinforceWithCannon);
 		}
 
 		// }
-		if (tileForCannon != null) {
-			return tileForCannon;
+		if (tileForBunker != null) {
+			return tileForBunker;
 		}
 
 		// ===================
-		// If we're here it can mean we should build cannons at position of the
+		// If we're here it can mean we should build bunkers at position of the
 		// next base
 		MapPoint tileForNextBase = TerranCommandCenter.findTileForNextBase(false);
 		if (shouldBuildFor(tileForNextBase)) {
-			tileForCannon = findProperBuildTile(tileForNextBase);
-			if (tileForCannon != null) {
-				return tileForCannon;
+			tileForBunker = findProperBuildTile(tileForNextBase);
+			if (tileForBunker != null) {
+				return tileForBunker;
 			}
 		}
 
@@ -348,8 +355,35 @@ public class TerranBunker {
 		// (base.getY() + 2 * choke.getY()) / 3);
 		MapPointInstance location = MapPointInstance.getMiddlePointBetween(base, choke);
 
-		// Find place for pylon between choke point and the second base.
-		return Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), type, location, 0, 100);
+		// Find place for bunker between choke point and the second base.
+		// return Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
+		// type, location, 0, 100);
+
+		MapPoint properBuildTile = null;
+
+		int maximumDistance = 100;
+		Unit nearBunker = xvr.getUnitOfTypeNearestTo(type, location, true);
+		if (getNumberOfUnits() == 1) {
+			nearBunker = xvr.getUnitsOfType(type).get(0);
+			System.out.println("NEAR BUNKER: " + nearBunker.toStringLocation());
+		}
+
+		// if (nearBunker == null) {
+		// System.out.println("No bunker near");
+		// } else {
+		// System.out.println("nearBunker = " + nearBunker.toStringLocation() +
+		// " / compl:"
+		// + nearBunker.isCompleted());
+		// }
+
+		if (nearBunker != null && nearBunker.distanceTo(location) <= maximumDistance) {
+			properBuildTile = Constructing.getLegitTileToBuildNear(type, nearBunker, 0,
+					maximumDistance);
+		} else {
+			properBuildTile = Constructing.getLegitTileToBuildNear(type, location, 0,
+					maximumDistance);
+		}
+		return properBuildTile;
 	}
 
 	// private static MapPoint findBuildTileNearMainBase() {

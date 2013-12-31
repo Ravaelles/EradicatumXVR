@@ -404,15 +404,22 @@ public class XVR {
 		if (closeTo == null) {
 			return null;
 		}
-		return getUnitOfTypeNearestTo(type, closeTo.getX(), closeTo.getY());
+		return getUnitOfTypeNearestTo(type, closeTo.getX(), closeTo.getY(), false);
 	}
 
-	public Unit getUnitOfTypeNearestTo(UnitTypes type, int x, int y) {
+	public Unit getUnitOfTypeNearestTo(UnitTypes type, MapPoint closeTo, boolean allowIncompleted) {
+		if (closeTo == null) {
+			return null;
+		}
+		return getUnitOfTypeNearestTo(type, closeTo.getX(), closeTo.getY(), allowIncompleted);
+	}
+
+	public Unit getUnitOfTypeNearestTo(UnitTypes type, int x, int y, boolean allowIncompleted) {
 		double nearestDistance = 999999;
 		Unit nearestUnit = null;
 
 		for (Unit otherUnit : getUnitsOfType(type)) {
-			if (!otherUnit.isCompleted()) {
+			if (allowIncompleted || !otherUnit.isCompleted()) {
 				continue;
 			}
 
@@ -828,11 +835,17 @@ public class XVR {
 	public Unit getOptimalBuilder(MapPoint buildTile) {
 		ArrayList<Unit> freeWorkers = new ArrayList<Unit>();
 		for (Unit worker : getWorkers()) {
-			if (worker.isCompleted() && !worker.isConstructing() && !worker.isRepairing()
-					&& !worker.isUnderAttack()) {
+			if (worker.isCompleted()
+					&& !worker.isConstructing()
+					&& !worker.isRepairing()
+					&& !worker.isUnderAttack()
+					&& (getTimeSeconds() <= 100 || (getTimeSeconds() > 100
+							&& !worker.equals(WorkerManager.getProfessionalRepairer()) && !worker
+								.equals(WorkerManager.getGuyToChaseOthers())))) {
 				freeWorkers.add(worker);
 			}
 		}
+		// System.out.println("freeWorkers.size() = " + freeWorkers.size());
 
 		// Return the closest builder to the tile
 		return getUnitNearestFromList(buildTile, freeWorkers, true, false);

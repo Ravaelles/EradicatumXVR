@@ -34,7 +34,16 @@ public class ArmyPlacing {
 			runTo = defineRendezvousBarracksIfPossible();
 		}
 
-		// ==================================
+		// =====================================================
+		// If is infantry, try go to nearest medic with energy
+		if (unit.getType().isTerranInfantry()) {
+			Unit medicThatCanHealUs = defineRendezvousMedicIfPossible(unit);
+			if (medicThatCanHealUs != null) {
+				runTo = medicThatCanHealUs;
+			}
+		}
+
+		// =====================================================
 		// Tell the unit where to be
 		unit.setProperPlaceToBe(runTo);
 
@@ -43,6 +52,15 @@ public class ArmyPlacing {
 		} else {
 			return new MapPointInstance(runTo.getX(), runTo.getY()).translate(-4, 0);
 		}
+	}
+
+	private static Unit defineRendezvousMedicIfPossible(Unit unit) {
+		for (Unit medic : xvr.getUnitsOfType(UnitTypes.Terran_Medic)) {
+			if (!medic.isWounded() && medic.getEnergy() > 70) {
+				return medic;
+			}
+		}
+		return null;
 	}
 
 	private static MapPoint defineRendezvousBarracksIfPossible() {

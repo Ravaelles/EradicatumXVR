@@ -1,7 +1,6 @@
 package ai.managers;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import jnibwapi.model.Unit;
 import ai.core.Painter;
@@ -204,12 +203,13 @@ public class StrategyManager {
 		Collection<Unit> enemyBuildings = xvr.getEnemyBuildings();
 
 		// Remove refineries, geysers etc
-		for (Iterator<Unit> iterator = enemyBuildings.iterator(); iterator.hasNext();) {
-			Unit unit = (Unit) iterator.next();
-			if (unit.getType().isOnGeyser()) {
-				iterator.remove();
-			}
-		}
+		// for (Iterator<Unit> iterator = enemyBuildings.iterator();
+		// iterator.hasNext();) {
+		// Unit unit = (Unit) iterator.next();
+		// if (unit.getType().isOnGeyser()) {
+		// iterator.remove();
+		// }
+		// }
 
 		// Try to target some crucial building
 		if (!TargetHandling.isProperTarget(target)) {
@@ -372,7 +372,9 @@ public class StrategyManager {
 		int now = xvr.getTimeSeconds();
 		_lastTimeDistancePenalty = now;
 
-		allowedDistanceFromSafePoint *= 0.82;
+		if (now - _lastTimeDistancePenalty >= 4) {
+			allowedDistanceFromSafePoint *= 0.82;
+		}
 		// if (allowedDistanceFromSafePoint > 80) {
 		// allowedDistanceFromSafePoint = 80;
 		// }

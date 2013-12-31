@@ -60,21 +60,21 @@ public class UnitCounter {
 		return getNumberOfInfantryUnits() + +getNumberOfVehicleUnits() + getNumberOfShipUnits();
 	}
 
-	private static int getNumberOfVehicleUnits() {
+	public static int getNumberOfVehicleUnits() {
 		return getNumberOfUnits(UnitTypes.Terran_Vulture)
 				+ getNumberOfUnits(UnitTypes.Terran_Siege_Tank_Siege_Mode)
 				+ getNumberOfUnits(UnitTypes.Terran_Siege_Tank_Tank_Mode)
 				+ getNumberOfUnits(UnitTypes.Terran_Goliath);
 	}
 
-	private static int getNumberOfVehicleUnitsCompleted() {
+	public static int getNumberOfVehicleUnitsCompleted() {
 		return getNumberOfUnitsCompleted(UnitTypes.Terran_Vulture)
 				+ getNumberOfUnitsCompleted(UnitTypes.Terran_Siege_Tank_Siege_Mode)
 				+ getNumberOfUnitsCompleted(UnitTypes.Terran_Siege_Tank_Tank_Mode)
 				+ getNumberOfUnitsCompleted(UnitTypes.Terran_Goliath);
 	}
 
-	private static int getNumberOfShipUnits() {
+	public static int getNumberOfShipUnits() {
 		return getNumberOfUnits(UnitTypes.Terran_Dropship)
 				+ getNumberOfUnits(UnitTypes.Terran_Wraith)
 				+ getNumberOfUnits(UnitTypes.Terran_Valkyrie)
@@ -82,7 +82,7 @@ public class UnitCounter {
 				+ getNumberOfUnits(UnitTypes.Terran_Battlecruiser);
 	}
 
-	private static int getNumberOfShipUnitsCompleted() {
+	public static int getNumberOfShipUnitsCompleted() {
 		return getNumberOfUnitsCompleted(UnitTypes.Terran_Dropship)
 				+ getNumberOfUnitsCompleted(UnitTypes.Terran_Wraith)
 				+ getNumberOfUnitsCompleted(UnitTypes.Terran_Valkyrie)

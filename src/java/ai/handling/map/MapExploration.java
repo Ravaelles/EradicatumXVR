@@ -86,6 +86,36 @@ public class MapExploration {
 		return nearestObject;
 	}
 
+	public static BaseLocation getNearestBaseLocation(Unit unit) {
+		if (unit == null) {
+			return null;
+		}
+
+		double mostFarDistance = 99999;
+		BaseLocation nearestObject = null;
+
+		ArrayList<BaseLocation> baseLocations = new ArrayList<>();
+		baseLocations.addAll(xvr.getBwapi().getMap().getBaseLocations());
+		baseLocations.remove(getOurBaseLocation());
+		Collections.shuffle(baseLocations);
+
+		boolean onlyStartLocations = baseLocationsDiscovered.size() < getNumberOfStartLocations(baseLocations);
+
+		for (BaseLocation object : baseLocations) {
+			if (onlyStartLocations && !object.isStartLocation()) {
+				continue;
+			}
+
+			double distance = xvr.getDistanceBetween(unit, object.getX(), object.getY());
+			if (distance < mostFarDistance) {
+				mostFarDistance = distance;
+				nearestObject = object;
+			}
+		}
+
+		return nearestObject;
+	}
+
 	public static int getNumberOfStartLocations(Collection<BaseLocation> baseLocations) {
 		int result = 0;
 		for (BaseLocation object : baseLocations) {

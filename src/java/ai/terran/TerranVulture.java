@@ -1,9 +1,11 @@
 package ai.terran;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
@@ -81,14 +83,29 @@ public class TerranVulture {
 	private static void handleMines(Unit unit) {
 		if (unit.getSpiderMineCount() > 0) {
 
-			// Make sure mine will be safely far from our buildings
-			boolean isSafelyFarFromBuildings = isSafelyFarFromBuildings(unit);
+			// Make sure mine will be safely far from our units
+			boolean isSafePlaceForOurUnits = isSafelyFarFromOurUnits(unit);
+			// boolean isSafelyFarFromBuildings =
+			// isSafelyFarFromBuildings(unit);
 
-			if ((isQuiteNearBunker(unit) || isQuiteNearChokePoint(unit))
-					&& isSafelyFarFromBuildings && minesArentStackedTooMuchNear(unit)) {
-				placeSpiderMine(unit, unit);
+			if (isSafePlaceForOurUnits) {
+				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit)
+						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
+				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)) {
+					placeSpiderMine(unit, unit);
+				}
 			}
 		}
+	}
+
+	private static boolean isQuiteNearEnemy(Unit unit) {
+		Unit nearEnemyUnitOrBuilding = xvr.getUnitNearestFromList(unit, xvr.getEnemyUnitsVisible());
+		if (nearEnemyUnitOrBuilding != null) {
+			if (nearEnemyUnitOrBuilding.distanceTo(unit) <= 11) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean isQuiteNearBunker(Unit unit) {
@@ -109,24 +126,34 @@ public class TerranVulture {
 				true) == 0;
 	}
 
-	private static boolean isSafelyFarFromBuildings(Unit unit) {
-		Unit nearestBuilding = xvr.getUnitNearestFromList(unit, xvr.getUnitsBuildings(), true,
-				false);
-		boolean isSafelyFarFromBuilding = true;
-		if (nearestBuilding != null) {
+	private static boolean isSafelyFarFromOurUnits(Unit unit) {
+		Unit nearestUnit = xvr.getUnitNearestFromList(unit, getUnitsInDangerOfMine(), true, false);
+		boolean isSafelyFarFromUnits = true;
+		if (nearestUnit != null) {
 
-			double distanceToBuilding = nearestBuilding.distanceTo(unit);
-			if (nearestBuilding.getType().isBunker()) {
-				if (distanceToBuilding <= 8) {
-					isSafelyFarFromBuilding = false;
+			double distanceToUnit = nearestUnit.distanceTo(unit);
+			if (nearestUnit.getType().isBunker()) {
+				if (distanceToUnit <= 8) {
+					isSafelyFarFromUnits = false;
 				}
 			} else {
-				if (distanceToBuilding <= 17) {
-					isSafelyFarFromBuilding = false;
+				if (distanceToUnit <= 13) {
+					isSafelyFarFromUnits = false;
 				}
 			}
 		}
-		return isSafelyFarFromBuilding;
+		return isSafelyFarFromUnits;
+	}
+
+	private static Collection<Unit> getUnitsInDangerOfMine() {
+		ArrayList<Unit> unitsList = new ArrayList<>();
+		for (Unit unit : xvr.getBwapi().getMyUnits()) {
+			UnitType type = unit.getType();
+			if (!type.isSpiderMine() && !type.isVulture()) {
+				unitsList.add(unit);
+			}
+		}
+		return unitsList;
 	}
 
 	private static MapPoint defineNeighborhoodToHarass(Unit unit) {

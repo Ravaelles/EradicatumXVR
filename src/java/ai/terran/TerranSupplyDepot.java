@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
@@ -25,6 +26,7 @@ public class TerranSupplyDepot {
 	private static int DEPOT_FROM_DEPOT_MAX_DISTANCE = 7;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Supply_Depot;
+	private static final UnitType unitType = UnitTypes.Terran_Supply_Depot.getType();
 	private static XVR xvr = XVR.getInstance();
 
 	public static void buildIfNecessary() {
@@ -45,6 +47,11 @@ public class TerranSupplyDepot {
 		int barracks = TerranBarracks.getNumberOfUnits();
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
+
+		if (depots == 0) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			return true;
+		}
 
 		if (barracks == 0 && depots == 1) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -172,7 +179,7 @@ public class TerranSupplyDepot {
 					}
 					int x = i * 32;
 					int y = j * 32;
-					if (Constructing.canBuildHere(builder, buildingType, i, j)
+					if (Constructing.canBuildHere(builder, unitType, i, j)
 							&& xvr.getUnitsOfGivenTypeInRadius(buildingType,
 									DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true).isEmpty()) {
 						MapPointInstance point = new MapPointInstance(x, y);

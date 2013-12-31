@@ -573,6 +573,10 @@ public class UnitType {
 		return getID() == UnitTypes.Zerg_Lurker.ordinal();
 	}
 
+	public boolean isMutalisk() {
+		return getID() == UnitTypes.Zerg_Mutalisk.ordinal();
+	}
+
 	public boolean isTank() {
 		return ID == UnitTypes.Terran_Siege_Tank_Siege_Mode.ordinal()
 				|| ID == UnitTypes.Terran_Siege_Tank_Tank_Mode.ordinal();
@@ -698,6 +702,15 @@ public class UnitType {
 
 	public boolean canHaveAddOn() {
 		return isFactory() || isStarport() || isBase() || isScienceFacility();
+	}
+
+	private static UnitTypes _unitTypes = null;
+
+	public UnitTypes getUnitTypes() {
+		if (_unitTypes == null) {
+			_unitTypes = getUnitTypesByID(ID);
+		}
+		return _unitTypes;
 	}
 
 }
