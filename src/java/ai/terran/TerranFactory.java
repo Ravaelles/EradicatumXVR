@@ -15,7 +15,7 @@ public class TerranFactory {
 	public static UnitTypes VULTURE = UnitTypes.Terran_Vulture;
 	public static UnitTypes GOLIATH = UnitTypes.Terran_Goliath;
 
-	private static final int MINIMUM_VULTURES = 6;
+	private static final int MINIMUM_VULTURES = 8;
 	private static final int MINIMUM_GOLIATHS_EARLY = 2;
 	private static final int MINIMUM_GOLIATHS_LATER = 6;
 

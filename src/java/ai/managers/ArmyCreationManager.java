@@ -63,7 +63,8 @@ public class ArmyCreationManager {
 	}
 
 	public static boolean weShouldBuildBattleUnits() {
-		if (xvr.getTimeSeconds() >= 800 && TerranCommandCenter.getNumberOfUnits() <= 1) {
+		if (xvr.getTimeSeconds() >= 800 && TerranCommandCenter.getNumberOfUnits() <= 1
+				&& !xvr.canAfford(560)) {
 			return false;
 		}
 
@@ -79,14 +80,14 @@ public class ArmyCreationManager {
 		}
 		if (bases == 1
 				&& (TerranCommandCenter.shouldBuild() || Constructing
-						.weAreBuilding(UnitManager.BASE)) && !xvr.canAfford(525)) {
+						.weAreBuilding(UnitManager.BASE)) && !xvr.canAfford(550)) {
 			return false;
 		}
 
 		// if (!xvr.canAfford(125)) {
 		// return false;
 		// }
-		if (TerranBunker.shouldBuild() && !xvr.canAfford(250)) {
+		if (TerranBunker.shouldBuild() && !xvr.canAfford(200)) {
 			return false;
 		}
 

@@ -27,9 +27,11 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	private MapPoint properPlaceToBe = null;
 	private UnitType type;
 	private boolean beingRepaired = false;
-	private double strengthEvaluation = 667;
+	private double strengthRatio = 667;
 	private String aiOrderString = null;
 	private int aiOrderTime = -1;
+	private Region _region = null;
+	private int lastTimeSieged = -1;
 	// ========
 
 	private int ID;
@@ -987,6 +989,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public void siege() {
+		lastTimeSieged = xvr.getTimeSeconds();
 		xvr.getBwapi().siege(ID);
 	}
 
@@ -1037,12 +1040,12 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		lastTimeRunFromEnemy = xvr.getTimeSeconds();
 	}
 
-	public double getStrengthEvaluation() {
-		return strengthEvaluation;
+	public double getStrengthRatio() {
+		return strengthRatio;
 	}
 
-	public void setStrengthEvaluation(double strengthEvaluation) {
-		this.strengthEvaluation = strengthEvaluation;
+	public void setStrengthRatio(double strengthEvaluation) {
+		this.strengthRatio = strengthEvaluation;
 	}
 
 	public String getAiOrderString() {
@@ -1069,6 +1072,21 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	public void removeAiOrderInfo() {
 		aiOrderString = null;
 		aiOrderTime = -1;
+	}
+
+	public Region getRegion() {
+		if (_region == null) {
+			_region = xvr.getMap().getRegion(this);
+		}
+		return _region;
+	}
+
+	public int getLastTimeSieged() {
+		return lastTimeSieged;
+	}
+
+	public void setLastTimeSieged(int lastTimeSieged) {
+		this.lastTimeSieged = lastTimeSieged;
 	}
 
 }

@@ -2,6 +2,7 @@ package ai.terran;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
 import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
@@ -27,10 +28,18 @@ public class TerranSiegeTank {
 	private static Unit _nearestEnemy;
 	private static double _nearestEnemyDist;
 
+	/**
+	 * If a tank is in this map it means it is considering unsieging, but we
+	 * should wait some time before this happens.
+	 */
+	private static HashMap<Unit, Integer> unsiegeIdeasMap = new HashMap<>();
+
+	// =====================================================
+
 	public static void act(Unit unit) {
 		_properPlace = unit.getProperPlaceToBe();
 		updateProperPlaceToBeForTank(unit);
-		_isUnitWhereItShouldBe = _properPlace == null || _properPlace.distanceTo(unit) <= 3.3;
+		_isUnitWhereItShouldBe = _properPlace == null || _properPlace.distanceTo(unit) <= 3;
 		_nearestEnemy = xvr.getNearestGroundEnemy(unit);
 		_nearestEnemyDist = _nearestEnemy != null ? _nearestEnemy.distanceTo(unit) : -1;
 
@@ -54,16 +63,20 @@ public class TerranSiegeTank {
 	}
 
 	private static void actWhenInNormalMode(Unit unit) {
-		if (shouldSiege(unit) && notTooManySiegedUnitHere(unit)) {
+		if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
 			unit.siege();
 		}
+	}
+
+	private static boolean didntJustUnsiege(Unit unit) {
+		return unit.getLastTimeSieged() + 2 <= xvr.getTimeSeconds();
 	}
 
 	private static void actWhenSieged(Unit unit) {
 
 		// If tank from various reasons shouldn't be here, unsiege.
 		if (!shouldSiege(unit) && !unit.isStartingAttack()) {
-			unit.unsiege();
+			infoTankIsConsideringUnsieging(unit);
 		}
 
 		// If tank should be here, try to attack proper target.
@@ -80,16 +93,35 @@ public class TerranSiegeTank {
 				if (nearestEnemy != null) {
 					double nearestEnemyDist = nearestEnemy.distanceTo(unit);
 					if (nearestEnemyDist >= 0 && (nearestEnemyDist < 2 || nearestEnemyDist <= 7)) {
-						unit.unsiege();
+						infoTankIsConsideringUnsieging(unit);
 					}
 				}
 			}
+		}
+
+		if (isUnsiegingIdeaTimerExpired(unit)) {
+			unit.unsiege();
+		}
+	}
+
+	private static boolean isUnsiegingIdeaTimerExpired(Unit unit) {
+		if (unsiegeIdeasMap.containsKey(unit)) {
+			if (xvr.getTimeSeconds() - unsiegeIdeasMap.get(unit) >= 4) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void infoTankIsConsideringUnsieging(Unit unit) {
+		if (!unsiegeIdeasMap.containsKey(unit)) {
+			unsiegeIdeasMap.put(unit, xvr.getTimeSeconds());
 		}
 	}
 
 	private static boolean shouldSiege(Unit unit) {
 		boolean isEnemyQuiteNear = (_nearestEnemyDist > 0 && _nearestEnemyDist <= (_nearestEnemy
-				.getType().isBuilding() ? 10.8 : 16));
+				.getType().isBuilding() ? 10.6 : 13));
 		if ((_isUnitWhereItShouldBe && notTooManySiegedInArea(unit)) || isEnemyQuiteNear) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)) {
 				return true;
@@ -106,7 +138,7 @@ public class TerranSiegeTank {
 	}
 
 	private static boolean notTooManySiegedUnitHere(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.5, unit,
+		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7, unit,
 				true) <= 2;
 	}
 

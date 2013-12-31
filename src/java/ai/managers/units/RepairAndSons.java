@@ -16,7 +16,7 @@ public class RepairAndSons {
 	public static boolean tryRepairingSomethingIfNeeded(Unit worker) {
 		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
 		if (repairThisUnit != null) {
-			if (repairThisUnit.isWounded()) {
+			if (repairThisUnit.isWounded() && repairThisUnit.isExists()) {
 
 				// Don't repair Vultures that are far away. They must come to
 				// the worker. It's because they tend to be wounded all the time

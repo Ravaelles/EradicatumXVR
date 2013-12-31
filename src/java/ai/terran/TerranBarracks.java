@@ -219,6 +219,10 @@ public class TerranBarracks {
 			int medics = UnitCounter.getNumberOfUnits(MEDIC);
 			int ghosts = UnitCounter.getNumberOfUnits(GHOST);
 
+			if (medics <= 1) {
+				return MEDIC;
+			}
+
 			// Build some HIGH Templars if there'are none.
 			if (ghostAllowed
 					&& ((medics >= 5 || medicBuildRatio < 10) && ghosts < 2 || freeGas > 1000)) {
@@ -231,7 +235,7 @@ public class TerranBarracks {
 					return MEDIC;
 				}
 			} else {
-				int marinesMinusBunkers = marines - TerranBunker.MAX_STACK * 4;
+				int marinesMinusBunkers = marines - TerranBunker.MAX_STACK * 3;
 				if (medics < marinesMinusBunkers / 3) {
 					return MEDIC;
 				}

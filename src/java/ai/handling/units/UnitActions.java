@@ -8,7 +8,7 @@ import jnibwapi.types.TechType.TechTypes;
 import jnibwapi.types.UnitType;
 import ai.core.XVR;
 import ai.handling.army.ArmyPlacing;
-import ai.handling.army.StrengthEvaluator;
+import ai.handling.army.StrengthRatio;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
@@ -102,20 +102,26 @@ public class UnitActions {
 		}
 	}
 
-	public static void moveInDirectionOfPointIfPossible(Unit unit,
+	public static MapPoint moveInDirectionOfPointIfPossible(Unit unit,
 			MapPoint pointThatMakesDirection, int howManyTiles) {
 		if (unit == null || pointThatMakesDirection == null) {
-			return;
+			return null;
 		}
 
 		int xDirectionToUnit = pointThatMakesDirection.getX() - unit.getX();
 		int yDirectionToUnit = pointThatMakesDirection.getY() - unit.getY();
 
 		double vectorLength = xvr.getDistanceBetween(pointThatMakesDirection, unit);
-		double ratio = howManyTiles / vectorLength;
+		double ratio = 32 * howManyTiles / vectorLength;
 
-		moveTo(unit, (int) (unit.getX() + ratio * xDirectionToUnit), (int) (unit.getY() + ratio
-				* yDirectionToUnit));
+		MapPointInstance targetPoint = new MapPointInstance((int) (unit.getX() + ratio
+				* xDirectionToUnit), (int) (unit.getY() + ratio * yDirectionToUnit));
+		if (xvr.getMap().isLowResWalkable(targetPoint)) {
+			moveTo(unit, targetPoint);
+			return targetPoint;
+		} else {
+			return null;
+		}
 	}
 
 	public static boolean shouldSpreadOut(Unit unit) {
@@ -123,7 +129,7 @@ public class UnitActions {
 	}
 
 	public static void spreadOutRandomly(Unit unit) {
-		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+		if (!StrengthRatio.isStrengthRatioFavorableFor(unit)) {
 			UnitActions.moveToSafePlace(unit);
 			return;
 		}
@@ -175,7 +181,7 @@ public class UnitActions {
 			// }
 		}
 
-		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+		if (!StrengthRatio.isStrengthRatioFavorableFor(unit)) {
 			UnitActions.moveToSafePlace(unit);
 		}
 	}

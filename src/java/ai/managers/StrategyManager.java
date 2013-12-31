@@ -64,7 +64,9 @@ public class StrategyManager {
 	 */
 	private static Unit _attackTargetUnit;
 
+	@SuppressWarnings("unused")
 	private static int retreatsCounter = 0;
+	@SuppressWarnings("unused")
 	private static final int EXTRA_UNITS_PER_RETREAT = 1;
 	private static final int MIN_MEDICS = 3;
 	private static final int MIN_TANKS = 3;
@@ -73,7 +75,8 @@ public class StrategyManager {
 	private static int _lastTimeWaitCalled = 0;
 
 	private static double allowedDistanceFromSafePoint = 0;
-	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.6;
+	private static int _lastTimeDistancePenalty = 0;
+	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.9;
 
 	// private static boolean pushedInitially = false;
 
@@ -105,8 +108,10 @@ public class StrategyManager {
 	}
 
 	public static int calculateMinimumUnitsToAttack() {
-		return getMinBattleUnits() + retreatsCounter * EXTRA_UNITS_PER_RETREAT
-				+ (retreatsCounter >= 2 ? retreatsCounter * 2 : 0);
+		return getMinBattleUnits();
+		// return getMinBattleUnits() + retreatsCounter *
+		// EXTRA_UNITS_PER_RETREAT
+		// + (retreatsCounter >= 2 ? retreatsCounter * 2 : 0);
 	}
 
 	/**
@@ -363,4 +368,25 @@ public class StrategyManager {
 		return allowedDistanceFromSafePoint;
 	}
 
+	public static void reduceAllowedDistanceFromSafePoint() {
+		int now = xvr.getTimeSeconds();
+		_lastTimeDistancePenalty = now;
+
+		allowedDistanceFromSafePoint *= 0.82;
+		// if (allowedDistanceFromSafePoint > 80) {
+		// allowedDistanceFromSafePoint = 80;
+		// }
+	}
+
+	public static void reduceSlightlyAllowedDistanceFromSafePoint() {
+		int now = xvr.getTimeSeconds();
+		if (now - _lastTimeDistancePenalty >= 2) {
+			_lastTimeDistancePenalty = now;
+
+			allowedDistanceFromSafePoint -= STEP_DISTANCE_WHEN_ATTACK_PENDING;
+			if (allowedDistanceFromSafePoint < 0) {
+				allowedDistanceFromSafePoint = 0;
+			}
+		}
+	}
 }

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
-import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
@@ -21,6 +20,9 @@ public class BuildingManager {
 			return;
 		}
 
+		// Cancel construction of buildings under attack and severely damaged
+		handleUnfinishedBuildings(building, type);
+
 		// ===========================================
 		// Repairing of building works slightly differently than repairing units
 		handleBuildingsNeedingRepair(building);
@@ -29,9 +31,6 @@ public class BuildingManager {
 		if (building.isUnderAttack()) {
 			UnitActions.callForHelp(building, true);
 		}
-
-		// Cancel construction of buildings under attack and severely damaged
-		handleUnfinishedBuildings(building, type);
 
 		// ==========================================
 		// Act with SPECIAL BUILDINGS
@@ -45,8 +44,9 @@ public class BuildingManager {
 
 		int specialCaseRepairersNeeded = isSpecialCaseRepair(building);
 		if (specialCaseRepairersNeeded > 0) {
-			Painter.message(xvr,
-					specialCaseRepairersNeeded + " SCV should repair " + building.getName());
+			// Painter.message(xvr,
+			// specialCaseRepairersNeeded + " SCV should repair " +
+			// building.getName());
 			for (int i = 0; i < specialCaseRepairersNeeded; i++) {
 				Unit repairer = WorkerManager.findNearestRepairerTo(building);
 				UnitActions.repair(repairer, building);
@@ -145,8 +145,10 @@ public class BuildingManager {
 		// lurker, looking for some love
 		if (!building.isCompleted()) {
 			Unit builder = getWorkerBuilding(building);
-			if (builder == null) {
-				System.out.println("###### No builder is building: " + building.getName());
+			if (builder == null
+					|| (builder != null && (!builder.isExists() || !builder.isConstructing()))) {
+				// System.out.println("###### No builder is building: " +
+				// building.getName());
 				Unit newBuilder = xvr.getOptimalBuilder(building);
 				if (newBuilder != null) {
 					UnitActions.rightClick(newBuilder, building);

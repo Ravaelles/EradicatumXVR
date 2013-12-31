@@ -2,6 +2,7 @@ package ai.handling.map;
 
 import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Map;
+import jnibwapi.model.Region;
 import jnibwapi.model.Unit;
 import ai.core.XVR;
 
@@ -43,6 +44,10 @@ public abstract class MapPoint {
 			return -1;
 		}
 		return XVR.getInstance().getDistanceBetween(choke, getX(), getY()) - choke.getRadius() / 32;
+	}
+
+	public Region getRegion() {
+		return getMap().getRegion(this);
 	}
 
 	// =================

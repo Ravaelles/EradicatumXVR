@@ -12,7 +12,7 @@ import ai.terran.TerranWraith;
 
 public class FlyerManager {
 
-	private static final int MIN_DIST_BETWEEN_FLYERS = 3;
+	private static final int MIN_DIST_BETWEEN_FLYERS = 4;
 	private static XVR xvr = XVR.getInstance();
 
 	// =========================
@@ -40,7 +40,7 @@ public class FlyerManager {
 		Unit otherFlyer = getNearestFlyerToFlyer(unit);
 		if (!isAAUnitNearby && otherFlyer != null
 				&& otherFlyer.distanceTo(unit) < MIN_DIST_BETWEEN_FLYERS) {
-			UnitActions.moveAwayFromUnitIfPossible(unit, otherFlyer, 4);
+			UnitActions.moveAwayFromUnitIfPossible(unit, otherFlyer, 5);
 		}
 
 		// ==============================

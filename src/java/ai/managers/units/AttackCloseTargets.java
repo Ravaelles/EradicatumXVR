@@ -7,7 +7,7 @@ import java.util.Iterator;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import ai.core.XVR;
-import ai.handling.army.StrengthEvaluator;
+import ai.handling.army.StrengthRatio;
 import ai.handling.army.TargetHandling;
 import ai.handling.units.UnitActions;
 import ai.terran.TerranBunker;
@@ -101,7 +101,7 @@ public class AttackCloseTargets {
 			Unit nearestEnemy = xvr.getUnitNearestFromList(unit,
 					xvr.getEnemyUnitsVisible(groundAttackCapable, airAttackCapable));
 
-			boolean isStrengthRatioFavorable = StrengthEvaluator.isStrengthRatioFavorableFor(unit);
+			boolean isStrengthRatioFavorable = StrengthRatio.isStrengthRatioFavorableFor(unit);
 
 			// If there's an enemy near to this unit, don't change the target.
 			if (nearestEnemy != null && xvr.getDistanceBetween(unit, nearestEnemy) <= 1) {
@@ -111,7 +111,7 @@ public class AttackCloseTargets {
 			else {
 				int maxDistance = unit.getType().isFlyer() ? 300 : 10;
 
-				if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)
+				if (!StrengthRatio.isStrengthRatioFavorableFor(unit)
 						&& unit.distanceTo(xvr.getFirstBase()) > maxDistance) {
 					return false;
 				}

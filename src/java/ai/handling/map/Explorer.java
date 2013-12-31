@@ -54,8 +54,8 @@ public class Explorer {
 		// Don't interfere if explorer is building or attacking etc.
 		boolean shouldBeConstructing = explorer.isConstructing();
 		boolean shouldContinueAttacking = explorer.isAttacking() && !isWounded;
-		boolean shouldBeDiscovering = _isDiscoveringEnemyBase || !_exploredBackOfMainBase
-				|| !_exploredSecondBase || MapExploration.enemyBuildingsDiscovered.isEmpty();
+		boolean shouldBeDiscovering = _isDiscoveringEnemyBase || !_exploredSecondBase
+				|| MapExploration.enemyBuildingsDiscovered.isEmpty();
 		boolean isEnemyClose = distToEnemy > 0 && distToEnemy < 3;
 		boolean shouldBeMoving = explorer.isMoving() && isEnemyClose;
 		if (!explorer.isIdle()
@@ -289,14 +289,26 @@ public class Explorer {
 		return false;
 	}
 
+	private static Unit _explorerForBackOfBase = null;
+
 	private static boolean tryScoutingNextBaseLocation() {
 
-		// DOESNT WORK !!!
 		// Explore place behind our minerals
 		if (!_exploredBackOfMainBase) {
-			scoutBackOfMainBase();
-			_exploredBackOfMainBase = true;
-			return true;
+			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
+			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
+				_explorerForBackOfBase = TerranCommandCenter.getMineralWorkersNearBase(
+						xvr.getFirstBase()).get(0);
+				UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
+			}
+			if (backOfTheBasePoint == null) {
+				_exploredBackOfMainBase = true;
+			}
+			if (_explorerForBackOfBase.distanceTo(backOfTheBasePoint) <= 1.5) {
+				_exploredBackOfMainBase = true;
+				// System.out.println("_exploredBackOfMainBase");
+			}
+			// return true;
 		}
 
 		// Explore the place where the second base will be built
@@ -320,8 +332,6 @@ public class Explorer {
 				return true;
 			} else {
 				if (!explorer.isMoving()) {
-					// UnitActions.moveTo(explorer,
-					// MapExploration.getRandomBaseLocation());
 					UnitActions.moveTo(
 							explorer,
 							MapExploration.getNearestUnknownPointFor(explorer.getX(),
@@ -348,7 +358,7 @@ public class Explorer {
 		UnitActions.moveTo(explorer, base);
 	}
 
-	private static void scoutBackOfMainBase() {
+	private static MapPoint scoutBackOfMainBase() {
 
 		// Calculate average x and y of minerals
 		int x = 0;
@@ -361,15 +371,25 @@ public class Explorer {
 		}
 		x /= counter;
 		y /= counter;
-
 		MapPoint backOfTheBase = new MapPointInstance(x, y);
-		UnitActions.moveInDirectionOfPointIfPossible(explorer, backOfTheBase, 7);
 
 		// System.out.println("BASE SCOUTING:");
-		// System.out.println(xvr.getFirstBase().toStringLocation());
-		// System.out.println(backOfTheBase.toStringLocation());
+		// System.out.println("BASE: " + xvr.getFirstBase().toStringLocation());
+		// System.out.println("GARDEN: " + backOfTheBase.toStringLocation());
 		// System.out.println(xvr.getFirstBase().toStringLocation());
 		// System.out.println();
-	}
 
+		for (int i = 15; i >= 1; i -= 2) {
+			MapPoint pointToGo = UnitActions.moveInDirectionOfPointIfPossible(explorer,
+					backOfTheBase, i);
+
+			if (pointToGo != null && xvr.getMap().isConnected(explorer, pointToGo)) {
+				// System.out.println("success: " + pointToGo.toStringLocation()
+				// + " / " + i);
+				return pointToGo;
+			}
+		}
+
+		return null;
+	}
 }

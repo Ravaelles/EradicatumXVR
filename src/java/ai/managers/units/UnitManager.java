@@ -5,12 +5,11 @@ import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.army.ArmyPlacing;
-import ai.handling.army.StrengthEvaluator;
+import ai.handling.army.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
 import ai.managers.BuildingManager;
 import ai.managers.StrategyManager;
-import ai.terran.TerranBunker;
 
 public class UnitManager {
 
@@ -84,12 +83,20 @@ public class UnitManager {
 			return;
 		}
 
+		// *UPDATE* value of strength ratio.
+		StrengthRatio.recalculateFor(unit);
+
 		// ======================================
 		// TOP PRIORITY ACTIONS, order is important!
 
 		// Try to load infantry inside bunkers if possible.
 		if (UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
 			unit.setAiOrder("Into bunker");
+			return;
+		}
+
+		// Wounded units should avoid being killed (if possible you know...)
+		if (UnitBasicBehavior.tryRunningIfSeriouslyWounded(unit)) {
 			return;
 		}
 
@@ -107,7 +114,7 @@ public class UnitManager {
 		}
 
 		// Disallow fighting when overwhelmed.
-		if (tryRetreatingIfChancesNotFavorable(unit)) {
+		if (UnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
 			unit.setAiOrder("Would lose");
 			return;
 		}
@@ -128,76 +135,11 @@ public class UnitManager {
 		// Run from hidden Lurkers, Dark Templars etc.
 		UnitBasicBehavior.avoidHiddenUnitsIfNecessary(unit);
 
-		// Wounded units should avoid being killed (if possible you know...)
-		UnitBasicBehavior.handleWoundedUnitBehaviourIfNecessary(unit);
-	}
-
-	protected static boolean tryRetreatingIfChancesNotFavorable(Unit unit) {
-
-		// If no base isn't existing, screw this.
-		Unit firstBase = xvr.getFirstBase();
-		if (firstBase == null) {
-			return false;
+		// If enemy has got very close near to us, move away
+		if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
+			unit.setAiOrder("Run");
+			return;
 		}
-
-		// ============================================
-		// Some top level situations when don't try retreating
-
-		// If no enemy is critically close, don't retreat
-		if (xvr.getNearestEnemyDistance(unit, true, false) <= 2) {
-			return false;
-		}
-
-		// Don't interrupt unit that has just started shooting.
-		if (unit.isStartingAttack()) {
-			return false;
-		}
-
-		// MEDICS can run only if INJURED
-		if (unit.getType().isMedic() && !unit.isWounded()) {
-			return false;
-		}
-
-		// If unit isn't attacking or is very close to the critical first base,
-		// don't retreat.
-		// if ((!unit.isAttacking() && !unit.isWorker())
-		// || xvr.getDistanceSimple(unit, firstBase) <= 15) {
-		// return;
-		// }
-
-		// ============================================
-		// Now is a block of situations where we shouldn't allow a retreat.
-
-		// If there's our first base nearby
-		// if (xvr.getDistanceBetween(
-		// xvr.getUnitNearestFromList(unit, TerranCommandCenter.getBases()),
-		// unit) <= 10) {
-		// return;
-		// }
-
-		// If there's OUR BUNKER nearby, we should be here at all costs, because
-		// if we lose this position, then every other battle will be far tougher
-		// than fighting here, near the bunker.
-		if (!unit.isWounded()
-				&& unit.getGroundWeaponCooldown() > 0
-				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
-						true) > 0) {
-			// if () {
-			return false;
-			// }
-		}
-
-		// ===============================================
-		// If all is fine, we can CALCULATE CHANCES TO WIN
-		// and if we wouldn't win, then go where it's safe
-		// and by doing this we may encounter some help.
-		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
-			// UnitActions.moveToSafePlace(unit);
-			UnitActions.moveAwayFromNearestEnemy(unit);
-			return true;
-		}
-
-		return false;
 	}
 
 	protected static void actWhenOnCallForHelpMission(Unit unit) {
@@ -210,7 +152,7 @@ public class UnitManager {
 
 		// Still way to go!
 		else {
-			if (StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+			if (StrengthRatio.isStrengthRatioFavorableFor(unit)) {
 				UnitActions.attackTo(unit, caller.getX(), caller.getY());
 			}
 		}
@@ -294,6 +236,7 @@ public class UnitManager {
 			if (StrategyManager.getTargetPoint() != null) {
 				if (!isUnitAttackingSomeone(unit)) {
 					UnitActions.attackTo(unit, StrategyManager.getTargetPoint());
+					unit.setAiOrder("Forward!");
 				}
 				if (isUnitFullyIdle(unit)) {
 					UnitActions.spreadOutRandomly(unit);
@@ -309,7 +252,7 @@ public class UnitManager {
 			UnitActions.spreadOutRandomly(unit);
 		}
 
-		if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+		if (!StrengthRatio.isStrengthRatioFavorableFor(unit)) {
 			UnitActions.moveToSafePlace(unit);
 		}
 	}

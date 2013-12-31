@@ -39,8 +39,8 @@ public class Map {
 	private List<BaseLocation> baseLocations = null;
 	private HashMap<Integer, Region> idToRegion = null;
 
-	public Map(int width, int height, String name, String fileName,
-			String hash, int[] heightMap, int[] buildable, int[] walkable) {
+	public Map(int width, int height, String name, String fileName, String hash, int[] heightMap,
+			int[] buildable, int[] walkable) {
 		this.width = width;
 		this.height = height;
 		this.walkWidth = 4 * width;
@@ -72,8 +72,7 @@ public class Map {
 
 	/** Initialise the map with regions and base locations */
 	public void initialize(int[] regionMapData, int[] regionData,
-			HashMap<Integer, int[]> regionPolygons, int[] chokePointData,
-			int[] baseLocationData) {
+			HashMap<Integer, int[]> regionPolygons, int[] chokePointData, int[] baseLocationData) {
 		// regionMap
 		regionMap = regionMapData;
 
@@ -94,10 +93,8 @@ public class Map {
 		if (chokePointData != null) {
 			for (int index = 0; index < chokePointData.length; index += ChokePoint.numAttributes) {
 				ChokePoint chokePoint = new ChokePoint(chokePointData, index);
-				chokePoint.setFirstRegion(getRegion(chokePoint
-						.getFirstRegionID()));
-				chokePoint.setSecondRegion(getRegion(chokePoint
-						.getSecondRegionID()));
+				chokePoint.setFirstRegion(getRegion(chokePoint.getFirstRegionID()));
+				chokePoint.setSecondRegion(getRegion(chokePoint.getSecondRegionID()));
 				chokePoints.add(chokePoint);
 			}
 		}
@@ -106,8 +103,7 @@ public class Map {
 		baseLocations = new ArrayList<>();
 		if (baseLocationData != null) {
 			for (int index = 0; index < baseLocationData.length; index += BaseLocation.numAttributes) {
-				BaseLocation baseLocation = new BaseLocation(baseLocationData,
-						index);
+				BaseLocation baseLocation = new BaseLocation(baseLocationData, index);
 				baseLocations.add(baseLocation);
 			}
 		}
@@ -205,6 +201,11 @@ public class Map {
 		}
 	}
 
+	/** Checks whether all 16 walk tiles in a build tile are walkable */
+	public boolean isLowResWalkable(MapPoint point) {
+		return isLowResWalkable(point.getTx(), point.getTy());
+	}
+
 	/** Works only after initialize() */
 	public List<Region> getRegions() {
 		return Collections.unmodifiableList(regions);
@@ -245,21 +246,19 @@ public class Map {
 	 * positions or -1 if not reachable. Works only after initialize(). Ported
 	 * from BWTA.
 	 */
-	public double getGroundDistance(int startTx, int startTy, int endTx,
-			int endTy) {
+	public double getGroundDistance(int startTx, int startTy, int endTx, int endTy) {
 		if (!isConnected(startTx, startTy, endTx, endTy))
 			return -1;
 		return aStarSearchDistance(startTx, startTy, endTx, endTy);
 	}
 
 	public double getGroundDistance(Unit unit, int endTx, int endTy) {
-		return getGroundDistance(unit.getX() / 32, unit.getY() / 32, endTx,
-				endTy);
+		return getGroundDistance(unit.getX() / 32, unit.getY() / 32, endTx, endTy);
 	}
 
 	public double getGroundDistance(Unit unit, Unit unit2) {
-		return getGroundDistance(unit.getX() / 32, unit.getY() / 32,
-				unit2.getX() / 32, unit2.getY() / 32);
+		return getGroundDistance(unit.getX() / 32, unit.getY() / 32, unit2.getX() / 32,
+				unit2.getY() / 32);
 	}
 
 	/**
@@ -280,16 +279,14 @@ public class Map {
 	}
 
 	public boolean isConnected(MapPoint point, MapPoint point2) {
-		return isConnected(point.getTx(), point.getTy(), point2.getTx(),
-				point2.getTy());
+		return isConnected(point.getTx(), point.getTy(), point2.getTx(), point2.getTy());
 	}
 
 	/**
 	 * Performs an A* search. Intended to be called from
 	 * {@link #getGroundDistance(int, int, int, int)}. Ported from BWTA.
 	 */
-	private double aStarSearchDistance(int startTx, int startTy, int endTx,
-			int endTy) {
+	private double aStarSearchDistance(int startTx, int startTy, int endTx, int endTy) {
 		// Distance of 10 per build tile, or sqrt(10^2 + 10^2) ~= 14 diagonally
 		final int mvmtCost = 10;
 		final int mvmtCostDiag = 14;
@@ -334,13 +331,11 @@ public class Map {
 					// mvmtCostDiag
 					// abs(dx - dy) is the rest of the distance, so costs
 					// mvmtCost
-					int h = Math.abs(dx - dy) * mvmtCost + Math.min(dx, dy)
-							* mvmtCostDiag;
+					int h = Math.abs(dx - dy) * mvmtCost + Math.min(dx, dy) * mvmtCostDiag;
 					int f = g + h;
 					if (!gmap.containsKey(t) || gmap.get(t) > g) {
 						gmap.put(t, g);
-						for (Iterator<AStarTile> it = openTiles.iterator(); it
-								.hasNext();)
+						for (Iterator<AStarTile> it = openTiles.iterator(); it.hasNext();)
 							if (it.next().tilePos.equals(t))
 								it.remove();
 						openTiles.add(new AStarTile(t, f));

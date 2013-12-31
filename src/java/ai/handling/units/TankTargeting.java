@@ -107,6 +107,9 @@ public class TankTargeting {
 		Map<Unit, Double> enemiesToScore = new HashMap<>();
 
 		for (Unit enemy : enemiesInRange) {
+			if (enemy.getType().isLarvaOrEgg()) {
+				continue;
+			}
 			enemiesToScore.put(enemy, evaluateOptionShootAtUnit(enemy, enemiesInRange));
 		}
 

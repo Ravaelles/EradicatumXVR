@@ -9,6 +9,7 @@ import jnibwapi.types.UnitCommandType.UnitCommandTypes;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.util.BWColor;
+import ai.handling.army.StrengthRatio;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.other.NukeHandling;
@@ -93,10 +94,9 @@ public class Painter {
 		paintStatistics(xvr);
 
 		if (Painter.errorOcurred) {
-			xvr.getBwapi().drawText(
-					new Point(280, 20),
-					BWColor.getToStringHex(BWColor.RED) + "!!! EXCEPTION (" + errorOcurredDetails
-							+ ") !!!", true);
+			String string = "!!! EXCEPTION (" + errorOcurredDetails + ") !!!";
+			xvr.getBwapi().drawText(new Point(320 - string.length() * 3, 20),
+					BWColor.getToStringHex(BWColor.RED) + string, true);
 		}
 
 		// ========
@@ -165,14 +165,13 @@ public class Painter {
 
 			// ==========================
 			// Strength evaluation
-			strength = unit.getStrengthEvaluation();
-			if (strength != -1) {
+			// strength = StrengthEvaluator.calculateStrengthRatioFor(unit);
+			strength = unit.getStrengthRatio();
+			if (strength != StrengthRatio.STRENGTH_RATIO_FULLY_SAFE) {
 				strength -= 1; // make +/- values display
-				if (strength < 99998) {
-					text = (strength > 0 ? (BWColor.getToStringHex(BWColor.GREEN) + "+") : (BWColor
-							.getToStringHex(BWColor.RED) + "")) + String.format("%.1f", strength);
-					bwapi.drawText(unit.getX() - 7, unit.getY() + 30, text, false);
-				}
+				text = (strength > 0 ? (BWColor.getToStringHex(BWColor.GREEN) + "+") : (BWColor
+						.getToStringHex(BWColor.RED) + "")) + String.format("%.1f", strength);
+				bwapi.drawText(unit.getX() - 7, unit.getY() + 30, text, false);
 			}
 
 			// ==========================
@@ -391,7 +390,7 @@ public class Painter {
 
 				// ACTION LABEL: display action like #RUN, #LOAD
 				if (u.hasAiOrder()) {
-					bwapi.drawText(u.getX() - u.getAiOrderString().length() * 4, u.getY(),
+					bwapi.drawText(u.getX() - u.getAiOrderString().length() * 3, u.getY(),
 							BWColor.getToStringHex(BWColor.WHITE) + u.getAiOrderString(), false);
 				}
 			}

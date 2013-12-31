@@ -6,6 +6,7 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.army.StrengthRatio;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
@@ -82,8 +83,20 @@ public class UnitBasicBehavior {
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
 		UnitType type = unit.getType();
+		boolean hasPrettyGoodChances = unit.getStrengthRatio() > 1.4;
+		int criticallyCloseDistance = 2;
 
-		if (unit.isRunningFromEnemy()) {
+		// Define nearest enemy (threat)
+		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		double distToEnemy = unit.distanceTo(nearestEnemy);
+		if (distToEnemy < 0) {
+			return false;
+		}
+		boolean isEnemyCriticallyClose = distToEnemy < criticallyCloseDistance;
+
+		// ==============================================
+
+		if (unit.isRunningFromEnemy() && (!hasPrettyGoodChances && isEnemyCriticallyClose)) {
 			UnitActions.moveAwayFromNearestEnemy(unit);
 			return true;
 		}
@@ -94,10 +107,9 @@ public class UnitBasicBehavior {
 		}
 
 		// =============================================
-		// Define nearest enemy (threat)
-		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		double distToEnemy = unit.distanceTo(nearestEnemy);
-		if (distToEnemy >= 0 && distToEnemy <= 2) {
+		if (distToEnemy >= 0 && distToEnemy <= criticallyCloseDistance && !hasPrettyGoodChances) {
+			unit.setIsRunningFromEnemyNow();
+			UnitActions.moveAwayFromNearestEnemy(unit);
 			return true;
 		}
 
@@ -125,7 +137,7 @@ public class UnitBasicBehavior {
 				// ===================================
 				// SPECIAL UNITS
 				// Sieged tanks have to unsiege first
-				if (type.isTank() && unit.isSieged()) {
+				if (type.isTank() && unit.isSieged() && unit.getStrengthRatio() < 1.4) {
 					unit.unsiege();
 					return true;
 				}
@@ -142,7 +154,7 @@ public class UnitBasicBehavior {
 				// Check if we have bigger shoot range than the enemy. If not,
 				// it doesn't make any sense to run away from him just because
 				// he's near.
-				if (weHaveBiggerRangeThanEnemy) {
+				if (weHaveBiggerRangeThanEnemy && unit.getGroundWeaponCooldown() > 0) {
 					UnitActions.moveAwayFromUnit(unit, nearestEnemy);
 					unit.setIsRunningFromEnemyNow();
 					return true;
@@ -162,11 +174,23 @@ public class UnitBasicBehavior {
 			return false;
 		}
 
+		if (unit.getStrengthRatio() > 1.4) {
+			return false;
+		}
+
 		boolean isUnitInsideBunker = unit.isLoaded();
 		// boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 12, true,
 		// true) != null;
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		boolean enemyIsNearby = nearestEnemy != null && nearestEnemy.distanceTo(unit) <= 13;
+		if (nearestEnemy == null) {
+			return false;
+		}
+
+		// Calculate max safe distance to the enemy, so we can shoot at him
+		int enemyIsNearThreshold = (int) Math.max(3, nearestEnemy.getType().getGroundWeapon()
+				.getMaxRangeInTiles() + 2.5);
+		boolean enemyIsNearby = nearestEnemy != null
+				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
 		if (!enemyIsNearby) {
 			if (unit.isLoaded()) {
@@ -275,8 +299,14 @@ public class UnitBasicBehavior {
 	}
 
 	public static boolean tryRunningFromCloseDefensiveBuilding(Unit unit) {
-		if (xvr.isEnemyDefensiveGroundBuildingNear(unit)) {
-			UnitActions.moveToSafePlace(unit);
+		if (unit.getType().isTank()) {
+			return false;
+		}
+
+		Unit defensiveBuilding = xvr.getEnemyDefensiveGroundBuildingNear(unit);
+		if (defensiveBuilding != null) {
+			// UnitActions.moveToSafePlace(unit);
+			UnitActions.moveAwayFromUnit(unit, defensiveBuilding);
 			unit.setIsRunningFromEnemyNow();
 			return true;
 		} else {
@@ -324,7 +354,7 @@ public class UnitBasicBehavior {
 		return false;
 	}
 
-	protected static boolean handleWoundedUnitBehaviourIfNecessary(Unit unit) {
+	protected static boolean tryRunningIfSeriouslyWounded(Unit unit) {
 		if (unit.getHP() <= unit.getMaxHP() * 0.4) {
 			// // If there are tanks nearby, DON'T RUN. Rather die first!
 			// if
@@ -353,12 +383,17 @@ public class UnitBasicBehavior {
 
 				Unit repairer = RepairAndSons.getRepairerForUnit(unit);
 				if (repairer != null) {
+					if (repairer.isConstructing() || !repairer.isExists()
+							|| (!repairer.isRepairing() && !repairer.isMoving())) {
+						RepairAndSons.removeTicketFor(unit, repairer);
+						RepairAndSons.issueTicketToRepairIfHasnt(unit);
+					}
 					if (repairer.distanceTo(unit) >= 1.3) {
 						UnitActions.moveTo(unit, repairer);
 						unit.setAiOrder("Go to repair");
 					} else {
 						if (xvr.getNearestEnemyDistance(unit, true, true) <= 5) {
-							unit.setAiOrder("Run");
+							unit.setAiOrder("Almost dead - Run");
 							UnitActions.moveAwayFromNearestEnemy(unit);
 						}
 					}
@@ -386,6 +421,74 @@ public class UnitBasicBehavior {
 				UnitActions.useTech(unit, TechnologyManager.STIMPACKS);
 			}
 		}
+	}
+
+	protected static boolean tryRetreatingIfChancesNotFavorable(Unit unit) {
+
+		// If no base isn't existing, screw this.
+		Unit firstBase = xvr.getFirstBase();
+		if (firstBase == null) {
+			return false;
+		}
+
+		// ============================================
+		// Some top level situations when don't try retreating
+
+		// If no enemy is critically close, don't retreat
+		if (xvr.getNearestEnemyDistance(unit, true, false) <= 2) {
+			return false;
+		}
+
+		// Don't interrupt unit that has just started shooting.
+		if (unit.isStartingAttack()) {
+			return false;
+		}
+
+		// MEDICS can run only if INJURED
+		if (unit.getType().isMedic() && !unit.isWounded()) {
+			return false;
+		}
+
+		// If unit isn't attacking or is very close to the critical first base,
+		// don't retreat.
+		// if ((!unit.isAttacking() && !unit.isWorker())
+		// || xvr.getDistanceSimple(unit, firstBase) <= 15) {
+		// return;
+		// }
+
+		// ============================================
+		// Now is a block of situations where we shouldn't allow a retreat.
+
+		// If there's our first base nearby
+		// if (xvr.getDistanceBetween(
+		// xvr.getUnitNearestFromList(unit, TerranCommandCenter.getBases()),
+		// unit) <= 10) {
+		// return;
+		// }
+
+		// If there's OUR BUNKER nearby, we should be here at all costs, because
+		// if we lose this position, then every other battle will be far tougher
+		// than fighting here, near the bunker.
+		if (!unit.isWounded()
+				&& unit.getGroundWeaponCooldown() > 0
+				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
+						true) > 0) {
+			// if () {
+			return false;
+			// }
+		}
+
+		// ===============================================
+		// If all is fine, we can CALCULATE CHANCES TO WIN
+		// and if we wouldn't win, then go where it's safe
+		// and by doing this we may encounter some help.
+		if (!StrengthRatio.isStrengthRatioFavorableFor(unit)) {
+			// UnitActions.moveToSafePlace(unit);
+			UnitActions.moveAwayFromNearestEnemy(unit);
+			return true;
+		}
+
+		return false;
 	}
 
 }

@@ -12,9 +12,9 @@ import java.util.Set;
  * For a description of fields see: http://code.google.com/p/bwta/wiki/Region
  */
 public class Region {
-	
+
 	public static final int numAttributes = 3;
-	
+
 	private int ID;
 	private int centerX;
 	private int centerY;
@@ -22,49 +22,49 @@ public class Region {
 	private Set<Region> connectedRegions = new HashSet<>();
 	private Set<ChokePoint> chokePoints = new HashSet<>();
 	private Set<Region> allConnectedRegions = null;
-	
+
 	public Region(int[] data, int index) {
 		ID = data[index++];
 		centerX = data[index++];
 		centerY = data[index++];
 	}
-	
+
 	public int getID() {
 		return ID;
 	}
-	
+
 	public int getCenterX() {
 		return centerX;
 	}
-	
+
 	public int getCenterY() {
 		return centerY;
 	}
-	
+
 	protected void setCoordinates(int[] coordinates) {
 		this.coordinates = coordinates;
 	}
-	
+
 	public int[] getCoordinates() {
 		return Arrays.copyOf(coordinates, coordinates.length);
 	}
-	
+
 	protected void addChokePoint(ChokePoint chokePoint) {
 		chokePoints.add(chokePoint);
 	}
-	
+
 	public Set<ChokePoint> getChokePoints() {
 		return Collections.unmodifiableSet(chokePoints);
 	}
-	
+
 	protected void addConnectedRegion(Region other) {
 		connectedRegions.add(other);
 	}
-	
+
 	public Set<Region> getConnectedRegions() {
 		return Collections.unmodifiableSet(connectedRegions);
 	}
-	
+
 	/** Get all transitively connected regions for a given region */
 	public Set<Region> getAllConnectedRegions() {
 		// Evaluate on first call
@@ -81,5 +81,27 @@ public class Region {
 		}
 		return Collections.unmodifiableSet(allConnectedRegions);
 	}
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ID;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Region other = (Region) obj;
+		if (ID != other.ID)
+			return false;
+		return true;
+	}
+
 }

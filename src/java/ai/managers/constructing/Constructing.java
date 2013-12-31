@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import jnibwapi.JNIBWAPI;
 import jnibwapi.model.ChokePoint;
+import jnibwapi.model.Region;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
@@ -192,8 +193,12 @@ public class Constructing {
 		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
 		boolean isBase = type.isBase();
 		boolean isDepot = type.isSupplyDepot();
+		// boolean checkExplored = type.isBunker();
 
-		boolean skipCheckingIsFreeFromUnits = type.isBase();
+		// boolean skipCheckingIsFreeFromUnits = type.isBase();
+		boolean skipCheckingIsFreeFromUnits = false;
+		boolean skipCheckingRegion = xvr.getTimeSeconds() > 400 || isBase || type.isBunker()
+				|| type.isMissileTurret() || type.isAddon();
 
 		int currentDist = minimumDist;
 		while (currentDist <= maximumDist) {
@@ -218,7 +223,8 @@ public class Constructing {
 							if ((!isTooNearMineralsOrGeyser(type, place))
 									&& (isEnoughPlaceToOtherBuildings(place, type))
 									&& (isBase || !isOverlappingNextBase(place, type))
-									&& (isBase || !isTooCloseToAnyChokePoint(place))) {
+									&& (isBase || !isTooCloseToAnyChokePoint(place)
+											&& (skipCheckingRegion || isInAllowedRegions(place)))) {
 
 								// if (type.isPhotonCannon()) {
 								// System.out.println("@@@@@@@ "
@@ -239,7 +245,16 @@ public class Constructing {
 		return null;
 	}
 
-	public static boolean isTooCloseToAnyChokePoint(MapPointInstance place) {
+	private static boolean isInAllowedRegions(MapPoint place) {
+		Region buildTileRegion = xvr.getMap().getRegion(place);
+		if (buildTileRegion.equals(xvr.getFirstBase().getRegion())
+				|| buildTileRegion.equals(TerranCommandCenter.getSecondBaseLocation().getRegion())) {
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean isTooCloseToAnyChokePoint(MapPoint place) {
 		ChokePoint nearestChoke = MapExploration.getNearestChokePointFor(place);
 		int chokeTiles = (int) (nearestChoke.getRadius() / 32);
 

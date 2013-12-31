@@ -8,8 +8,9 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import ai.core.Painter;
 import ai.core.XVR;
-import ai.handling.army.StrengthEvaluator;
+import ai.handling.army.StrengthRatio;
 import ai.handling.map.Explorer;
+import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.units.RepairAndSons;
@@ -17,12 +18,13 @@ import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranRefinery;
+import ai.terran.TerranSiegeTank;
 import ai.utils.RUtilities;
 
 public class WorkerManager {
 
 	public static final int WORKER_INDEX_GUY_TO_CHASE_OTHERS = 1;
-	public static final int WORKER_INDEX_BUNKER_REPAIRER = 3;
+	public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
 	public static final int WORKER_INDEX_EXPLORER = 6;
 	public static final int DEFEND_BASE_RADIUS = 23;
 
@@ -137,7 +139,7 @@ public class WorkerManager {
 	}
 
 	public static void act(Unit unit) {
-		if (unit.isIdle() && _counter != WORKER_INDEX_BUNKER_REPAIRER) {
+		if (unit.isIdle() && _counter != WORKER_INDEX_PROFESSIONAL_REPAIRER) {
 			gatherResources(unit, xvr.getFirstBase());
 		}
 
@@ -158,8 +160,8 @@ public class WorkerManager {
 
 		// ==================================
 
-		if (_counter == WORKER_INDEX_BUNKER_REPAIRER && TerranBunker.getNumberOfUnits() > 0) {
-			handleBunkerRepairer(unit);
+		if (_counter == WORKER_INDEX_PROFESSIONAL_REPAIRER && TerranBunker.getNumberOfUnits() > 0) {
+			handleProfessionalRepairer(unit);
 			return;
 		}
 
@@ -177,7 +179,7 @@ public class WorkerManager {
 		int distToMainBase = xvr.getDistanceSimple(unit, xvr.getFirstBase());
 		if (unit.isAttacking()
 				&& distToMainBase >= 7
-				|| (unit.isConstructing() && unit.getHP() < 21 && StrengthEvaluator
+				|| (unit.isConstructing() && unit.getHP() < 21 && StrengthRatio
 						.isStrengthRatioCriticalFor(unit))) {
 			UnitActions.moveTo(unit, xvr.getFirstBase());
 			return;
@@ -247,11 +249,22 @@ public class WorkerManager {
 		// }
 	}
 
-	private static void handleBunkerRepairer(Unit unit) {
-		Unit bunkerToBeAt = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
-				TerranCommandCenter.getSecondBaseLocation());
-		if (unit.distanceTo(bunkerToBeAt) >= 5) {
-			UnitActions.moveTo(unit, bunkerToBeAt);
+	private static void handleProfessionalRepairer(Unit unit) {
+		Unit beHere = null;
+
+		if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
+			MapPoint centerPoint = MapExploration.getNearestEnemyBuilding();
+			if (centerPoint == null) {
+				centerPoint = MapExploration.getMostDistantBaseLocation(unit);
+			}
+			beHere = xvr.getNearestTankTo(centerPoint);
+		} else {
+			beHere = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
+					TerranCommandCenter.getSecondBaseLocation());
+		}
+
+		if (unit.distanceTo(beHere) >= 5) {
+			UnitActions.moveTo(unit, beHere);
 		}
 	}
 

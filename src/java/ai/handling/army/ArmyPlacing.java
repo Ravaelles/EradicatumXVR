@@ -134,7 +134,9 @@ public class ArmyPlacing {
 			if (attackPoint == null) {
 				attackPoint = MapExploration.getMostDistantBaseLocation(xvr.getFirstBase());
 			}
-			return xvr.getUnitNearestFromList(attackPoint, TerranSiegeTank.getAllCompletedTanks());
+			// return xvr.getUnitNearestFromList(attackPoint,
+			// TerranSiegeTank.getAllCompletedTanks());
+			return xvr.getUnitNearestFromList(attackPoint, xvr.getUnitsArmy());
 		} else {
 			return TerranCommandCenter.getSecondBaseLocation();
 		}

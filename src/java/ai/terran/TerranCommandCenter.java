@@ -56,7 +56,7 @@ public class TerranCommandCenter {
 			return true;
 		}
 
-		if (xvr.getTimeSeconds() >= 380 && bases == 1
+		if (xvr.getTimeSeconds() >= 390 && bases <= 1
 				&& !Constructing.weAreBuilding(UnitManager.BASE)) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
@@ -276,7 +276,7 @@ public class TerranCommandCenter {
 		// Make sure you're not calculating base location all the time
 		if (forceNewSolution) {
 			int now = xvr.getTimeSeconds();
-			if (_lastTimeCalculatedTileForBase != -1 && now - _lastTimeCalculatedTileForBase <= 1) {
+			if (_lastTimeCalculatedTileForBase != -1 && now - _lastTimeCalculatedTileForBase <= 3) {
 				return _cachedNextBaseTile;
 			}
 			_lastTimeCalculatedTileForBase = now;
@@ -297,8 +297,8 @@ public class TerranCommandCenter {
 			// Debug.message(xvr, "Tile for new base: " + point.getTx() + ","
 			// + point.getTy());
 			// System.out.println("Tile for new base: " + point);
-			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
-					buildingType, point, 0, 30);
+			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(
+					xvr.getOptimalBuilder(nearestFreeBaseLocation), buildingType, point, 0, 30);
 			// System.out.println(" processed: " + _cachedNextBaseTile);
 			// System.out.println();
 		} else {

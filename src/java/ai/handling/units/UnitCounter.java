@@ -28,6 +28,9 @@ public class UnitCounter {
 
 	private static void countUnits() {
 		for (Unit unit : xvr.getBwapi().getMyUnits()) {
+			if (!unit.isExists()) {
+				continue;
+			}
 			numberOfUnits.put(
 					unit.getTypeID(),
 					(numberOfUnits.containsKey(unit.getTypeID()) ? numberOfUnits.get(unit
@@ -117,7 +120,7 @@ public class UnitCounter {
 	public static boolean weHaveSupplyDepotFinished() {
 		return getNumberOfUnitsCompleted(TerranSupplyDepot.getBuildingType()) > 0;
 	}
-	
+
 	public static boolean weHaveSupplyDepot() {
 		return getNumberOfUnits(TerranSupplyDepot.getBuildingType()) > 0;
 	}

@@ -97,7 +97,7 @@ public class TerranVulture {
 
 	private static boolean isQuiteNearChokePoint(Unit unit) {
 		ChokePoint choke = MapExploration.getNearestChokePointFor(unit);
-		return unit.distanceToChokePoint(choke) <= 3 || unit.getSpiderMineCount() == 3;
+		return unit.distanceToChokePoint(choke) <= 1.05 || unit.getSpiderMineCount() == 3;
 	}
 
 	private static void placeSpiderMine(Unit vulture, MapPoint place) {
@@ -105,7 +105,7 @@ public class TerranVulture {
 	}
 
 	private static boolean minesArentStackedTooMuchNear(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 2.15, unit,
+		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 2.05, unit,
 				true) == 0;
 	}
 

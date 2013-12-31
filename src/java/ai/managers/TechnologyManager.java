@@ -6,9 +6,9 @@ import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.UpgradeType.UpgradeTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
-import ai.managers.units.UnitManager;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranArmory;
+import ai.terran.TerranCommandCenter;
 import ai.terran.TerranControlTower;
 import ai.terran.TerranMachineShop;
 import ai.terran.TerranSiegeTank;
@@ -47,7 +47,7 @@ public class TechnologyManager {
 
 		// Spider Mines
 		technology = SPIDER_MINES;
-		if (vultures >= 1 && isResearchPossible(technology) && !isResearchPossible(technology)) {
+		if (vultures >= 1 && isResearchPossible(technology)) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 
@@ -59,14 +59,15 @@ public class TechnologyManager {
 
 		// Stim Packs
 		technology = STIMPACKS;
-		if (marines >= 8 && isResearchPossible(technology) && !isResearchPossible(technology)) {
+		if (marines >= 8 && isResearchPossible(technology)) {
 			tryToResearch(TerranAcademy.getOneNotBusy(), technology);
 		}
 
 		// ======================================================
 		// LOWER PRIORITY
 		// To research technologies below we must have second base built.
-		if (UnitCounter.getNumberOfUnits(UnitManager.BASE) <= 1) {
+		if (TerranCommandCenter.getNumberOfUnits() <= 1 || !isResearched(TANK_SIEGE_MODE)
+				|| !isResearched(SPIDER_MINES)) {
 			return;
 		}
 

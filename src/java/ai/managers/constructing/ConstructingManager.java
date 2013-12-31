@@ -27,7 +27,7 @@ public class ConstructingManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static final int PROLONGATED_CONSTRUCTION_TIME = 300; // in fps
+	private static final int PROLONGATED_CONSTRUCTION_TIME = 350; // in fps
 
 	private static HashMap<UnitTypes, Unit> _recentConstructionsInfo = new HashMap<>();
 	private static HashMap<UnitTypes, MapPoint> _recentConstructionsPlaces = new HashMap<>();
@@ -56,7 +56,7 @@ public class ConstructingManager {
 		boolean shouldBuildHQ = TerranCommandCenter.shouldBuild();
 		boolean canBuildOtherThingThanHQ = !shouldBuildHQ || xvr.canAfford(550);
 
-		if (_actCounter == 0 && shouldBuildHQ) {
+		if (_actCounter == 0 && (shouldBuildHQ && !xvr.canAfford(550))) {
 			TerranCommandCenter.buildIfNecessary();
 		} else if (_actCounter == 1 && canBuildOtherThingThanHQ) {
 			TerranAcademy.buildIfNecessary();

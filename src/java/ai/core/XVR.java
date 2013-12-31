@@ -115,7 +115,7 @@ public class XVR {
 
 			// Handle behavior of units and buildings.
 			// Handle units in neighborhood of army units.
-			if (getFrames() % 22 == 0) {
+			if (getFrames() % 11 == 0) {
 				CodeProfiler.startMeasuring("Army");
 				UnitManager.act();
 				CodeProfiler.endMeasuring("Army");
@@ -601,7 +601,12 @@ public class XVR {
 				continue;
 			}
 
-			boolean isAirUnit = otherUnit.getType().isFlyer();
+			UnitType type = otherUnit.getType();
+			if (type.isLarvaOrEgg()) {
+				continue;
+			}
+
+			boolean isAirUnit = type.isFlyer();
 			if (isAirUnit && !includeAirUnits) {
 				continue;
 			} else if (!isAirUnit && !includeGroundUnits) {
@@ -623,7 +628,7 @@ public class XVR {
 		for (Unit unit : bwapi.getEnemyUnits()) {
 			UnitType type = unit.getType();
 			if (!type.isBuilding()) {
-				if (!type.isFlyer() && includeGroundUnits) {
+				if (!type.isFlyer() && includeGroundUnits && !type.isLarvaOrEgg()) {
 					units.add(unit);
 				} else if (type.isFlyer() && includeAirUnits) {
 					units.add(unit);
@@ -862,7 +867,7 @@ public class XVR {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackGroundUnits()) {
 				int maxEnemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles();
-				if (point.distanceTo(enemy) <= maxEnemyRange + 2.5) {
+				if (point.distanceTo(enemy) <= maxEnemyRange + 4.6) {
 					return true;
 				}
 			}
@@ -1142,9 +1147,9 @@ public class XVR {
 		return result;
 	}
 
-	public Unit getNearestTankTo(Unit unit) {
-		Unit nearestNonSiege = getUnitOfTypeNearestTo(UnitTypes.Terran_Siege_Tank_Tank_Mode, unit);
-		Unit nearestSiege = getUnitOfTypeNearestTo(UnitTypes.Terran_Siege_Tank_Siege_Mode, unit);
+	public Unit getNearestTankTo(MapPoint point) {
+		Unit nearestNonSiege = getUnitOfTypeNearestTo(UnitTypes.Terran_Siege_Tank_Tank_Mode, point);
+		Unit nearestSiege = getUnitOfTypeNearestTo(UnitTypes.Terran_Siege_Tank_Siege_Mode, point);
 		if (nearestNonSiege == null && nearestSiege == null) {
 			return null;
 		}
@@ -1154,7 +1159,7 @@ public class XVR {
 		if (nearestSiege == null) {
 			return nearestNonSiege;
 		}
-		return (nearestNonSiege.distanceTo(unit) < nearestSiege.distanceTo(unit) ? nearestNonSiege
+		return (nearestNonSiege.distanceTo(point) < nearestSiege.distanceTo(point) ? nearestNonSiege
 				: nearestSiege);
 	}
 
