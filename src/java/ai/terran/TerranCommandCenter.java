@@ -184,9 +184,12 @@ public class TerranCommandCenter {
 			boolean baseReady = (otherBase.isCompleted() || BuildingManager
 					.countConstructionProgress(buildingType) >= 86);
 
-			if (!otherBase.equals(base) && baseReady && otherBase.distanceTo(base) <= 20) {
+			if (!otherBase.equals(base) && baseReady && otherBase.distanceTo(base) <= 35) {
 				double otherBaseRatio = defineNumberOfWorkersToOptimalNumberRatioFor(otherBase);
-				if (otherBaseRatio + 0.2 <= mineralWorkersToOptimalRatio) {
+				System.out.println();
+				System.out.println("THEY/WE: " + mineralWorkersToOptimalRatio + " / "
+						+ otherBaseRatio);
+				if (mineralWorkersToOptimalRatio - 0.13 >= otherBaseRatio) {
 					sendOneWorkerFromTo(base, otherBase);
 					return;
 				}

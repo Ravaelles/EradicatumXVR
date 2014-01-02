@@ -457,7 +457,8 @@ public class UnitBasicBehavior {
 									&& unit.distanceTo(nearEnemy) <= groundWeapon
 											.getMaxRangeInTiles() + 1.9) {
 								unit.setAiOrder("Almost dead - Run");
-								UnitActions.moveAwayFromNearestEnemy(unit);
+								// UnitActions.moveAwayFromNearestEnemy(unit);
+								UnitActions.moveToSafePlace(unit);
 							}
 						}
 					}

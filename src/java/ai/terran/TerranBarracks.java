@@ -24,7 +24,7 @@ public class TerranBarracks {
 	private static boolean isPlanAntiAirActive = false;
 
 	public static int MIN_UNITS_FOR_DIFF_BUILDING = 20;
-	public static int MIN_MEDICS = 3;
+	public static int MIN_MEDICS = 2;
 
 	public static boolean LIMIT_MARINES = false;
 
@@ -225,22 +225,13 @@ public class TerranBarracks {
 				}
 			} else {
 				int marinesMinusBunkers = marines - TerranBunker.MAX_STACK * 3;
-				if (medics < marinesMinusBunkers / 3.8) {
+				if (medics < marinesMinusBunkers / 4) {
 					return MEDIC;
 				}
 			}
 		}
 
 		// MARINES
-		// if (BotStrategyManager.isExpandWithBunkers()) {
-		// if (marines >= 3 && !xvr.canAfford(1000)) {
-		// return null;
-		// }
-		// }
-		// if (marines >= 8 + firebats) {
-		// return null;
-		// }
-
 		double marinePercent = marines / totalInfantry;
 		if (marinePercent < marinesBuildRatio / totalRatio || LIMIT_MARINES) {
 			return MARINE;

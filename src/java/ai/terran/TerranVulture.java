@@ -25,7 +25,7 @@ public class TerranVulture {
 		return unitType;
 	}
 
-	public static void act(Unit unit) {
+	public static boolean act(Unit unit) {
 		// int alliedUnitsNearby = xvr.countUnitsInRadius(unit, 10, true);
 		// boolean shouldConsiderRunningAway =
 		// !StrategyManager.isAnyAttackFormPending();
@@ -34,12 +34,12 @@ public class TerranVulture {
 		Unit enemyDefensiveBuilding = xvr.getEnemyDefensiveGroundBuildingNear(unit);
 		if (enemyDefensiveBuilding != null) {
 			UnitActions.moveAwayFromUnit(unit, enemyDefensiveBuilding);
-			return;
+			return true;
 		}
 
 		// Don't interrupt unit on march
 		if (unit.isStartingAttack()) {
-			return;
+			return true;
 		}
 
 		// ======== DEFINE NEXT MOVE =============================
@@ -71,16 +71,20 @@ public class TerranVulture {
 
 		// =================================
 		// Use mines if possible
-		handleMines(unit);
+		if (tryPlantingMines(unit)) {
+			return true;
+		}
 
 		// if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
 		// UnitActions.moveToSafePlace(unit);
 		// }
 		//
 		// UnitActions.actWhenLowHitPointsOrShields(unit, false);
+
+		return false;
 	}
 
-	private static void handleMines(Unit unit) {
+	private static boolean tryPlantingMines(Unit unit) {
 		if (unit.getSpiderMineCount() > 0) {
 
 			// Make sure mine will be safely far from our units
@@ -93,9 +97,11 @@ public class TerranVulture {
 						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
 				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)) {
 					placeSpiderMine(unit, unit);
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
 	private static boolean isQuiteNearEnemy(Unit unit) {

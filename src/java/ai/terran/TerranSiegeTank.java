@@ -26,6 +26,7 @@ public class TerranSiegeTank {
 	private static boolean _isUnitWhereItShouldBe;
 	private static MapPoint _properPlace;
 	private static Unit _nearestEnemy;
+	private static Unit _nearestEnemyBuilding;
 	private static double _nearestEnemyDist;
 
 	/**
@@ -41,6 +42,7 @@ public class TerranSiegeTank {
 		updateProperPlaceToBeForTank(unit);
 		_isUnitWhereItShouldBe = _properPlace == null || _properPlace.distanceTo(unit) <= 3;
 		_nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		_nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding(unit);
 		_nearestEnemyDist = _nearestEnemy != null ? _nearestEnemy.distanceTo(unit) : -1;
 
 		if (unit.isSieged()) {
@@ -132,13 +134,25 @@ public class TerranSiegeTank {
 	private static boolean shouldSiege(Unit unit) {
 		boolean isEnemyNearShootRange = (_nearestEnemyDist > 0 && _nearestEnemyDist <= (_nearestEnemy
 				.getType().isBuilding() ? 10.6 : 13));
+
+		// Check if should siege, based on unit proper place to be (e.g. near
+		// the bunker), but consider the neighborhood, if it's safe etc.
 		if ((_isUnitWhereItShouldBe && notTooManySiegedInArea(unit)) || isEnemyNearShootRange) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)) {
 				return true;
 			}
 		}
 
-		if (isEnemyNearShootRange && xvr.countUnitsOursInRadius(unit, 7) >= 5) {
+		// If there's an enemy in the range of shoot and there are some other
+		// units around this tank, then siege.
+		int oursNearby = xvr.countUnitsOursInRadius(unit, 7);
+		if (isEnemyNearShootRange && oursNearby >= 5) {
+			return true;
+		}
+
+		// If there's enemy building in range, siege.
+		if (_nearestEnemyBuilding != null && _nearestEnemyBuilding.distanceTo(unit) <= 10.5
+				&& oursNearby >= 2) {
 			return true;
 		}
 

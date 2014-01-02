@@ -42,17 +42,19 @@ public class XVR {
 	 */
 	private static final int WHAT_IS_NEAR_DISTANCE = 13;
 
-	private static Player ENEMY;
-	public static int ENEMY_ID;
-	private static String ENEMY_RACE = "Undefined";
-	public static Player SELF;
-	public static int SELF_ID;
+	private static XVR xvr;
+
+	private Player ENEMY;
+	public int ENEMY_ID;
+	private String ENEMY_RACE = "Undefined";
+	public Player SELF;
+	public Player NEUTRAL;
+	public int SELF_ID;
 
 	protected static boolean enemyTerran = false;
 	protected static boolean enemyZerg = false;
 	protected static boolean enemyProtoss = false;
 
-	private static XVR lastInstance;
 	private XVRClient client;
 	private JNIBWAPI bwapi;
 
@@ -63,7 +65,7 @@ public class XVR {
 
 	@SuppressWarnings("static-access")
 	public XVR(XVRClient bwapiClient) {
-		this.lastInstance = this;
+		this.xvr = this;
 		this.client = bwapiClient;
 		this.bwapi = bwapiClient.getBwapi();
 	}
@@ -173,7 +175,7 @@ public class XVR {
 	// Getters
 
 	public static XVR getInstance() {
-		return lastInstance;
+		return xvr;
 	}
 
 	public XVRClient getClient() {
@@ -800,11 +802,11 @@ public class XVR {
 	}
 
 	public static String getEnemyRace() {
-		return ENEMY_RACE;
+		return xvr.ENEMY_RACE;
 	}
 
 	public static void setEnemyRace(String enemyRaceString) {
-		ENEMY_RACE = enemyRaceString;
+		xvr.ENEMY_RACE = enemyRaceString;
 
 		// String enemyBotName = ENEMY.getName().toLowerCase();
 		// System.out.println("BOT: " + ENEMY.getName());
@@ -816,7 +818,7 @@ public class XVR {
 
 		// ============
 		// Protoss
-		if ("Protoss".equals(ENEMY_RACE)) {
+		if ("Protoss".equals(xvr.ENEMY_RACE)) {
 			enemyProtoss = true;
 			TerranBarracks.enemyIsProtoss();
 
@@ -828,14 +830,14 @@ public class XVR {
 
 		// ============
 		// Zerg
-		else if ("Zerg".equals(ENEMY_RACE)) {
+		else if ("Zerg".equals(xvr.ENEMY_RACE)) {
 			enemyZerg = true;
 			TerranBarracks.enemyIsZerg();
 		}
 
 		// ============
 		// Terran
-		else if ("Terran".equals(ENEMY_RACE)) {
+		else if ("Terran".equals(xvr.ENEMY_RACE)) {
 			enemyTerran = true;
 			TerranBarracks.enemyIsTerran();
 		}
@@ -1094,8 +1096,8 @@ public class XVR {
 		return ENEMY;
 	}
 
-	public static void setENEMY(Player eNEMY) {
-		ENEMY = eNEMY;
+	public void setENEMY(Player eNEMY) {
+		xvr.ENEMY = eNEMY;
 	}
 
 	public ArrayList<Unit> getUnitsNonBuilding() {

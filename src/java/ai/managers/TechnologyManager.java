@@ -92,7 +92,7 @@ public class TechnologyManager {
 
 	@SuppressWarnings("unused")
 	private static int getTechLevelOf(UpgradeTypes technology) {
-		return XVR.SELF.upgradeLevel(technology.getID());
+		return xvr.SELF.upgradeLevel(technology.getID());
 	}
 
 	private static boolean isUpgradePossible(UpgradeTypes upgrade) {
@@ -100,7 +100,7 @@ public class TechnologyManager {
 	}
 
 	private static boolean isNotUpgraded(UpgradeTypes tech) {
-		return !XVR.SELF.hasResearched(tech.ordinal());
+		return !xvr.SELF.hasResearched(tech.ordinal());
 	}
 
 	private static boolean canUpgrade(UpgradeTypes tech) {
@@ -112,7 +112,7 @@ public class TechnologyManager {
 	}
 
 	private static boolean isNotResearched(TechTypes tech) {
-		return !XVR.SELF.hasResearched(tech.ordinal());
+		return !xvr.SELF.hasResearched(tech.ordinal());
 	}
 
 	private static boolean canResearch(TechTypes tech) {

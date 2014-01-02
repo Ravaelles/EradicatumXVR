@@ -289,20 +289,24 @@ public class MapExploration {
 	}
 
 	public static Unit getNearestEnemyBuilding() {
+		return getNearestEnemyBuilding(xvr.getFirstBase());
+	}
+
+	public static Unit getNearestEnemyBuilding(MapPoint nearestTo) {
 		if (enemyBuildingsDiscovered.isEmpty()) {
 			return null;
 		} else {
-			Unit ourBase = xvr.getFirstBase();
-
 			Unit closestBuilding = null;
 			double closestDistance = 99999;
 
 			for (Unit building : enemyBuildingsDiscovered.values()) {
-				if (building.getType().isOnGeyser()) {
+				if (building.getType().isOnGeyser()
+						&& (building.isInvincible() || building.getPlayerID() == xvr.NEUTRAL
+								.getID())) {
 					continue;
 				}
 
-				double distance = xvr.getDistanceBetween(building, ourBase);
+				double distance = xvr.getDistanceBetween(building, nearestTo);
 				if (closestDistance > distance && closestDistance != 0) {
 					closestBuilding = building;
 					closestDistance = distance;

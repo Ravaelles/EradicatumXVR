@@ -61,12 +61,14 @@ public class XVRClient implements BWAPIEventListener {
 
 		// ========================================
 
-		XVR.SELF = bwapi.getSelf();
-		XVR.SELF_ID = bwapi.getSelf().getID();
+		xvr.SELF = bwapi.getSelf();
+		xvr.SELF_ID = bwapi.getSelf().getID();
+
+		xvr.NEUTRAL = bwapi.getNeutralPlayer();
 
 		Player enemy = bwapi.getEnemies().get(0);
-		XVR.setENEMY(enemy);
-		XVR.ENEMY_ID = enemy.getID();
+		xvr.setENEMY(enemy);
+		xvr.ENEMY_ID = enemy.getID();
 
 		// ========================================
 

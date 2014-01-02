@@ -125,6 +125,7 @@ public class ArmyPlacing {
 		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
 			UnitActions.moveTo(unit, safePlace);
 		} else {
+			// UnitActions.moveAwayFromNearestEnemy(unit);
 			// UnitActions.moveTo(unit, safePlace);
 		}
 	}

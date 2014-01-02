@@ -196,7 +196,7 @@ public class BuildingManager {
 		// System.out.println("TEST " + building.isUnderAttack() + " " +
 		// !building.isCompleted());
 		if (!building.isCompleted() && isBuildingAttacked(building)) {
-			System.out.println("BUILDING ATTACKED");
+			System.out.println("BUILDING ATTACKED: " + building.getName());
 			boolean shouldCancelConstruction = false;
 
 			// If this is normal building and it's severely damaged.
@@ -228,7 +228,8 @@ public class BuildingManager {
 			}
 
 			if (shouldCancelConstruction) {
-				System.out.println("TEST CANCEL BASE BUT WILL PROBBALY FAIL");
+				System.out.println("CANCELLING CONSTRUCTION: " + building.getName() + " at "
+						+ building.toStringLocation());
 				xvr.getBwapi().cancelConstruction(building.getID());
 			}
 		}

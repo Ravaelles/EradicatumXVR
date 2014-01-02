@@ -184,7 +184,7 @@ public class StrengthRatio {
 		// Coordinate troops
 
 		// Ensure we're attacking in large groups
-		if (ourUnitsGroupSize >= 6 && ratio < 0.8) {
+		if (ourUnitsGroupSize >= 5 && ratio < 1.0) {
 			StrategyManager.waitForMoreUnits();
 		}
 		if (ourUnitsGroupSize >= UnitCounter.getNumberOfBattleUnitsCompleted() * 0.4
