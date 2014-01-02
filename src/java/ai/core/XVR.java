@@ -519,29 +519,35 @@ public class XVR {
 	}
 
 	public int countUnitsOursInRadius(MapPoint point, int tileRadius) {
-		return countUnitsInRadius(point, tileRadius, bwapi.getMyUnits());
+		// return countUnitsInRadius(point, tileRadius, bwapi.getMyUnits());
+		return getUnitsInRadius(point, tileRadius, bwapi.getMyUnits()).size();
 	}
 
 	public int countUnitsEnemyInRadius(MapPoint point, int tileRadius) {
-		return countUnitsInRadius(point, tileRadius, bwapi.getEnemyUnits());
+		// return countUnitsInRadius(point, tileRadius, getEnemyUnitsVisible());
+		return getUnitsInRadius(point, tileRadius, getEnemyUnitsVisible()).size();
 	}
 
 	public int countUnitsInRadius(int x, int y, int tileRadius, boolean onlyMyUnits) {
-		return countUnitsInRadius(new MapPointInstance(x, y), tileRadius,
-				(onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits()));
+		return getUnitsInRadius(new MapPointInstance(x, y), tileRadius,
+				(onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits())).size();
+		// return countUnitsInRadius(new MapPointInstance(x, y), tileRadius,
+		// (onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits()));
 	}
 
-	public int countUnitsInRadius(MapPoint point, int tileRadius, Collection<Unit> units) {
-		int result = 0;
-
-		for (Unit unit : units) {
-			if (!unit.getType().isBuilding() && getDistanceBetween(unit, point) <= tileRadius) {
-				result++;
-			}
-		}
-
-		return result;
-	}
+	// public int countUnitsInRadius(MapPoint point, int tileRadius,
+	// Collection<Unit> units) {
+	// int result = 0;
+	//
+	// for (Unit unit : units) {
+	// if (!unit.getType().isBuilding() && getDistanceBetween(unit, point) <=
+	// tileRadius) {
+	// result++;
+	// }
+	// }
+	//
+	// return result;
+	// }
 
 	public ArrayList<Unit> getArmyUnitsInRadius(int x, int y, int tileRadius, boolean onlyMyUnits) {
 		ArrayList<Unit> resultList = new ArrayList<Unit>();

@@ -346,9 +346,11 @@ public class UnitActions {
 		}
 
 		if (goTo != null) {
-			UnitActions.moveTo(unit, goTo);
-			// UnitActions.attackTo(unit, goTo);
-			return true;
+			if (xvr.getDistanceBetween(unit, goTo) >= 5.5) {
+				UnitActions.moveTo(unit, goTo);
+				// UnitActions.attackTo(unit, goTo);
+				return true;
+			}
 		}
 
 		return false;

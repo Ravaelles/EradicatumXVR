@@ -16,7 +16,7 @@ public class TerranFactory {
 	public static UnitTypes GOLIATH = UnitTypes.Terran_Goliath;
 
 	private static final int MINIMUM_VULTURES = 3;
-	private static final int MINIMUM_TANKS = 2;
+	public static final int MINIMUM_TANKS = 2;
 	private static final int MINIMUM_GOLIATHS_EARLY = 2;
 	private static final int MINIMUM_GOLIATHS_LATER = 6;
 
@@ -37,10 +37,17 @@ public class TerranFactory {
 		int factories = UnitCounter.getNumberOfUnits(buildingType);
 
 		if (UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType()) >= 2) {
-			boolean buildNext = factories == 0
-					|| (factories == 1 && !Constructing.weAreBuilding(buildingType));
-			if (buildNext
-					&& (UnitCounter.getNumberOfBattleUnits() >= (4 * factories) || factories == 0)) {
+			boolean weAreConstructing = Constructing.weAreBuilding(buildingType);
+			int battleUnits = UnitCounter.getNumberOfBattleUnits();
+
+			if (factories == 0 && !weAreConstructing && battleUnits >= 10) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				return true;
+			}
+
+			int machineShops = TerranMachineShop.getNumberOfUnits();
+			if (factories == 1 && machineShops >= 1 && !weAreConstructing
+					&& (battleUnits >= 18 || xvr.canAfford(280, 200))) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}

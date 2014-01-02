@@ -41,8 +41,8 @@ public class TerranMedic {
 
 		// ==============================
 		// Manually check for units to heal
-		ArrayList<Unit> possibleToHeal = xvr
-				.getUnitsInRadius(unit, 6, xvr.getUnitsPossibleToHeal());
+		ArrayList<Unit> possibleToHeal = xvr.getUnitsInRadius(unit, 12,
+				xvr.getUnitsPossibleToHeal());
 		for (Unit otherUnit : possibleToHeal) {
 			if (otherUnit.isWounded()) {
 				xvr.getBwapi().rightClick(unit, otherUnit);
@@ -60,7 +60,7 @@ public class TerranMedic {
 
 		// Try to go there, where's a marine/firebat not in a bunker
 		for (Unit infantry : nearestInfantry) {
-			if (!infantry.isLoaded()) {
+			if (infantry.isCompleted() && !infantry.isLoaded()) {
 				return infantry;
 			}
 		}

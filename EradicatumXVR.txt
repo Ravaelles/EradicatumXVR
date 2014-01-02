@@ -1,5 +1,9 @@
-dont produce medics / firebats if have machine shop and not researching siege
+Fsctory / HQ -> build, but nothing happens. WHY THE FUCK?!?
 
+
+
+Use highground near base
+Mine other bases
 
 buildings NOT RE BUILDED IF BUILDER DEAD
 

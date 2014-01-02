@@ -2,7 +2,6 @@ package ai.managers.units;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
@@ -75,28 +74,32 @@ public class AttackCloseTargets {
 			enemyToAttack = null;
 		}
 
-		if (enemyToAttack != null
-				&& (enemyToAttack.getType().isWorker() && xvr.getTimeSeconds() < 600 && xvr
-						.getDistanceBetween(enemyToAttack, xvr.getFirstBase()) < 30)) {
+		if (enemyToAttack != null) {
+			// if (enemyToAttack != null
+			// && (enemyToAttack.getType().isWorker() && xvr.getTimeSeconds() <
+			// 600 && xvr
+			// .getDistanceBetween(enemyToAttack, xvr.getFirstBase()) < 30)) {
 			enemyToAttack = null;
 
-			for (Iterator<Unit> iterator = enemyUnits.iterator(); iterator.hasNext();) {
-				Unit enemyUnit = (Unit) iterator.next();
-				if (enemyUnit.getType().isWorker()
-						&& xvr.getDistanceBetween(enemyToAttack, xvr.getFirstBase()) < 25) {
-					iterator.remove();
-				}
-			}
+			// for (Iterator<Unit> iterator = enemyUnits.iterator();
+			// iterator.hasNext();) {
+			// Unit enemyUnit = (Unit) iterator.next();
+			// if (enemyUnit.getType().isWorker()
+			// && xvr.getDistanceBetween(enemyToAttack, xvr.getFirstBase())
+			// < 25) {
+			// iterator.remove();
+			// }
+			// }
 
 			enemyToAttack = xvr.getUnitNearestFromList(unit, enemyUnits);
 		}
 
 		// Attack selected target if it's not too far away.
 		if (enemyToAttack != null && enemyToAttack.isDetected()) {
-			if (isUnitInPositionToAlwaysAttack(unit)) {
-				UnitActions.attackEnemyUnit(unit, enemyToAttack);
-				return true;
-			}
+			// if (isUnitInPositionToAlwaysAttack(unit)) {
+			UnitActions.attackEnemyUnit(unit, enemyToAttack);
+			// return true;
+			// }
 
 			Unit nearestEnemy = xvr.getUnitNearestFromList(unit,
 					xvr.getEnemyUnitsVisible(groundAttackCapable, airAttackCapable));
@@ -117,7 +120,7 @@ public class AttackCloseTargets {
 				}
 			}
 
-			if (nearestEnemy != null && isStrengthRatioFavorable) {
+			if (nearestEnemy != null && isStrengthRatioFavorable && nearestEnemy.isDetected()) {
 				UnitActions.attackEnemyUnit(unit, nearestEnemy);
 				return true;
 			}
@@ -130,7 +133,7 @@ public class AttackCloseTargets {
 
 		// ============================
 		// Workers Repairing are crucial to attack
-		Collection<Unit> enemyWorkers = xvr.getEnemyWorkersInRadius(5, unit);
+		Collection<Unit> enemyWorkers = xvr.getEnemyWorkersInRadius(7, unit);
 		if (enemyWorkers != null) {
 			for (Unit worker : enemyWorkers) {
 				if (worker.isRepairing()) {
@@ -143,14 +146,15 @@ public class AttackCloseTargets {
 		// ==============================
 		// Normal workers can be attacked with priority, but only early in the
 		// game follow them
-		int maxDistToWorker = xvr.getTimeSeconds() < 1000 ? 2 : 1;
-		Unit someEnemyWorker = xvr.getEnemyWorkerInRadius(maxDistToWorker, unit);
-		if (enemyWorker != null) {
-			if (xvr.getDistanceBetween(xvr.getFirstBase(), enemyWorker) > 30
-					|| xvr.getTimeSeconds() > 600) {
-				enemyWorker = someEnemyWorker;
-			}
-		}
+		// int maxDistToWorker = xvr.getTimeSeconds() < 1000 ? 2 : 1;
+		// Unit someEnemyWorker = xvr.getEnemyWorkerInRadius(maxDistToWorker,
+		// unit);
+		// if (enemyWorker != null) {
+		// if (xvr.getDistanceBetween(xvr.getFirstBase(), enemyWorker) > 30
+		// || xvr.getTimeSeconds() > 600) {
+		// enemyWorker = someEnemyWorker;
+		// }
+		// }
 
 		if (enemyWorker == null) {
 			return false;

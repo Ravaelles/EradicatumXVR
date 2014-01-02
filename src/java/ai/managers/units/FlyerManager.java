@@ -36,19 +36,20 @@ public class FlyerManager {
 
 		// ==============================
 		// Move away from other flyers, thus enhancing the range
-		boolean isAAUnitNearby = isAAUnitNearby(unit);
+		Unit aaUnitNearby = getAAUnitNearby(unit);
 		Unit otherFlyer = getNearestFlyerToFlyer(unit);
-		if (!isAAUnitNearby && otherFlyer != null
+		if (aaUnitNearby == null && otherFlyer != null
 				&& otherFlyer.distanceTo(unit) < MIN_DIST_BETWEEN_FLYERS) {
 			UnitActions.moveAwayFromUnitIfPossible(unit, otherFlyer, 5);
+			return;
 		}
 
 		// ==============================
 		// Avoid units like: photon cannons, missile turrets, goliaths, marines.
 		boolean isAABuildingNearby = xvr.isEnemyDefensiveAirBuildingNear(unit);
-		boolean shouldRunFromHere = isAABuildingNearby || isAAUnitNearby;
+		boolean shouldRunFromHere = isAABuildingNearby || aaUnitNearby != null;
 		if (shouldRunFromHere && !unit.isStartingAttack()) {
-			UnitActions.moveToSafePlace(unit);
+			UnitActions.moveAwayFromUnit(unit, aaUnitNearby);
 		}
 	}
 
@@ -58,15 +59,15 @@ public class FlyerManager {
 		return xvr.getUnitNearestFromList(unit, airUnits);
 	}
 
-	private static boolean isAAUnitNearby(MapPoint point) {
+	private static Unit getAAUnitNearby(MapPoint point) {
 		Unit nearestAntiAirUnit = xvr.getUnitNearestFromList(point, xvr.getEnemyAntiAirUnits());
 		if (nearestAntiAirUnit != null) {
 			int maxEnemyRange = nearestAntiAirUnit.getType().getAirWeapon().getMaxRangeInTiles();
-			if (point.distanceTo(nearestAntiAirUnit) <= maxEnemyRange + 1.5) {
-				return true;
+			if (point.distanceTo(nearestAntiAirUnit) <= maxEnemyRange + 2.2) {
+				return nearestAntiAirUnit;
 			}
 		}
-		return false;
+		return null;
 	}
 
 }

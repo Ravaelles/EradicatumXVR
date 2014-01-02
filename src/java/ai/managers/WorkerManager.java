@@ -49,6 +49,8 @@ public class WorkerManager {
 				continue;
 			}
 
+			checkStatusOfBuildingRepairing(worker);
+
 			// It may happen that this unit is supposed to repair other unit. If
 			// so, it's the priority.
 			if (!RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
@@ -62,6 +64,16 @@ public class WorkerManager {
 			}
 
 			_counter++;
+		}
+	}
+
+	private static void checkStatusOfBuildingRepairing(Unit worker) {
+		if (worker.isRepairing() && BuildingManager.getBuildingToRepairBy(worker) != null) {
+			Unit buildingToRepair = BuildingManager.getBuildingToRepairBy(worker);
+			boolean targetValid = buildingToRepair.isExists() && buildingToRepair.isWounded();
+			if (!targetValid) {
+				UnitActions.holdPosition(worker);
+			}
 		}
 	}
 
@@ -258,6 +270,10 @@ public class WorkerManager {
 	private static void handleProfessionalRepairer(Unit unit) {
 		Unit beHere = null;
 		professionalRepairer = unit;
+
+		if (unit.isRepairing() || unit.isConstructing()) {
+			return;
+		}
 
 		if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
 			MapPoint centerPoint = MapExploration.getNearestEnemyBuilding();

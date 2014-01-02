@@ -12,6 +12,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitCounter;
 import ai.managers.StrategyManager;
+import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranSiegeTank;
@@ -99,7 +100,8 @@ public class StrengthRatio {
 		}
 
 		// If no enemy can shoot at this unit right now, it's still safe
-		boolean isUnitSafeFromEnemyShootRange = isUnitSafeFromEnemyShootRange(unit);
+		boolean isUnitSafeFromEnemyShootRange = UnitManager.isUnitSafeFromEnemiesShootRange(unit,
+				_enemyUnits);
 		if (isUnitSafeFromEnemyShootRange && unit.getGroundWeaponCooldown() == 0) {
 			return STRENGTH_RATIO_FULLY_SAFE;
 		}
@@ -198,10 +200,28 @@ public class StrengthRatio {
 			return STRENGTH_RATIO_VERY_BAD;
 		}
 
+		// If units *very* nearby are retreating, also retreat. This can
+		// possibly limit units not being able to run from opponents (and
+		// dying), because their teammates are still attacking.
+		if (xvr.getTimeSeconds() < 500 && areVeryCloseUnitsReatreting(unit) && ratio < 2.0) {
+			return STRENGTH_RATIO_VERY_BAD;
+		}
+
 		// ========================================
 
 		_rangeBonus = 0;
 		return ratio;
+	}
+
+	private static boolean areVeryCloseUnitsReatreting(Unit unit) {
+		ArrayList<Unit> veryCloseTeammates = xvr.getUnitsInRadius(unit, 3.6, _ourUnits);
+		veryCloseTeammates.remove(unit);
+		for (Unit teammate : veryCloseTeammates) {
+			if (teammate.isRunningFromEnemy()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean weHaveTankProtectors() {
@@ -221,19 +241,6 @@ public class StrengthRatio {
 			}
 		}
 		return xvr.getDistanceBetween(xvr.getFirstBase(), unit) >= 24;
-	}
-
-	private static boolean isUnitSafeFromEnemyShootRange(Unit unit) {
-		// int ourRange = unit.getType().getGroundWeapon().getMinRangeInTiles();
-
-		for (Unit enemy : _enemyUnits) {
-			int enemyRange = enemy.getType().getGroundWeapon().getMinRangeInTiles();
-			if (unit.distanceTo(enemy) < 1.5 + enemyRange) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	private static boolean shouldGoBackNearBunker(Unit unit) {
@@ -349,7 +356,7 @@ public class StrengthRatio {
 				}
 				if (type.isDragoon()) {
 					// dragoons++;
-					total += attackValue * 0.4;
+					total += attackValue * 0.6;
 				}
 
 				// Handle defensive buildings

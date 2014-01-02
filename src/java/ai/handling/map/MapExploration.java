@@ -91,7 +91,7 @@ public class MapExploration {
 			return null;
 		}
 
-		double mostFarDistance = 99999;
+		double mostNearDistance = 99999;
 		BaseLocation nearestObject = null;
 
 		ArrayList<BaseLocation> baseLocations = new ArrayList<>();
@@ -99,16 +99,10 @@ public class MapExploration {
 		baseLocations.remove(getOurBaseLocation());
 		Collections.shuffle(baseLocations);
 
-		boolean onlyStartLocations = baseLocationsDiscovered.size() < getNumberOfStartLocations(baseLocations);
-
 		for (BaseLocation object : baseLocations) {
-			if (onlyStartLocations && !object.isStartLocation()) {
-				continue;
-			}
-
-			double distance = xvr.getDistanceBetween(unit, object.getX(), object.getY());
-			if (distance < mostFarDistance) {
-				mostFarDistance = distance;
+			double distance = xvr.getDistanceBetween(unit, object);
+			if (distance < mostNearDistance) {
+				mostNearDistance = distance;
 				nearestObject = object;
 			}
 		}

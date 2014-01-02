@@ -299,7 +299,9 @@ public class Explorer {
 			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
 				_explorerForBackOfBase = TerranCommandCenter.getMineralWorkersNearBase(
 						xvr.getFirstBase()).get(0);
-				UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
+				if (xvr.getDistanceBetween(_explorerForBackOfBase, backOfTheBasePoint) <= 30) {
+					UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
+				}
 			}
 			if (backOfTheBasePoint == null) {
 				_exploredBackOfMainBase = true;
@@ -309,8 +311,9 @@ public class Explorer {
 				_exploredBackOfMainBase = true;
 				MapPoint nearBaseLoc = MapExploration
 						.getNearestBaseLocation(_explorerForBackOfBase);
-				UnitActions.moveTo(_explorerForBackOfBase, nearBaseLoc);
-				// System.out.println("_exploredBackOfMainBase");
+				if (xvr.getDistanceBetween(_explorerForBackOfBase, nearBaseLoc) <= 30) {
+					UnitActions.moveTo(_explorerForBackOfBase, nearBaseLoc);
+				}
 			}
 			// return true;
 		}

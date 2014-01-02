@@ -72,7 +72,11 @@ public class Constructing {
 
 		// Standard building
 		else {
-			return findTileForStandardBuilding(building);
+			MapPoint buildTile = findTileForStandardBuilding(building);
+			if (buildTile == null) {
+				System.out.println("# No tile found for: " + building.getType().getName());
+			}
+			return buildTile;
 		}
 	}
 
@@ -189,7 +193,7 @@ public class Constructing {
 
 	public static MapPoint getLegitTileToBuildNear(int builderID, int buildingTypeID, int tileX,
 			int tileY, int minimumDist, int maximumDist) {
-		// JNIBWAPI bwapi = XVR.getInstance().getBwapi();
+		// JNIBWAPI bwapi = XVR.getInstance().wgetBwapi();
 		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
 		boolean isBase = type.isBase();
 		boolean isDepot = type.isSupplyDepot();
@@ -197,7 +201,7 @@ public class Constructing {
 
 		// boolean skipCheckingIsFreeFromUnits = type.isBase();
 		boolean skipCheckingIsFreeFromUnits = false;
-		boolean skipCheckingRegion = xvr.getTimeSeconds() > 400 || isBase || type.isBunker()
+		boolean skipCheckingRegion = xvr.getTimeSeconds() > 250 || isBase || type.isBunker()
 				|| type.isMissileTurret() || type.isAddon();
 
 		int currentDist = minimumDist;
@@ -302,14 +306,13 @@ public class Constructing {
 		MapPoint center = new MapPointInstance(place.getX() + wHalf, place.getY() + hHalf);
 
 		// Define buildings that are near this build tile
-		ArrayList<Unit> buildingsNearby = xvr.getUnitsInRadius(center, maxDimension + 1,
-				xvr.getUnitsBuildings());
+		ArrayList<Unit> buildingsNearby = xvr.getUnitsInRadius(center, 10, xvr.getUnitsBuildings());
 
 		// If this building can have an Add-On, it is essential we keep place
 		// for it.
 		int spaceBonus = 0;
 		if (type.canHaveAddOn()) {
-			spaceBonus += 2;
+			// spaceBonus += 2;
 			center = center.translate(64, 0);
 		}
 
@@ -334,10 +337,10 @@ public class Constructing {
 			int bonus = spaceBonus;
 			UnitType unitType = unit.getType();
 			if (type.canHaveAddOn()) {
-				bonus++;
+				// bonus++;
 				dx = 64;
 				if (unitType.isBase()) {
-					bonus += 3;
+					bonus += 4;
 				}
 			}
 
@@ -358,7 +361,7 @@ public class Constructing {
 		Unit nearestGeyser = xvr.getUnitNearestFromList(point, xvr.getGeysersUnits());
 		double distToGeyser = xvr.getDistanceBetween(nearestGeyser, point);
 		Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
-		if (distToGeyser <= 5 + minDistBonus) {
+		if (distToGeyser <= 7 + minDistBonus) {
 			double distBaseToGeyser = xvr.getDistanceBetween(nearestBase, nearestGeyser);
 			if (distBaseToGeyser >= distToGeyser + minDistBonus) {
 				return false;
@@ -468,21 +471,24 @@ public class Constructing {
 		// ==============================
 
 		// Try to find proper choke to reinforce
-		ChokePoint choke = MapExploration.getImportantChokePointNear(buildTile);
+		// ChokePoint choke =
+		// MapExploration.getImportantChokePointNear(buildTile);
 
 		// Get point in between choke and base
-		MapPointInstance point = MapPointInstance.getMiddlePointBetween(buildTile, choke);
+		// MapPointInstance point =
+		// MapPointInstance.getMiddlePointBetween(buildTile, choke);
 
-		int bunkersNearby = xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 13,
-				point, true);
+		// int bunkersNearby =
+		// xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 16,
+		// point, true);
 
 		// ==============================
 		// Ensure there's a bunker nearby
-		if (bunkersNearby == 0) {
-			baseInterrupted = true;
-			building = TerranBunker.getBuildingType();
-			buildTile = TerranBunker.findTileForBunker();
-		}
+		// if (bunkersNearby == 0) {
+		// baseInterrupted = true;
+		// building = TerranBunker.getBuildingType();
+		// buildTile = TerranBunker.findTileForBunker();
+		// }
 
 		// ==============================
 		// We can build the base

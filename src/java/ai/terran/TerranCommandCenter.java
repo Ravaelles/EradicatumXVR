@@ -9,8 +9,10 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
+import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.BotStrategyManager;
+import ai.managers.BuildingManager;
 import ai.managers.StrategyManager;
 import ai.managers.WorkerManager;
 import ai.managers.constructing.Constructing;
@@ -45,19 +47,25 @@ public class TerranCommandCenter {
 	}
 
 	public static boolean shouldBuild() {
+		if (Constructing.weAreBuilding(buildingType)) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			return false;
+		}
+
 		int bases = UnitCounter.getNumberOfUnits(buildingType);
-		int barracks = UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType());
+		// int barracks =
+		// UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType());
 		int barracksCompleted = UnitCounter.getNumberOfUnitsCompleted(TerranBarracks
 				.getBuildingType());
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
-		if (xvr.canAfford(750)) {
+		if (xvr.canAfford(550) && battleUnits >= 11) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
 
 		if (xvr.getTimeSeconds() >= 390 && bases <= 1
-				&& !Constructing.weAreBuilding(UnitManager.BASE)) {
+				&& !Constructing.weAreBuilding(UnitManager.BASE) && battleUnits >= 11) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
@@ -72,39 +80,40 @@ public class TerranCommandCenter {
 			return false;
 		}
 
-		int quickUnitsThreshold = BotStrategyManager.isExpandWithBunkers() ? 4 : 13;
-
-		if (battleUnits >= quickUnitsThreshold && xvr.canAfford(350) || xvr.canAfford(500)) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
-		}
+		// int quickUnitsThreshold = BotStrategyManager.isExpandWithBunkers() ?
+		// 4 : 13;
+		// if (battleUnits >= quickUnitsThreshold && xvr.canAfford(350) ||
+		// xvr.canAfford(500)) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
 
 		// FORCE quick expansion if we're rich
-		if (xvr.canAfford(330)) {
-			if (barracks >= 3 && battleUnits >= (BotStrategyManager.isExpandWithBunkers() ? 7 : 15)
-					&& !XVR.isEnemyTerran()) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-
-			int thresholdBattleUnits = TerranBarracks.MIN_UNITS_FOR_DIFF_BUILDING - 4;
-			if (battleUnits < thresholdBattleUnits || !xvr.canAfford(350)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
-			} else {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-		}
-		if (xvr.canAfford(410)) {
-			if (battleUnits < 8) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
-			} else {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-		}
+		// if (xvr.canAfford(380)) {
+		// if (barracks >= 2 && battleUnits >= 13 && !XVR.isEnemyTerran()) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		//
+		// int thresholdBattleUnits = TerranBarracks.MIN_UNITS_FOR_DIFF_BUILDING
+		// - 4;
+		// if (battleUnits < thresholdBattleUnits || !xvr.canAfford(350)) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// return false;
+		// } else {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		// }
+		// if (xvr.canAfford(410)) {
+		// if (battleUnits < 11) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// return false;
+		// } else {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		// }
 
 		// Initially, we must wait to have at least 3 barracks to build first
 		// base.
@@ -158,8 +167,49 @@ public class TerranCommandCenter {
 
 		// We have more than optimal number workers at base
 		else {
-			// tooManyWorkersAtBase(base);
+			trySendingWorkersToOtherBaseFrom(base);
 		}
+	}
+
+	private static void trySendingWorkersToOtherBaseFrom(Unit base) {
+		double mineralWorkersToOptimalRatio = defineNumberOfWorkersToOptimalNumberRatioFor(base);
+
+		for (Unit otherBase : getBases()) {
+			boolean baseReady = (otherBase.isCompleted() || BuildingManager
+					.countConstructionProgress(buildingType) >= 86);
+
+			if (!otherBase.equals(base) && baseReady && otherBase.distanceTo(base) <= 20) {
+				double otherBaseRatio = defineNumberOfWorkersToOptimalNumberRatioFor(otherBase);
+				if (otherBaseRatio + 0.2 <= mineralWorkersToOptimalRatio) {
+					sendOneWorkerFromTo(base, otherBase);
+					return;
+				}
+			}
+		}
+	}
+
+	private static void sendOneWorkerFromTo(Unit base, Unit otherBase) {
+		Unit chosenWorker = null;
+		for (Unit worker : getWorkersNearBase(base)) {
+			if (worker.isGatheringMinerals() && !worker.isCarryingMinerals()) {
+				chosenWorker = worker;
+				break;
+			}
+		}
+
+		if (chosenWorker != null) {
+			UnitActions.moveTo(chosenWorker, otherBase);
+		}
+	}
+
+	private static double defineNumberOfWorkersToOptimalNumberRatioFor(Unit base) {
+		// int gasGatherersForBase = getNumberOfGasGatherersForBase(base);
+		// int numRequiredWorkers = WORKERS_PER_GEYSER - gasGatherersForBase;
+		int optimalMineralWorkersAtBase = getOptimalMineralGatherersAtBase(base)
+				- WORKERS_PER_GEYSER;
+		double mineralWorkersToOptimalRatio = (double) getWorkersNearBase(base).size()
+				/ optimalMineralWorkersAtBase;
+		return mineralWorkersToOptimalRatio;
 	}
 
 	private static void checkNumberOfGasWorkersAt(Unit base) {
@@ -282,8 +332,6 @@ public class TerranCommandCenter {
 			_lastTimeCalculatedTileForBase = now;
 		}
 
-		CodeProfiler.startMeasuring("New base");
-
 		// ===============================
 		BaseLocation nearestFreeBaseLocation = getNearestFreeBaseLocation();
 		// System.out.println("BaseLocation nearestFreeBaseLocation = " +
@@ -297,8 +345,10 @@ public class TerranCommandCenter {
 			// Debug.message(xvr, "Tile for new base: " + point.getTx() + ","
 			// + point.getTy());
 			// System.out.println("Tile for new base: " + point);
+			CodeProfiler.startMeasuring("New base");
 			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(
 					xvr.getOptimalBuilder(nearestFreeBaseLocation), buildingType, point, 0, 30);
+			CodeProfiler.endMeasuring("New base");
 			// System.out.println(" processed: " + _cachedNextBaseTile);
 			// System.out.println();
 		} else {
@@ -308,8 +358,6 @@ public class TerranCommandCenter {
 			// }
 			_cachedNextBaseTile = null;
 		}
-
-		CodeProfiler.endMeasuring("New base");
 
 		return _cachedNextBaseTile;
 	}
@@ -381,6 +429,17 @@ public class TerranCommandCenter {
 		int depots = UnitCounter.getNumberOfUnits(TerranSupplyDepot.getBuildingType());
 		boolean weAreBuildingDepot = Constructing
 				.weAreBuilding(TerranSupplyDepot.getBuildingType());
+
+		// =========================================================
+		// ANTI ZERG-RUSH
+		if (XVR.isEnemyZerg()) {
+			if (workers >= 7 && TerranBunker.getNumberOfUnits() == 0
+					&& !Constructing.weAreBuilding(TerranBunker.getBuildingType())) {
+				return false;
+			}
+		}
+
+		// =========================================================
 
 		if (workers >= MAX_WORKERS) {
 			return false;

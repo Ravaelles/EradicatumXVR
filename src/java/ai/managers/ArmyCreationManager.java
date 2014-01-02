@@ -12,6 +12,7 @@ import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranFactory;
+import ai.terran.TerranMachineShop;
 import ai.terran.TerranStarport;
 
 public class ArmyCreationManager {
@@ -23,20 +24,34 @@ public class ArmyCreationManager {
 
 	public static void act() {
 		if (weShouldBuildBattleUnits()) {
+			boolean shouldResearchSiege = TerranMachineShop.getNumberOfUnitsCompleted() > 0
+					&& TechnologyManager.isSiegeModeResearchPossible() && !xvr.canAfford(300, 200);
 
 			// FACTORIES
 			ArrayList<Unit> factories = TerranFactory.getAllObjects();
-			if (!factories.isEmpty()) {
+			if (!factories.isEmpty() && !shouldResearchSiege) {
 				for (Unit factory : factories) {
 					TerranFactory.act(factory);
 				}
 			}
 
+			int infantry = UnitCounter.getNumberOfInfantryUnits();
+			boolean fewInfantry = infantry <= MINIMUM_MARINES;
+			boolean weShouldBuildInfantryUnits = factories.isEmpty() || xvr.canAfford(100)
+					|| fewInfantry;
+			// if (weShouldBuildInfantryUnits) {
+			// boolean tooFewTanks = TerranSiegeTank.getNumberOfUnits() <
+			// TerranFactory.MINIMUM_TANKS;
+			// if (tooFewTanks || shouldResearchSiege) {
+			// weShouldBuildInfantryUnits = false;
+			// }
+			// }
+
+			// if (weShouldBuildInfantryUnits) {
+
 			// BARRACKS
-			if (factories.isEmpty() || xvr.canAfford(100)) {
-				int infantry = UnitCounter.getNumberOfInfantryUnits();
+			if (weShouldBuildInfantryUnits) {
 				boolean noFactories = TerranFactory.getNumberOfUnitsCompleted() == 0;
-				boolean fewInfantry = infantry <= MINIMUM_MARINES;
 				boolean haveFreeFactorySpots = TerranFactory.getOneNotBusy() != null;
 				boolean shouldBuildInfantry = fewInfantry || noFactories
 						|| (!haveFreeFactorySpots && fewInfantry);
@@ -49,6 +64,7 @@ public class ArmyCreationManager {
 					}
 				}
 			}
+			// }
 
 			// STARPORTS
 			ArrayList<Unit> starports = TerranStarport.getAllObjects();
@@ -73,7 +89,7 @@ public class ArmyCreationManager {
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
 		if (xvr.getTimeSeconds() >= 350 && TerranFactory.getNumberOfUnits() == 0
-				&& battleUnits >= 10) {
+				&& battleUnits >= 10 && !xvr.canAfford(560)) {
 			return false;
 		}
 

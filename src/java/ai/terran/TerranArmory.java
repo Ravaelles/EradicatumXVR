@@ -28,8 +28,10 @@ public class TerranArmory {
 
 		if (armories == 0 && factories >= 2 && !weAreBuilding
 				&& !TechnologyManager.isSiegeModeResearchPossible()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			if (UnitCounter.getNumberOfBattleUnits() >= 21) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				return true;
+			}
 		}
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);

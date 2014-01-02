@@ -21,10 +21,15 @@ public class TerranAcademy {
 	}
 
 	public static boolean shouldBuild() {
+		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
+		if (weAreBuilding) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			return false;
+		}
+
 		// int battleUnits = UnitCounter.getNumberOfBattleUnits();
 		int barracks = TerranBarracks.getNumberOfUnitsCompleted();
 		int academies = getNumberOfUnits();
-		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 
 		if (academies == 0 && barracks >= 2 && !weAreBuilding) {
 			// UnitCounter.getNumberOfInfantryUnits() >= 4) {

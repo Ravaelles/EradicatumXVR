@@ -36,7 +36,7 @@ public class ArmyPlacing {
 
 		// =====================================================
 		// If is infantry, try go to nearest medic with energy
-		if (unit.getType().isTerranInfantry()) {
+		if (unit.getType().isTerranInfantry() && unit.isWounded()) {
 			Unit medicThatCanHealUs = defineRendezvousMedicIfPossible(unit);
 			if (medicThatCanHealUs != null) {
 				runTo = medicThatCanHealUs;

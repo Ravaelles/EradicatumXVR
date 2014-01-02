@@ -37,7 +37,7 @@ public class TechnologyManager {
 		// TOP PRIORITY
 		// Technologies that are crucial and we don't need to have second base
 		// in order to upgrade them
-		boolean isPossibleSiegeResearch = !isResearchPossible(TANK_SIEGE_MODE);
+		boolean isPossibleSiegeResearch = isResearchPossible(TANK_SIEGE_MODE);
 
 		// Tank Siege Mode
 		technology = TANK_SIEGE_MODE;
@@ -47,7 +47,7 @@ public class TechnologyManager {
 
 		// Spider Mines
 		technology = SPIDER_MINES;
-		if (!isPossibleSiegeResearch && vultures >= 2 && isResearchPossible(technology)) {
+		if (!isPossibleSiegeResearch && vultures >= 3 && isResearchPossible(technology)) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 
@@ -59,7 +59,7 @@ public class TechnologyManager {
 
 		// Stim Packs
 		technology = STIMPACKS;
-		if (!isPossibleSiegeResearch && marines >= 8 && isResearchPossible(technology)) {
+		if (!isPossibleSiegeResearch && marines >= 9 && isResearchPossible(technology)) {
 			tryToResearch(TerranAcademy.getOneNotBusy(), technology);
 		}
 

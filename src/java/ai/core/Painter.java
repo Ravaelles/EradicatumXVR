@@ -15,6 +15,7 @@ import ai.handling.map.MapPoint;
 import ai.handling.other.NukeHandling;
 import ai.handling.units.UnitCounter;
 import ai.managers.ArmyCreationManager;
+import ai.managers.BuildingManager;
 import ai.managers.StrategyManager;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
@@ -383,6 +384,7 @@ public class Painter {
 
 				// CONSTRUCTING: display building name
 				if (u.isConstructing()) {
+					paintConstructionProgress(u);
 					String name = (UnitType.getUnitTypesByID(u.getBuildTypeID()) + "").replace(
 							"Terran_", "");
 					bwapi.drawText(u.getX() - 30, u.getY(), BWColor.getToStringHex(BWColor.GREY)
@@ -401,10 +403,51 @@ public class Painter {
 				if (u.isTraining()) {
 					String name = (bwapi.getUnitCommandType(u.getLastCommandID()).getName() + "")
 							.replace("Terran_", "");
-					bwapi.drawText(u.getX() - 30, u.getY(), BWColor.getToStringHex(BWColor.GREY)
-							+ "-> " + name, false);
+					bwapi.drawText(u.getX() - 30, u.getY() + 10,
+							BWColor.getToStringHex(BWColor.GREY) + "-> " + name, false);
+				}
+
+				int enemiesNearby = xvr.countUnitsEnemyInRadius(u, 11);
+				if (enemiesNearby > 0) {
+					String string = enemiesNearby + " enemies";
+					bwapi.drawText(u.getX() - string.length() * 4, u.getY(),
+							BWColor.getToStringHex(BWColor.RED) + string, false);
+				}
+				if (u.getType().isBunker()) {
+					int repairers = BuildingManager.countNumberOfRepairersForBuilding(u);
+					if (repairers > 0) {
+						String repairersString = repairers + " repairers";
+						bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 10,
+								BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
+					}
 				}
 			}
+		}
+	}
+
+	private static void paintConstructionProgress(Unit unit) {
+		if (!unit.isCompleted()) {
+			JNIBWAPI bwapi = XVR.getInstance().getBwapi();
+			String stringToDisplay;
+
+			int labelMaxWidth = 20;
+			int labelHeight = 4;
+			int labelLeft = unit.getX() - labelMaxWidth / 2;
+			int labelTop = unit.getY() + 23;
+
+			int labelProgress = 1 + 99 * unit.getHP() / unit.getType().getMaxHitPoints();
+			stringToDisplay = BWColor.getToStringHex(BWColor.YELLOW) + "(" + labelProgress + "%)";
+
+			// Paint box
+			bwapi.drawBox(labelLeft, labelTop, labelLeft + labelProgress / labelMaxWidth, labelTop
+					+ labelHeight, BWColor.GREY, true, false);
+
+			// Paint box borders
+			bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight,
+					BWColor.BLACK, false, false);
+
+			// Paint label
+			bwapi.drawText(labelLeft + labelMaxWidth - 4, labelTop, stringToDisplay, false);
 		}
 	}
 

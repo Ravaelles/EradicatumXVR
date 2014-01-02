@@ -12,6 +12,7 @@ import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.BotStrategyManager;
+import ai.managers.BuildingManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
@@ -27,13 +28,24 @@ public class TerranBunker {
 	private static MapPoint _placeToReinforceWithCannon = null;
 
 	public static boolean shouldBuild() {
-		if (UnitCounter.weHaveBuilding(TerranBarracks.getBuildingType())) {
+		if (UnitCounter.weHaveBuilding(TerranBarracks.getBuildingType())
+				|| BuildingManager.countConstructionProgress(TerranBarracks.getBuildingType()) >= 95) {
 			int maxCannonStack = calculateMaxBunkerStack();
 
 			int bunkers = UnitCounter.getNumberOfUnits(type);
 			int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
 			if (bunkers == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(type, true);
+				return true;
+			}
+
+			if (battleUnits <= 5) {
+				ShouldBuildCache.cacheShouldBuildInfo(type, false);
+				return false;
+			}
+
+			if (bunkers == 1 && battleUnits >= 6) {
 				ShouldBuildCache.cacheShouldBuildInfo(type, true);
 				return true;
 			}
@@ -47,11 +59,6 @@ public class TerranBunker {
 			if (weAreBuilding) {
 				ShouldBuildCache.cacheShouldBuildInfo(type, false);
 				return false;
-			}
-
-			if (bunkers == 1 && battleUnits >= 6) {
-				ShouldBuildCache.cacheShouldBuildInfo(type, true);
-				return true;
 			}
 
 			// // If main base isn't protected at all, build some bunkers
@@ -364,8 +371,10 @@ public class TerranBunker {
 		int maximumDistance = 100;
 		Unit nearBunker = xvr.getUnitOfTypeNearestTo(type, location, true);
 		if (getNumberOfUnits() == 1) {
-			nearBunker = xvr.getUnitsOfType(type).get(0);
-			System.out.println("NEAR BUNKER: " + nearBunker.toStringLocation());
+			ArrayList<Unit> unitsOfType = xvr.getUnitsOfType(type);
+			if (!unitsOfType.isEmpty()) {
+				nearBunker = unitsOfType.get(0);
+			}
 		}
 
 		// if (nearBunker == null) {

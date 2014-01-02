@@ -29,7 +29,7 @@ public class CodeProfiler {
 		if (!aspectsLength.containsKey(title)) {
 			aspectsLength.put(title, (double) measured);
 		} else {
-			aspectsLength.put(title, aspectsLength.get(title) * 0.8 + measured * 0.2);
+			aspectsLength.put(title, aspectsLength.get(title) * 0.6 + measured * 0.4);
 		}
 	}
 

@@ -1,5 +1,7 @@
 package ai.managers.units;
 
+import java.util.Collection;
+
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
@@ -294,6 +296,19 @@ public class UnitManager {
 		if (!unit.isWounded()) {
 			unit.setBeingRepaired(false);
 		}
+	}
+
+	public static boolean isUnitSafeFromEnemiesShootRange(Unit unit, Collection<Unit> enemies) {
+		// int ourRange = unit.getType().getGroundWeapon().getMinRangeInTiles();
+
+		for (Unit enemy : enemies) {
+			int enemyRange = enemy.getType().getGroundWeapon().getMinRangeInTiles();
+			if (unit.distanceTo(enemy) < 1.5 + enemyRange) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 }

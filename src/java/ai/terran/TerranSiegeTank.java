@@ -69,10 +69,22 @@ public class TerranSiegeTank {
 	}
 
 	private static boolean didntJustUnsiege(Unit unit) {
-		return unit.getLastTimeSieged() + 2 <= xvr.getTimeSeconds();
+		return unit.getLastTimeSieged() + 5 <= xvr.getTimeSeconds();
 	}
 
 	private static void actWhenSieged(Unit unit) {
+		unit.setLastTimeSieged(xvr.getTimeSeconds());
+
+		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		double nearestEnemyDist = nearestEnemy != null ? nearestEnemy.distanceTo(unit) : -1;
+
+		boolean neighborhoodDangerous = nearestEnemyDist >= 0 && nearestEnemyDist <= 2.5
+				&& unit.getStrengthRatio() < 1.8;
+		// boolean chancesRatherBad = unit.getStrengthRatio() < 1.1;
+		if (neighborhoodDangerous) {
+			unit.unsiege();
+			return;
+		}
 
 		// If tank from various reasons shouldn't be here, unsiege.
 		if (!shouldSiege(unit) && !unit.isStartingAttack()) {
@@ -89,9 +101,7 @@ public class TerranSiegeTank {
 					UnitActions.attackTo(unit, targetForTank);
 				}
 			} else {
-				Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
 				if (nearestEnemy != null) {
-					double nearestEnemyDist = nearestEnemy.distanceTo(unit);
 					if (nearestEnemyDist >= 0 && (nearestEnemyDist < 2 || nearestEnemyDist <= 7)) {
 						infoTankIsConsideringUnsieging(unit);
 					}
@@ -106,7 +116,7 @@ public class TerranSiegeTank {
 
 	private static boolean isUnsiegingIdeaTimerExpired(Unit unit) {
 		if (unsiegeIdeasMap.containsKey(unit)) {
-			if (xvr.getTimeSeconds() - unsiegeIdeasMap.get(unit) >= 4) {
+			if (xvr.getTimeSeconds() - unsiegeIdeasMap.get(unit) >= 8) {
 				return true;
 			}
 		}
@@ -120,9 +130,9 @@ public class TerranSiegeTank {
 	}
 
 	private static boolean shouldSiege(Unit unit) {
-		boolean isEnemyQuiteNear = (_nearestEnemyDist > 0 && _nearestEnemyDist <= (_nearestEnemy
+		boolean isEnemyNearShootRange = (_nearestEnemyDist > 0 && _nearestEnemyDist <= (_nearestEnemy
 				.getType().isBuilding() ? 10.6 : 13));
-		if ((_isUnitWhereItShouldBe && notTooManySiegedInArea(unit)) || isEnemyQuiteNear) {
+		if ((_isUnitWhereItShouldBe && notTooManySiegedInArea(unit)) || isEnemyNearShootRange) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)) {
 				return true;
 			}

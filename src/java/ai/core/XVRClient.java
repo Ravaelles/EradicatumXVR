@@ -113,9 +113,7 @@ public class XVRClient implements BWAPIEventListener {
 	}
 
 	public void matchEnded(boolean winner) {
-		Painter.message(xvr, "###############", false);
-		Painter.message(xvr, "## For Adun! ##", false);
-		Painter.message(xvr, "###############", false);
+		Painter.message(xvr, "## Rock 'n' Roll! ##", false);
 	}
 
 	public void sendText(String text) {

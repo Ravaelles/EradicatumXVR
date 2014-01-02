@@ -6,6 +6,7 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
+import ai.managers.TechnologyManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.units.UnitManager;
@@ -31,90 +32,46 @@ public class TerranBarracks {
 	private static int firebatBuildRatio = 0;
 	private static int medicBuildRatio = 19;
 
-	// private static int highTemplarBuildRatio = 19;
-
-	// private static final int MINIMAL_HIGH_TEMPLARS = 2;
-	// private static final int MAX_ZEALOTS = 5;
+	// =========================================================
 
 	public static boolean shouldBuild() {
 		int barracks = UnitCounter.getNumberOfUnits(buildingType);
 		int bases = UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE);
+
+		boolean enoughBarracks = barracks >= 2;
+
+		// =========================================================
+		// ANTI-ZERGLING RUSH
+
+		// If enemy is Zerg make sure you build one barracks, one bunker.
+		// Normally it would be: 2 x Barracks, only then bunker.
+		if (XVR.isEnemyZerg()) {
+			if (barracks == 0 && !Constructing.weAreBuilding(buildingType)) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				return true;
+			}
+
+			if (barracks == 1 && TerranBunker.getNumberOfUnits() == 0) {
+				enoughBarracks = true;
+			}
+		}
+
+		// =========================================================
 
 		if (TerranCommandCenter.shouldBuild() && barracks >= (2 * bases)) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			return false;
 		}
 
-		if (TerranSupplyDepot.getNumberOfUnits() > 0 && barracks < 2) {
+		if ((TerranSupplyDepot.getNumberOfUnits() > 0 || xvr.canAfford(142)) && !enoughBarracks) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
-
-		// // ### Version ### Expansion with cannons
-		// if (BotStrategyManager.isExpandWithBunkers()) {
-		// int bunkers =
-		// UnitCounter.getNumberOfUnitsCompleted(TerranBunker.getBuildingType());
-		// if ((bunkers >= TerranBunker.MAX_STACK || xvr.canAfford(300)) &&
-		// barracks <= 2
-		// && xvr.canAfford(150)) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		// }
-
-		// // ### Version ### Expansion with gateways
-		// if (BotStrategyManager.isExpandWithBarracks()) {
-		// if (barracks <= 2 && (isMajorityOfBarracksTrainingUnits()) &&
-		// xvr.canAfford(134)) {
-		// if (barracks < 2) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		// } else {
-		// if (!UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType())) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		// return false;
-		// }
-		// }
-		// }
 
 		if (bases <= 1) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			return false;
 		}
-
-		// if (barracks >= 3 && xvr.canAfford(140)) {
-		// if (isMajorityOfBarracksTrainingUnits()) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		// }
-		//
-		// // 3 barracks or more
-		// if (barracks >= 3 && (barracks <= 5 || xvr.canAfford(520))) {
-		// if (isMajorityOfBarracksTrainingUnits()) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		// }
-		// if (barracks >= 2 && bases >= 2
-		// && UnitCounter.weHaveBuilding(UnitTypes.Protoss_Observatory)
-		// && UnitCounter.weHaveBuilding(UnitTypes.Protoss_Citadel_of_Adun)) {
-		// int HQs = UnitCounter.getNumberOfUnits(UnitManager.BASE);
-		// if ((double) barracks / HQs <= 2 && xvr.canAfford(560)) {
-		// if (isMajorityOfBarracksTrainingUnits()) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		// }
-		// }
-		//
-		// if (xvr.canAfford(1500)) {
-		// if (isMajorityOfBarracksTrainingUnits()) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		// }
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		return false;
@@ -157,6 +114,16 @@ public class TerranBarracks {
 	}
 
 	public static void act(Unit barracks) {
+
+		// If we have very few tanks, always leave cash for one.
+		if (TerranMachineShop.getNumberOfUnitsCompleted() > 0
+				&& TerranSiegeTank.getNumberOfUnits() < TerranFactory.MINIMUM_TANKS
+				&& TerranFactory.getOneNotBusy() != null) {
+			if (!xvr.canAfford(200) && UnitCounter.getNumberOfInfantryUnits() >= 8) {
+				return;
+			}
+		}
+
 		int[] buildingQueueDetails = Constructing.shouldBuildAnyBuilding();
 		int freeMinerals = xvr.getMinerals();
 		int freeGas = xvr.getGas();
@@ -165,6 +132,16 @@ public class TerranBarracks {
 			freeGas -= buildingQueueDetails[1];
 		}
 
+		// =====================================================
+		// Check if shouldn't spare resources for Siege Research
+		boolean shouldResearchSiege = TerranMachineShop.getNumberOfUnitsCompleted() > 0
+				&& TechnologyManager.isSiegeModeResearchPossible();
+		if (shouldResearchSiege) {
+			freeMinerals -= 150;
+			freeGas -= 150;
+		}
+
+		// =====================================================
 		boolean shouldAlwaysBuild = xvr.canAfford(100)
 				&& UnitCounter.getNumberOfBattleUnits() <= MIN_UNITS_FOR_DIFF_BUILDING;
 		if (shouldAlwaysBuild || buildingQueueDetails == null || freeMinerals >= 100) {
@@ -236,7 +213,7 @@ public class TerranBarracks {
 				}
 			} else {
 				int marinesMinusBunkers = marines - TerranBunker.MAX_STACK * 3;
-				if (medics < marinesMinusBunkers / 3) {
+				if (medics < marinesMinusBunkers / 3.8) {
 					return MEDIC;
 				}
 			}

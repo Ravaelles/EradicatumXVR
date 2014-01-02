@@ -41,6 +41,8 @@ public class TerranSupplyDepot {
 	}
 
 	public static boolean shouldBuild() {
+		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
+
 		int free = xvr.getSuppliesFree();
 		int total = xvr.getSuppliesTotal();
 		int depots = UnitCounter.getNumberOfUnits(buildingType);
@@ -48,9 +50,25 @@ public class TerranSupplyDepot {
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
 
-		if (depots == 0) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+		// ZERG RUSH
+		if (XVR.isEnemyZerg()) {
+			if (barracks >= 1 && depots == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				return true;
+			}
+
+			if ((depots >= 1 || weAreBuilding) && TerranBunker.getNumberOfUnits() == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				return false;
+			}
+		}
+
+		// NON-ZERG RUSH
+		else {
+			if (depots == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				return true;
+			}
 		}
 
 		if (barracks == 0 && depots == 1) {
@@ -101,7 +119,7 @@ public class TerranSupplyDepot {
 		boolean shouldBuild = ((depots == 0 && total <= 9 && free <= 3)
 				|| (total >= 10 && total <= 17 && free <= 4 && depots <= 1)
 				|| (total >= 18 && total <= 25 && free <= 5)
-				|| (total > 25 && total <= 45 && free <= 8) || (total > 45 && free <= 16) || (total > 90
+				|| (total > 25 && total <= 45 && free <= 8) || (total > 45 && free <= 10) || (total > 90
 				&& total < 200 && free <= 20));
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, shouldBuild);
