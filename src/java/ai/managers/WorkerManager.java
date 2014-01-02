@@ -14,6 +14,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.units.RepairAndSons;
+import ai.managers.units.UnitBasicBehavior;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -51,6 +52,10 @@ public class WorkerManager {
 
 			checkStatusOfBuildingRepairing(worker);
 
+			if (_counter == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
+				guyToChaseOthers = worker;
+			}
+
 			// It may happen that this unit is supposed to repair other unit. If
 			// so, it's the priority.
 			if (!RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
@@ -78,13 +83,12 @@ public class WorkerManager {
 	}
 
 	private static void defendBase(Unit worker) {
-		if (TerranCommandCenter.getNumberOfUnits() > 1 || xvr.getTimeSeconds() >= 280) {
+		if (TerranCommandCenter.getNumberOfUnits() > 1) {
 			return;
 		}
 
 		// Check for any enemy workers
 		if (_counter == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
-			guyToChaseOthers = worker;
 			Unit enemyWorkerNearMainBase = xvr.getEnemyWorkerInRadius(38, xvr.getFirstBase());
 			UnitActions.attackEnemyUnit(worker, enemyWorkerNearMainBase);
 			return;
@@ -95,7 +99,17 @@ public class WorkerManager {
 		Unit enemyToFight = xvr.getNearestEnemyInRadius(xvr.getFirstBase(), DEFEND_BASE_RADIUS,
 				true, false);
 		if (enemyToFight == null) {
-			return;
+			Unit enemyBuilding = xvr.getUnitNearestFromList(worker, xvr.getEnemyBuildings(), true,
+					false);
+			if (enemyBuilding != null && enemyBuilding.distanceTo(worker) <= DEFEND_BASE_RADIUS) {
+				enemyToFight = enemyBuilding;
+				UnitActions.attackEnemyUnit(worker, enemyToFight);
+				return;
+			}
+
+			if (enemyToFight == null) {
+				return;
+			}
 		}
 
 		boolean isEnemyWorker = enemyToFight.isWorker();
@@ -180,6 +194,10 @@ public class WorkerManager {
 
 		if (_counter == WORKER_INDEX_PROFESSIONAL_REPAIRER && TerranBunker.getNumberOfUnits() > 0) {
 			handleProfessionalRepairer(unit);
+			return;
+		}
+
+		if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
 			return;
 		}
 

@@ -23,7 +23,7 @@ public class TerranBunker {
 	private static XVR xvr = XVR.getInstance();
 
 	private static final double MAX_DIST_FROM_CHOKE_POINT_MODIFIER = 1.8;
-	public static final int MAX_STACK = 2;
+	public static int MAX_STACK = 2;
 
 	private static MapPoint _placeToReinforceWithCannon = null;
 
@@ -306,7 +306,11 @@ public class TerranBunker {
 		// tileForCannon = findBuildTileNearMainBase();
 		// } else {
 		if (getNumberOfUnits() < MAX_STACK) {
-			tileForBunker = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());
+			if (XVR.isEnemyZerg() && getNumberOfUnits() == 0) {
+				tileForBunker = findTileAtBase(xvr.getFirstBase());
+			} else {
+				tileForBunker = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());
+			}
 		} else {
 
 			// return findProperBuildTile(_chokePointToReinforce, true);

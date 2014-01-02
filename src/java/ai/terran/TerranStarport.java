@@ -37,7 +37,7 @@ public class TerranStarport {
 		int starports = UnitCounter.getNumberOfUnits(buildingType);
 
 		if (TerranFactory.getNumberOfUnitsCompleted() >= 2 && starports == 0
-				&& TerranSiegeTank.getNumberOfUnits() >= 2
+				&& TerranSiegeTank.getNumberOfUnits() >= 5
 				&& !TechnologyManager.isSiegeModeResearchPossible()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;

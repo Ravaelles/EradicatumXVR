@@ -226,8 +226,8 @@ public class Constructing {
 						if (optimalBuilder != null
 								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
 										optimalBuilder.getID(), i, j))) {
-							if ((!isTooNearMineralsOrGeyser(type, place))
-									&& (isEnoughPlaceToOtherBuildings(place, type))
+							if ((isBase || !isTooNearMineralsOrGeyser(type, place))
+									&& (isBase || isEnoughPlaceToOtherBuildings(place, type))
 									&& (isBase || !isOverlappingNextBase(place, type))
 									&& (isBase || !isTooCloseToAnyChokePoint(place)
 											&& (skipCheckingRegion || isInAllowedRegions(place)))) {
@@ -516,7 +516,7 @@ public class Constructing {
 		// Buildings that can have an add-on, must have additional space on
 		// their right
 		if (type.canHaveAddOn() && !type.isBase()) {
-			if (!xvr.getBwapi().canBuildHere(randomWorker.getID(), point.getTx() + 2,
+			if (!xvr.getBwapi().canBuildHere(randomWorker.getID(), point.getTx() + 3,
 					point.getTy(), type.getUnitTypes().getID(), false)) {
 				return false;
 			}

@@ -19,8 +19,8 @@ public class ArmyCreationManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static final int MINIMUM_UNITS = 19;
-	private static final int MINIMUM_MARINES = 12;
+	private static final int MINIMUM_UNITS = 15;
+	private static final int MINIMUM_MARINES = 9;
 
 	public static void act() {
 		if (weShouldBuildBattleUnits()) {
@@ -39,15 +39,12 @@ public class ArmyCreationManager {
 			boolean fewInfantry = infantry <= MINIMUM_MARINES;
 			boolean weShouldBuildInfantryUnits = factories.isEmpty() || xvr.canAfford(100)
 					|| fewInfantry;
-			// if (weShouldBuildInfantryUnits) {
-			// boolean tooFewTanks = TerranSiegeTank.getNumberOfUnits() <
-			// TerranFactory.MINIMUM_TANKS;
-			// if (tooFewTanks || shouldResearchSiege) {
-			// weShouldBuildInfantryUnits = false;
-			// }
-			// }
 
-			// if (weShouldBuildInfantryUnits) {
+			// If we have factories and have free spot, don't build infantry.
+			if (weShouldBuildInfantryUnits && !factories.isEmpty() && !xvr.canAfford(200)) {
+				// TerranFactory.getOneNotBusy() != null &&
+				weShouldBuildInfantryUnits = false;
+			}
 
 			// BARRACKS
 			if (weShouldBuildInfantryUnits) {

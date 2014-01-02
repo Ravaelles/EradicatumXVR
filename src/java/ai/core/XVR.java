@@ -275,6 +275,18 @@ public class XVR {
 		return objectsOfThisType;
 	}
 
+	public ArrayList<Unit> getUnitsNonWorkerAllowIncompleted() {
+		ArrayList<Unit> objectsOfThisType = new ArrayList<Unit>();
+
+		for (Unit unit : bwapi.getMyUnits()) {
+			if (!unit.isWorker()) {
+				objectsOfThisType.add(unit);
+			}
+		}
+
+		return objectsOfThisType;
+	}
+
 	public ArrayList<Unit> getArmyUnitsIncludingDefensiveBuildings() {
 		ArrayList<Unit> objectsOfThisType = new ArrayList<Unit>();
 
@@ -920,7 +932,10 @@ public class XVR {
 		for (Unit enemy : enemiesNearby) {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackGroundUnits()) {
-				return enemy;
+				if (getDistanceBetween(enemy, x, y) + 2 <= enemy.getType().getGroundWeapon()
+						.getMaxRangeInTiles()) {
+					return enemy;
+				}
 			}
 		}
 		return null;

@@ -92,6 +92,8 @@ public class UnitBasicBehavior {
 		boolean safeFromEnemyShootRange = UnitManager.isUnitSafeFromEnemiesShootRange(unit,
 				xvr.getEnemyUnitsInRadius(11, unit));
 
+		// If unit can be attacked by enemy distant attack and chances aren't
+		// great, pull back.
 		if (!safeFromEnemyShootRange && !hasPrettyGoodChances) {
 			unit.setIsRunningFromEnemyNow();
 			UnitActions.moveToSafePlace(unit);
@@ -104,13 +106,31 @@ public class UnitBasicBehavior {
 		if (distToEnemy < 0) {
 			return false;
 		}
-		boolean isEnemyCriticallyClose = distToEnemy < criticallyCloseDistance;
+
+		// If near units are retreating and enemy is nearby, also run.
+		if (distToEnemy <= 6
+				&& UnitManager.areVeryCloseUnitsReatreting(unit,
+						xvr.getUnitsInRadius(unit, 4, xvr.getUnitsArmy()))) {
+			unit.setIsRunningFromEnemyNow();
+			UnitActions.moveToSafePlace(unit);
+			return true;
+		}
+
+		if (distToEnemy <= 1.5 && !nearestEnemy.getType().isZergling()) {
+			unit.setIsRunningFromEnemyNow();
+			UnitActions.moveAwayFromUnit(unit, nearestEnemy);
+			return true;
+		}
+
+		boolean isEnemyCriticallyClose = distToEnemy < criticallyCloseDistance
+				- (nearestEnemy.getType().isZergling() ? 1 : 0);
 
 		// ==============================================
 
 		if (unit.isRunningFromEnemy() && (!hasPrettyGoodChances && isEnemyCriticallyClose)) {
 			unit.setIsRunningFromEnemyNow();
-			UnitActions.moveAwayFromNearestEnemy(unit);
+			// UnitActions.moveAwayFromNearestEnemy(unit);
+			UnitActions.moveToSafePlace(unit);
 			return true;
 		}
 
@@ -124,14 +144,16 @@ public class UnitBasicBehavior {
 		// CHECK if to RUN, but include STRENGTH RATIO
 		if (distToEnemy >= 0 && distToEnemy <= criticallyCloseDistance && !hasPrettyGoodChances) {
 			unit.setIsRunningFromEnemyNow();
-			UnitActions.moveAwayFromNearestEnemy(unit);
+			// UnitActions.moveAwayFromNearestEnemy(unit);
+			UnitActions.moveToSafePlace(unit);
 			return true;
 		}
 
 		// RUN if ENEMY very CLOSE
 		if (distToEnemy >= 0 && distToEnemy <= 2.5 + distanceBonusIfWounded) {
 			unit.setIsRunningFromEnemyNow();
-			UnitActions.moveAwayFromNearestEnemy(unit);
+			// UnitActions.moveAwayFromNearestEnemy(unit);
+			UnitActions.moveToSafePlace(unit);
 			return true;
 		}
 
@@ -179,7 +201,8 @@ public class UnitBasicBehavior {
 				// it doesn't make any sense to run away from him just because
 				// he's near.
 				if (weHaveBiggerRangeThanEnemy && unit.getGroundWeaponCooldown() > 0) {
-					UnitActions.moveAwayFromUnit(unit, nearestEnemy);
+					// UnitActions.moveAwayFromUnit(unit, nearestEnemy);
+					UnitActions.moveToSafePlace(unit);
 					unit.setIsRunningFromEnemyNow();
 					return true;
 				}
@@ -203,6 +226,9 @@ public class UnitBasicBehavior {
 		// true) != null;
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
 		if (nearestEnemy == null) {
+			if (isUnitInsideBunker) {
+				unit.unload();
+			}
 			return false;
 		}
 
@@ -213,7 +239,7 @@ public class UnitBasicBehavior {
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
 		if (!enemyIsNearby) {
-			if (unit.isLoaded()) {
+			if (isUnitInsideBunker) {
 				unit.unload();
 			}
 			return false;
@@ -222,11 +248,14 @@ public class UnitBasicBehavior {
 		// If unit should be inside bunker, try to load it inside.
 		if (!isUnitInsideBunker) {
 			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending()) {
+				if (isUnitInsideBunker) {
+					unit.unload();
+				}
 				return false;
 			}
 			// enemyIsNearby &&
-			if (unit.getStrengthRatio() < 1.5 && loadIntoBunkerNearbyIfPossible(unit)) {
-				unit.setIsRunningFromEnemyNow();
+			if (unit.getStrengthRatio() < 1.7 && loadIntoBunkerNearbyIfPossible(unit)) {
+				// unit.setIsRunningFromEnemyNow();
 				return true;
 			}
 		}
@@ -237,7 +266,9 @@ public class UnitBasicBehavior {
 				Unit bunker = unit.getBunkerThatsIsLoadedInto();
 				if (bunker != null && bunker.getNumLoadedUnits() > 1
 						&& StrategyManager.isAnyAttackFormPending()) {
-					unit.unload();
+					if (isUnitInsideBunker) {
+						unit.unload();
+					}
 					return false;
 				}
 			}

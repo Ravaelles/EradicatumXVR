@@ -31,7 +31,8 @@ public class TerranAcademy {
 		int barracks = TerranBarracks.getNumberOfUnitsCompleted();
 		int academies = getNumberOfUnits();
 
-		if (academies == 0 && barracks >= 2 && !weAreBuilding) {
+		if (academies == 0 && barracks >= 2 && !weAreBuilding
+				&& UnitCounter.getNumberOfBattleUnits() >= 5) {
 			// UnitCounter.getNumberOfInfantryUnits() >= 4) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;

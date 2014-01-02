@@ -51,8 +51,14 @@ public class TerranBarracks {
 				return true;
 			}
 
-			if (barracks == 1 && TerranBunker.getNumberOfUnits() == 0) {
-				enoughBarracks = true;
+			if (barracks >= 1 && TerranBunker.getNumberOfUnits() == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				return false;
+			}
+
+			if (barracks == 1 && xvr.canAfford(200)) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				return false;
 			}
 		}
 
@@ -157,6 +163,12 @@ public class TerranBarracks {
 		// If we don't have Observatory build than disallow production of units
 		// which cost lot of gas.
 		int forceFreeGas = 0;
+
+		int tanks = TerranSiegeTank.getNumberOfUnits();
+		if (tanks > 0) {
+			forceFreeGas += 105;
+		}
+
 		int firebats = UnitCounter.getNumberOfUnits(FIREBAT);
 
 		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());

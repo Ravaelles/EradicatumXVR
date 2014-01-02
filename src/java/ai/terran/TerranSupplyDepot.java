@@ -52,7 +52,12 @@ public class TerranSupplyDepot {
 
 		// ZERG RUSH
 		if (XVR.isEnemyZerg()) {
-			if (barracks >= 1 && depots == 0) {
+			if (barracks == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				return false;
+			}
+
+			if (barracks >= 1 && depots == 0 && xvr.canAfford(200)) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}

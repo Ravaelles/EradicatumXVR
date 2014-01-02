@@ -138,6 +138,10 @@ public class TerranSiegeTank {
 			}
 		}
 
+		if (isEnemyNearShootRange && xvr.countUnitsOursInRadius(unit, 7) >= 5) {
+			return true;
+		}
+
 		return false;
 	}
 

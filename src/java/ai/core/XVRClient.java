@@ -80,15 +80,15 @@ public class XVRClient implements BWAPIEventListener {
 		// ========================================
 
 		// Enemy -> Protoss
-		if (enemy.getRaceID() == RaceTypes.Protoss.ordinal()) {
+		if (enemy.getRaceID() == RaceTypes.Protoss.getID()) {
 			XVR.setEnemyRace("Protoss");
 		}
 		// ENEMY -> Terran
-		else if (enemy.getRaceID() == RaceTypes.Terran.ordinal()) {
+		else if (enemy.getRaceID() == RaceTypes.Terran.getID()) {
 			XVR.setEnemyRace("Terran");
 		}
 		// ENEMY -> Zerg
-		else if (enemy.getRaceID() == RaceTypes.Protoss.ordinal()) {
+		else if (enemy.getRaceID() == RaceTypes.Zerg.getID()) {
 			XVR.setEnemyRace("Zerg");
 		}
 
@@ -216,11 +216,25 @@ public class XVRClient implements BWAPIEventListener {
 
 	private static int distantEnemyUnitsDiscovered = 0;
 
+	private int discoverCounter = 0;
+
 	public void unitDiscover(int unitID) {
 		Unit unit = Unit.getByID(unitID);
 		if (unit == null || !unit.isEnemy()) {
 			return;
 		}
+
+		if (discoverCounter == 0) {
+			if (unit.getType().getRaceID() == RaceTypes.Protoss.getID()) {
+				XVR.setEnemyRace("Protoss");
+			} else if (unit.getType().getRaceID() == RaceTypes.Zerg.getID()) {
+				XVR.setEnemyRace("Zerg");
+			} else if (unit.getType().getRaceID() == RaceTypes.Terran.getID()) {
+				XVR.setEnemyRace("Terran");
+			}
+		}
+
+		discoverCounter++;
 
 		// Add info that we discovered enemy unit
 		MapExploration.enemyUnitDiscovered(unit);

@@ -82,10 +82,11 @@ public class BuildingManager {
 				currentRepairers = countNumberOfRepairersForBuilding(building);
 			}
 
-			if (specialCaseRepairersNeeded > 0) {
-				System.out.println("# specialNeeded / current " + specialCaseRepairersNeeded
-						+ " / " + currentRepairers);
-			}
+			// if (specialCaseRepairersNeeded > 0) {
+			// System.out.println("# specialNeeded / current " +
+			// specialCaseRepairersNeeded
+			// + " / " + currentRepairers);
+			// }
 
 			for (int i = 0; i < specialCaseRepairersNeeded - currentRepairers; i++) {
 				Unit repairer = WorkerManager.findNearestRepairerTo(building);
@@ -135,7 +136,7 @@ public class BuildingManager {
 		return repairersToBuildings.get(worker);
 	}
 
-	private static int getSpecialCaseRepairers(Unit building) {
+	public static int getSpecialCaseRepairers(Unit building) {
 
 		// It makes sense to foresee enemy attack on bunker and send repairers
 		// before the bunker is actually damaged, otherwise we will never make
@@ -157,7 +158,7 @@ public class BuildingManager {
 				// + " / " + oursNearBunker);
 				// }
 
-				int enemyAdvantage = (int) (enemiesNearBunker - oursNearBunker * 0.7);
+				int enemyAdvantage = (int) (enemiesNearBunker - oursNearBunker * 0.6);
 				return Math.min(2, (int) (enemyAdvantage / 2.3));
 			}
 		}
@@ -177,6 +178,21 @@ public class BuildingManager {
 	private static HashMap<Unit, Integer> _buildingsInConstructionHP = new HashMap<>();
 
 	private static void handleUnfinishedBuildings(Unit building, UnitType buildingType) {
+
+		// If building still isn't completed check if it has a builder,
+		// something might have accidentally killed him, like e.g. a lonely
+		// lurker, looking for some love
+		if (!building.isCompleted()) {
+			Unit builder = getWorkerBuilding(building);
+			if (builder == null
+					|| (builder != null && (!builder.isExists() || !builder.isConstructing()))) {
+				Unit newBuilder = xvr.getOptimalBuilder(building);
+				if (newBuilder != null) {
+					UnitActions.rightClick(newBuilder, building);
+				}
+			}
+		}
+
 		// System.out.println("TEST " + building.isUnderAttack() + " " +
 		// !building.isCompleted());
 		if (!building.isCompleted() && isBuildingAttacked(building)) {
@@ -214,22 +230,6 @@ public class BuildingManager {
 			if (shouldCancelConstruction) {
 				System.out.println("TEST CANCEL BASE BUT WILL PROBBALY FAIL");
 				xvr.getBwapi().cancelConstruction(building.getID());
-			}
-		}
-
-		// If building still isn't completed check if it has a builder,
-		// something might have accidentally killed him, like e.g. a lonely
-		// lurker, looking for some love
-		if (!building.isCompleted()) {
-			Unit builder = getWorkerBuilding(building);
-			if (builder == null
-					|| (builder != null && (!builder.isExists() || !builder.isConstructing()))) {
-				// System.out.println("###### No builder is building: " +
-				// building.getName());
-				Unit newBuilder = xvr.getOptimalBuilder(building);
-				if (newBuilder != null) {
-					UnitActions.rightClick(newBuilder, building);
-				}
 			}
 		}
 	}

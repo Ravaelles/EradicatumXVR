@@ -420,6 +420,13 @@ public class Painter {
 						bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 10,
 								BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
 					}
+
+					int specialCaseRepairers = BuildingManager.getSpecialCaseRepairers(u);
+					if (specialCaseRepairers > 0) {
+						String repairersString = specialCaseRepairers + " required";
+						bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 20,
+								BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
+					}
 				}
 			}
 		}

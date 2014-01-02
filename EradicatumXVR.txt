@@ -1,46 +1,15 @@
-Fsctory / HQ -> build, but nothing happens. WHY THE FUCK?!?
+=========== BUGS ==============
 
+Tanks move to buildings and attack from close
+Vultures don't use mines until later in the game
 
-
-Use highground near base
-Mine other bases
-
-buildings NOT RE BUILDED IF BUILDER DEAD
-
-- make wounded marines run to medics, but avoid enemies
-
-# - Modify maximum distance from bunker allowed, to be as much, as enemy max range or 4 or sumfin
-
+=========== TO CHECK ==========
 
 - Tank escape  to the bunker, and then just stood there, waiting to be killed
 
+=========== IDEAS =============
 
-
-
-
-WORKERS is slow, why?
-
-
-
-
-
-
-- Explorer should attack always closest unit (worker?)
-
-
-
-
-
-
-scv should avoid cannons, didnt
-
-! Explorer doesnt explore unknown base locations
-- Vulture doesnt run from enemies
-
-
-
-
-
-
+Use highground near base
+Mine other bases
 
 + Fire concentration on one unit

@@ -1,5 +1,6 @@
 package ai.managers.units;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import jnibwapi.model.Unit;
@@ -39,7 +40,7 @@ public class UnitManager {
 		// Act with all UNITS or outsource action to different manager.
 
 		// Act with non workers units
-		for (Unit unit : xvr.getUnitsNonWorker()) {
+		for (Unit unit : xvr.getUnitsNonWorkerAllowIncompleted()) {
 			UnitType type = unit.getType();
 			updateBeingRepairedStatus(unit);
 
@@ -49,6 +50,10 @@ public class UnitManager {
 			// BUILDINGS have their own manager.
 			if (type.isBuilding()) {
 				BuildingManager.act(unit);
+				continue;
+			}
+
+			if (!unit.isCompleted()) {
 				continue;
 			}
 
@@ -309,6 +314,17 @@ public class UnitManager {
 		}
 
 		return true;
+	}
+
+	public static boolean areVeryCloseUnitsReatreting(Unit unit, Collection<Unit> units) {
+		ArrayList<Unit> veryCloseTeammates = xvr.getUnitsInRadius(unit, 2.8, units);
+		veryCloseTeammates.remove(unit);
+		for (Unit teammate : veryCloseTeammates) {
+			if (teammate.isRunningFromEnemy()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

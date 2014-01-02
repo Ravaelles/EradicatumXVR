@@ -297,8 +297,7 @@ public class Explorer {
 		if (!_exploredBackOfMainBase) {
 			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
 			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
-				_explorerForBackOfBase = TerranCommandCenter.getMineralWorkersNearBase(
-						xvr.getFirstBase()).get(0);
+				_explorerForBackOfBase = xvr.getOptimalBuilder(backOfTheBasePoint);
 				if (xvr.getDistanceBetween(_explorerForBackOfBase, backOfTheBasePoint) <= 30) {
 					UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
 				}

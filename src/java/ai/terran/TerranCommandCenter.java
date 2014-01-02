@@ -59,7 +59,13 @@ public class TerranCommandCenter {
 				.getBuildingType());
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
-		if (xvr.canAfford(550) && battleUnits >= 11) {
+		if (bases == 1 && battleUnits >= 10
+				&& TerranBunker.getNumberOfUnitsCompleted() == TerranBunker.MAX_STACK) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			return true;
+		}
+
+		if (xvr.canAfford(550) && battleUnits >= 18) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}

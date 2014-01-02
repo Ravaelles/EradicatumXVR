@@ -203,7 +203,8 @@ public class StrengthRatio {
 		// If units *very* nearby are retreating, also retreat. This can
 		// possibly limit units not being able to run from opponents (and
 		// dying), because their teammates are still attacking.
-		if (xvr.getTimeSeconds() < 500 && areVeryCloseUnitsReatreting(unit) && ratio < 2.0) {
+		if (xvr.getTimeSeconds() < 600 && UnitManager.areVeryCloseUnitsReatreting(unit, _ourUnits)
+				&& ratio < 2.0) {
 			return STRENGTH_RATIO_VERY_BAD;
 		}
 
@@ -211,17 +212,6 @@ public class StrengthRatio {
 
 		_rangeBonus = 0;
 		return ratio;
-	}
-
-	private static boolean areVeryCloseUnitsReatreting(Unit unit) {
-		ArrayList<Unit> veryCloseTeammates = xvr.getUnitsInRadius(unit, 3.6, _ourUnits);
-		veryCloseTeammates.remove(unit);
-		for (Unit teammate : veryCloseTeammates) {
-			if (teammate.isRunningFromEnemy()) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private static boolean weHaveTankProtectors() {
