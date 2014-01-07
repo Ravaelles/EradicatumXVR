@@ -187,6 +187,11 @@ public class StrengthRatio {
 		if (ourUnitsGroupSize >= 5 && ratio < 1.0) {
 			StrategyManager.waitForMoreUnits();
 		}
+		if (StrategyManager.getMinBattleUnits() < 5 && ourUnitsGroupSize >= 3
+				&& ratio < FAVORABLE_RATIO_THRESHOLD) {
+			StrategyManager.waitForMoreUnits();
+		}
+
 		if (ourUnitsGroupSize >= UnitCounter.getNumberOfBattleUnitsCompleted() * 0.4
 				&& ratio < FAVORABLE_RATIO_THRESHOLD) {
 			StrategyManager.reduceAllowedDistanceFromSafePoint();
@@ -429,7 +434,9 @@ public class StrengthRatio {
 				+ _rangeBonus, xvr.getEnemyArmyUnitsIncludingDefensiveBuildings());
 		for (Iterator<Unit> iterator = unitsInRadius.iterator(); iterator.hasNext();) {
 			Unit unit = (Unit) iterator.next();
-			if (unit.getType().isBuilding()
+			if (!unit.isCompleted() || !unit.isExists()) {
+				iterator.remove();
+			} else if (unit.getType().isBuilding()
 					&& (!unit.isDefensiveGroundBuilding() || !unit.isCompleted() || (unit
 							.isDefensiveGroundBuilding() && isTank))) {
 				iterator.remove();
@@ -444,7 +451,8 @@ public class StrengthRatio {
 
 		for (Iterator<Unit> iterator = unitsInRadius.iterator(); iterator.hasNext();) {
 			Unit unit = (Unit) iterator.next();
-			if (unit.getHP() <= 10 || unit.getType().isSpiderMine()) {
+			if (unit.getHP() <= 10 || unit.getType().isSpiderMine()
+					|| (!unit.isCompleted() || !unit.isExists())) {
 				iterator.remove();
 			} else if (unit.isDefensiveGroundBuilding()) {
 				if (xvr.getDistanceBetween(unit, ourUnit) >= 3) {

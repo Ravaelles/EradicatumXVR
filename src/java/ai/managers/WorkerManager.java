@@ -26,6 +26,7 @@ public class WorkerManager {
 
 	public static final int WORKER_INDEX_GUY_TO_CHASE_OTHERS = 1;
 	public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
+	public static final ArrayList<Integer> EXTRA_PROFESSIONAL_REPAIRERERS = new ArrayList<>();
 	public static final int WORKER_INDEX_EXPLORER = 6;
 	public static final int DEFEND_BASE_RADIUS = 23;
 
@@ -34,6 +35,20 @@ public class WorkerManager {
 	private static int _counter;
 	private static Unit professionalRepairer = null;
 	private static Unit guyToChaseOthers = null;
+
+	// ======================
+
+	private static AutoLoader instance = new AutoLoader();
+
+	private static class AutoLoader {
+
+		private AutoLoader() {
+			EXTRA_PROFESSIONAL_REPAIRERERS.add(20);
+			EXTRA_PROFESSIONAL_REPAIRERERS.add(21);
+			EXTRA_PROFESSIONAL_REPAIRERERS.add(22);
+			// System.out.println("TEST");
+		}
+	}
 
 	// ======================
 
@@ -192,7 +207,7 @@ public class WorkerManager {
 
 		// ==================================
 
-		if (_counter == WORKER_INDEX_PROFESSIONAL_REPAIRER && TerranBunker.getNumberOfUnits() > 0) {
+		if (isProfessionalRepairer(unit) && TerranBunker.getNumberOfUnits() > 0) {
 			handleProfessionalRepairer(unit);
 			return;
 		}
@@ -283,6 +298,11 @@ public class WorkerManager {
 		// else if (unit.isConstructing()) {
 		// Constructing.removeDuplicateConstructionsPending(unit);
 		// }
+	}
+
+	private static boolean isProfessionalRepairer(Unit unit) {
+		return _counter == WORKER_INDEX_PROFESSIONAL_REPAIRER
+				|| (EXTRA_PROFESSIONAL_REPAIRERERS.contains(_counter));
 	}
 
 	private static void handleProfessionalRepairer(Unit unit) {

@@ -9,6 +9,7 @@ import ai.core.XVR;
 import ai.handling.army.StrengthRatio;
 import ai.handling.army.TargetHandling;
 import ai.handling.units.UnitActions;
+import ai.managers.StrategyManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 
@@ -16,7 +17,24 @@ public class AttackCloseTargets {
 
 	private static XVR xvr = XVR.getInstance();
 
+	private static final int MAX_DIST_TO_BASE_WHEN_AT_PEACE = 27;
+
+	// =========================================================
+
 	public static boolean tryAttackingCloseTargets(Unit unit) {
+
+		// If unit is far from any base and there's no attack pending, don't
+		// attack
+		if (StrategyManager.isAnyAttackFormPending()) {
+			Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, unit);
+			if (nearestBase != null
+					&& nearestBase.distanceTo(unit) > MAX_DIST_TO_BASE_WHEN_AT_PEACE) {
+				return false;
+			}
+		}
+
+		// =========================================================
+
 		UnitType type = unit.getType();
 
 		// !type.isTank() &&
@@ -97,7 +115,10 @@ public class AttackCloseTargets {
 		// Attack selected target if it's not too far away.
 		if (enemyToAttack != null && enemyToAttack.isDetected()) {
 			// if (isUnitInPositionToAlwaysAttack(unit)) {
-			UnitActions.attackEnemyUnit(unit, enemyToAttack);
+			int maxDistance = unit.getType().isFlyer() ? 300 : 10;
+			if (unit.distanceTo(enemyToAttack) > maxDistance) {
+				UnitActions.attackEnemyUnit(unit, enemyToAttack);
+			}
 			// return true;
 			// }
 
@@ -112,8 +133,6 @@ public class AttackCloseTargets {
 
 			// There's no valid target, attack this enemy.
 			else {
-				int maxDistance = unit.getType().isFlyer() ? 300 : 10;
-
 				if (!StrengthRatio.isStrengthRatioFavorableFor(unit)
 						&& unit.distanceTo(xvr.getFirstBase()) > maxDistance) {
 					return false;

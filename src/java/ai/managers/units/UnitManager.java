@@ -220,9 +220,8 @@ public class UnitManager {
 	}
 
 	protected static boolean shouldUnitBeExplorer(Unit unit) {
-		return // (_unitCounter == 0 || _unitCounter == 1 || _unitCounter == 7)
-				// ||
-		unit.getTypeID() == UnitTypes.Terran_Vulture.ordinal();
+		return (_unitCounter == 5 || _unitCounter == 14);
+		// unit.getTypeID() == UnitTypes.Terran_Vulture.ordinal();
 	}
 
 	protected static void actWhenMassiveAttackIsPending(Unit unit) {
@@ -271,7 +270,8 @@ public class UnitManager {
 
 		if (unit.distanceTo(ArmyPlacing.getSafePointFor(unit)) > StrategyManager
 				.getAllowedDistanceFromSafePoint()) {
-			ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
+			// ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
+			UnitActions.attackTo(unit, unit.getX(), unit.getY());
 			return true;
 		}
 		return false;

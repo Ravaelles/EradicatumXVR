@@ -79,10 +79,10 @@ public class ConstructingManager {
 		}
 
 		// It can happen that damned worker will stuck somewhere (what a retard)
-		if (xvr.getTimeSeconds() - _lastCheckedForProlongated >= 8) {
-			checkForProlongatedConstructions();
-			_lastCheckedForProlongated = xvr.getTimeSeconds();
-		}
+		// if (xvr.getTimeSeconds() - _lastCheckedForProlongated >= 8) {
+		// checkForProlongatedConstructions();
+		// _lastCheckedForProlongated = xvr.getTimeSeconds();
+		// }
 	}
 
 	private static void checkForProlongatedConstructions() {

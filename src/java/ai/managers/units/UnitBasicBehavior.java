@@ -7,6 +7,7 @@ import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.WeaponType;
 import ai.core.XVR;
+import ai.handling.army.ArmyPlacing;
 import ai.handling.army.StrengthRatio;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
@@ -116,7 +117,7 @@ public class UnitBasicBehavior {
 			return true;
 		}
 
-		if (distToEnemy <= 1.5 && !nearestEnemy.getType().isZergling()) {
+		if (distToEnemy <= 1.8 && !nearestEnemy.getType().isZergling()) {
 			unit.setIsRunningFromEnemyNow();
 			UnitActions.moveAwayFromUnit(unit, nearestEnemy);
 			return true;
@@ -225,36 +226,45 @@ public class UnitBasicBehavior {
 		// boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 12, true,
 		// true) != null;
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		if (nearestEnemy == null) {
-			if (isUnitInsideBunker) {
+		if (nearestEnemy == null && StrategyManager.isAnyAttackFormPending()) {
+			if (isUnitInsideBunker
+					|| isBunkerTooFarFromCombat(unit, unit.getBunkerThatsIsLoadedInto())) {
 				unit.unload();
 			}
 			return false;
 		}
 
 		// Calculate max safe distance to the enemy, so we can shoot at him
-		double enemyIsNearThreshold = Math.max(3.7, nearestEnemy.getType().getGroundWeapon()
-				.getMaxRangeInTiles() + 2.5);
+		double enemyIsNearThreshold = nearestEnemy != null ? Math.max(3.7, nearestEnemy.getType()
+				.getGroundWeapon().getMaxRangeInTiles() + 2.5) : 3;
 		boolean enemyIsNearby = nearestEnemy != null
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
-		if (!enemyIsNearby) {
-			if (isUnitInsideBunker) {
+		if (StrategyManager.isAnyAttackFormPending() && !enemyIsNearby) {
+			if (isUnitInsideBunker
+					|| isBunkerTooFarFromCombat(unit, unit.getBunkerThatsIsLoadedInto())) {
 				unit.unload();
 			}
 			return false;
 		}
+		// if (!enemyIsNearby) {
+		// if (isUnitInsideBunker) {
+		// unit.unload();
+		// }
+		// return false;
+		// }
 
 		// If unit should be inside bunker, try to load it inside.
 		if (!isUnitInsideBunker) {
 			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending()) {
-				if (isUnitInsideBunker) {
+				if (isUnitInsideBunker
+						|| isBunkerTooFarFromCombat(unit, unit.getBunkerThatsIsLoadedInto())) {
 					unit.unload();
 				}
 				return false;
 			}
 			// enemyIsNearby &&
-			if (unit.getStrengthRatio() < 1.7 && loadIntoBunkerNearbyIfPossible(unit)) {
+			if (loadIntoBunkerNearbyIfPossible(unit)) {
 				// unit.setIsRunningFromEnemyNow();
 				return true;
 			}
@@ -275,6 +285,15 @@ public class UnitBasicBehavior {
 		}
 
 		return false;
+	}
+
+	private static boolean isBunkerTooFarFromCombat(Unit unit, Unit bunker) {
+		if (unit == null || bunker == null) {
+			return false;
+		}
+
+		MapPoint safePoint = ArmyPlacing.getSafePointFor(unit);
+		return bunker.distanceTo(unit) >= 7;
 	}
 
 	protected static boolean loadIntoBunkerNearbyIfPossible(Unit unit) {
@@ -318,7 +337,7 @@ public class UnitBasicBehavior {
 			// }
 
 			// If this bunker is free, load into it.
-			if (nearestBunker.getNumLoadedUnits() < 1) {
+			if (nearestBunker.getNumLoadedUnits() < 4 && nearestBunker.isCompleted()) {
 				UnitActions.loadUnitInto(unit, nearestBunker);
 				return true;
 			}
@@ -338,7 +357,7 @@ public class UnitBasicBehavior {
 				ArrayList<Unit> bunkersNearby = xvr.getUnitsInRadius(bunkersNearestTo, 300,
 						xvr.getUnitsOfType(UnitTypes.Terran_Bunker));
 				for (Unit bunker : bunkersNearby) {
-					if (bunker.getNumLoadedUnits() < 4
+					if (bunker.getNumLoadedUnits() < 4 && nearestBunker.isCompleted()
 							&& bunker.distanceTo(unit) <= MAX_DIST_TO_BUNKER_TO_LOAD_INTO_IT) {
 						UnitActions.loadUnitInto(unit, bunker);
 						return true;
@@ -538,9 +557,7 @@ public class UnitBasicBehavior {
 				&& unit.getGroundWeaponCooldown() > 0
 				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
 						true) > 0) {
-			// if () {
 			return false;
-			// }
 		}
 
 		// ===============================================
@@ -548,8 +565,13 @@ public class UnitBasicBehavior {
 		// and if we wouldn't win, then go where it's safe
 		// and by doing this we may encounter some help.
 		if (!StrengthRatio.isStrengthRatioFavorableFor(unit)) {
-			// UnitActions.moveToSafePlace(unit);
-			UnitActions.moveAwayFromNearestEnemy(unit);
+			double nearestEnemyDistance = xvr.getNearestEnemyDistance(unit, true, true);
+
+			if (nearestEnemyDistance < 0 || nearestEnemyDistance > 11) {
+				UnitActions.moveToSafePlace(unit);
+			} else {
+				UnitActions.moveAwayFromNearestEnemy(unit);
+			}
 			return true;
 		}
 

@@ -40,12 +40,12 @@ public class TerranBunker {
 				return true;
 			}
 
-			if (battleUnits <= 5) {
-				ShouldBuildCache.cacheShouldBuildInfo(type, false);
-				return false;
-			}
+			// if (battleUnits <= 5) {
+			// ShouldBuildCache.cacheShouldBuildInfo(type, false);
+			// return false;
+			// }
 
-			if (bunkers == 1 && battleUnits >= 6) {
+			if (bunkers < MAX_STACK && battleUnits >= (bunkers * 4 + 1)) {
 				ShouldBuildCache.cacheShouldBuildInfo(type, true);
 				return true;
 			}

@@ -23,7 +23,7 @@ public class TerranBarracks {
 
 	private static boolean isPlanAntiAirActive = false;
 
-	public static int MIN_UNITS_FOR_DIFF_BUILDING = 20;
+	public static int MIN_UNITS_FOR_DIFF_BUILDING = TerranBunker.MAX_STACK * 4;
 	public static int MIN_MEDICS = 2;
 
 	public static boolean LIMIT_MARINES = false;
@@ -147,6 +147,11 @@ public class TerranBarracks {
 			freeGas -= 150;
 		}
 
+		boolean shouldSpareGasForOtherUnits = false;
+		if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
+			freeGas -= 150;
+		}
+
 		// =====================================================
 		boolean shouldAlwaysBuild = xvr.canAfford(100)
 				&& UnitCounter.getNumberOfBattleUnits() <= MIN_UNITS_FOR_DIFF_BUILDING;
@@ -159,6 +164,11 @@ public class TerranBarracks {
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
 		int marines = UnitCounter.getNumberOfUnits(MARINE);
+		int medics = UnitCounter.getNumberOfUnits(MEDIC);
+
+		if (medics >= MIN_MEDICS && freeMinerals >= 700) {
+			return MARINE;
+		}
 
 		// If we don't have Observatory build than disallow production of units
 		// which cost lot of gas.
@@ -187,6 +197,10 @@ public class TerranBarracks {
 		// ===========================================================
 		UnitTypes typeToBuild = MARINE;
 
+		if (marines < 8) {
+			return MARINE;
+		}
+
 		// FIREBATS
 		// Don't build firebats at all against Terran
 		if (!XVR.isEnemyTerran()) {
@@ -205,7 +219,6 @@ public class TerranBarracks {
 
 		// MEDICS
 		if (weHaveAcademy) {
-			int medics = UnitCounter.getNumberOfUnits(MEDIC);
 			int ghosts = UnitCounter.getNumberOfUnits(GHOST);
 
 			if (medics <= 1) {

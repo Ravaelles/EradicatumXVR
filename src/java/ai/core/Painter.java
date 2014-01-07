@@ -226,18 +226,18 @@ public class Painter {
 	}
 
 	private static void paintNextBuildingsPosition(XVR xvr) {
-		// MapPoint building;
+		MapPoint building;
 
 		// Paint next NEXUS position
 		// building = TerranCommandCenter.findTileForNextBase(false);
-		// if (building != null) {
-		// xvr.getBwapi().drawBox(building.getX(), building.getY(),
-		// building.getX() + 4 * 32,
-		// building.getY() + 3 * 32, BWColor.TEAL, false, false);
-		// // xvr.getBwapi().drawText(building.getX() + 10, building.getY() +
-		// // 30,
-		// // "Nexus", false);
-		// }
+		building = TerranCommandCenter.get_cachedNextBaseTile();
+		if (building != null) {
+			xvr.getBwapi().drawBox(building.getX(), building.getY(), building.getX() + 4 * 32,
+					building.getY() + 3 * 32, BWColor.TEAL, false, false);
+			// xvr.getBwapi().drawText(building.getX() + 10, building.getY() +
+			// 30,
+			// "Nexus", false);
+		}
 
 		// Paint next BUNKER position
 		// if (TerranBunker.getNumberOfUnits() == 0) {

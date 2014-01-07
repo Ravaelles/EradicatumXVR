@@ -23,6 +23,7 @@ import ai.managers.constructing.ConstructingManager;
 import ai.managers.units.HiddenUnits;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
+import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
@@ -821,6 +822,7 @@ public class XVR {
 		if ("Protoss".equals(xvr.ENEMY_RACE)) {
 			enemyProtoss = true;
 			TerranBarracks.enemyIsProtoss();
+			TerranBunker.MAX_STACK++;
 
 			// boolean shouldExpandWithCannons =
 			// enemyBotName.contains("alberta");
@@ -833,6 +835,7 @@ public class XVR {
 		else if ("Zerg".equals(xvr.ENEMY_RACE)) {
 			enemyZerg = true;
 			TerranBarracks.enemyIsZerg();
+			TerranBunker.MAX_STACK++;
 		}
 
 		// ============

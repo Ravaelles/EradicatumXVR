@@ -68,6 +68,20 @@ public class TerranSiegeTank {
 		if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
 			unit.siege();
 		}
+
+		if (mustSiege(unit)) {
+			unit.siege();
+		}
+	}
+
+	private static boolean mustSiege(Unit unit) {
+
+		// If there's enemy building in range, siege.
+		if (_nearestEnemyBuilding != null && _nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private static boolean didntJustUnsiege(Unit unit) {
@@ -112,7 +126,9 @@ public class TerranSiegeTank {
 		}
 
 		if (isUnsiegingIdeaTimerExpired(unit)) {
-			unit.unsiege();
+			if (!mustSiege(unit)) {
+				unit.unsiege();
+			}
 		}
 	}
 

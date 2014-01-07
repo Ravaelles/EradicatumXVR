@@ -105,6 +105,10 @@ public class TerranFactory {
 			freeGas -= buildingQueueDetails[1];
 		}
 
+		if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
+			freeGas -= 150;
+		}
+
 		if (buildingQueueDetails == null || (freeMinerals >= 125 && freeGas >= 25)) {
 			if (facility.getTrainingQueueSize() == 0) {
 				xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
@@ -133,13 +137,13 @@ public class TerranFactory {
 		// If very little units, below critical limit
 
 		// TANK
-		if (tanksAllowed && notEnoughTanks) {
+		if (freeGas >= 150 && tanksAllowed && notEnoughTanks) {
 			return TANK_TANK_MODE;
 		}
 
 		// GOLIATH
-		if (goliathsAllowed && notEnoughGoliaths) {
-			return TANK_TANK_MODE;
+		if (freeGas >= 50 && goliathsAllowed && notEnoughGoliaths) {
+			return GOLIATH;
 		}
 
 		// VULTURE
@@ -155,12 +159,14 @@ public class TerranFactory {
 		int totalVehicles = UnitCounter.getNumberOfVehicleUnits();
 
 		// TANK
-		if (notEnoughPercentOf(tanks, totalVehicles, tanksPercentage, totalRatio)) {
+		if (freeGas >= 150 && notEnoughPercentOf(tanks, totalVehicles, tanksPercentage, totalRatio)) {
 			return TANK_TANK_MODE;
 		}
 
 		// GOLIATH
-		if (notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage, totalRatio)) {
+		if (freeGas >= 50
+				&& notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage,
+						totalRatio)) {
 			return GOLIATH;
 		}
 

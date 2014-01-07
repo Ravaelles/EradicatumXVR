@@ -20,7 +20,7 @@ public class StrategyManager {
 	// private static final int MINIMUM_INITIAL_ARMY_TO_PUSH_ONE_TIME = 5;
 	// private static final int MINIMUM_NON_INITIAL_ARMY_TO_PUSH = 25;
 	private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 41;
-	public static final int INITIAL_MIN_UNITS = 1;
+	public static final int INITIAL_MIN_UNITS = 35;
 	// private static final int MINIMUM_ARMY_PSI_USED_THRESHOLD = 75;
 
 	/**

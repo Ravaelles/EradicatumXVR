@@ -27,6 +27,16 @@ public class ArmyCreationManager {
 			boolean shouldResearchSiege = TerranMachineShop.getNumberOfUnitsCompleted() > 0
 					&& TechnologyManager.isSiegeModeResearchPossible() && !xvr.canAfford(300, 200);
 
+			// =========================================================
+
+			// STARPORTS
+			ArrayList<Unit> starports = TerranStarport.getAllObjects();
+			if (!starports.isEmpty()) {
+				for (Unit stargate : starports) {
+					TerranStarport.act(stargate);
+				}
+			}
+
 			// FACTORIES
 			ArrayList<Unit> factories = TerranFactory.getAllObjects();
 			if (!factories.isEmpty() && !shouldResearchSiege) {
@@ -62,14 +72,6 @@ public class ArmyCreationManager {
 				}
 			}
 			// }
-
-			// STARPORTS
-			ArrayList<Unit> starports = TerranStarport.getAllObjects();
-			if (!starports.isEmpty()) {
-				for (Unit stargate : starports) {
-					TerranStarport.act(stargate);
-				}
-			}
 		}
 	}
 

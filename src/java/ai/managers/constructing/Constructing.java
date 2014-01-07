@@ -44,40 +44,43 @@ public class Constructing {
 	}
 
 	private static MapPoint getTileAccordingToBuildingType(UnitTypes building) {
+		MapPoint buildTile = null;
 
 		// Supply Depot
 		if (TerranSupplyDepot.getBuildingType().ordinal() == building.ordinal()) {
-			return TerranSupplyDepot.findTileForDepot();
+			buildTile = TerranSupplyDepot.findTileForDepot();
 		}
 
 		// Bunker
 		else if (TerranBunker.getBuildingType().ordinal() == building.ordinal()) {
-			return TerranBunker.findTileForBunker();
+			buildTile = TerranBunker.findTileForBunker();
 		}
 
 		// Missile Turret
 		else if (TerranMissileTurret.getBuildingType().ordinal() == building.ordinal()) {
-			return TerranMissileTurret.findTileForTurret();
+			buildTile = TerranMissileTurret.findTileForTurret();
 		}
 
 		// Refinery
 		else if (TerranRefinery.getBuildingType().ordinal() == building.ordinal()) {
-			return TerranRefinery.findTileForRefinery();
+			buildTile = TerranRefinery.findTileForRefinery();
 		}
 
 		// Base
 		else if (TerranCommandCenter.getBuildingType().ordinal() == building.ordinal()) {
-			return TerranCommandCenter.findTileForNextBase(false);
+			buildTile = TerranCommandCenter.findTileForNextBase(false);
 		}
 
 		// Standard building
 		else {
-			MapPoint buildTile = findTileForStandardBuilding(building);
-			if (buildTile == null) {
-				System.out.println("# No tile found for: " + building.getType().getName());
-			}
-			return buildTile;
+			buildTile = findTileForStandardBuilding(building);
 		}
+
+		if (buildTile == null) {
+			System.out.println("# No tile found for: " + building.getType().getName());
+		}
+
+		return buildTile;
 	}
 
 	/**
@@ -454,8 +457,6 @@ public class Constructing {
 			if (building.getType().isBase()) {
 				handleBaseConstruction(building, buildTile);
 			} else {
-
-				// Proper construction order
 				constructBuilding(xvr, building, buildTile);
 			}
 
@@ -495,14 +496,14 @@ public class Constructing {
 		if (!baseInterrupted) {
 			if (buildTile == null
 					|| !Constructing.canBuildAt(buildTile, UnitManager.BASE.getType())) {
-				// System.out.println("TEST cant Build At: " + buildTile);
+				System.out.println("TEST cant Build At: " + buildTile);
 				buildTile = TerranCommandCenter.findTileForNextBase(true);
 			}
 		}
 
 		// System.out.println((buildTile != null ? buildTile.toStringLocation()
 		// : buildTile) + " : "
-		// + Constructing.canBuildAt(buildTile, UnitManager.BASE));
+		// + Constructing.canBuildAt(buildTile, UnitManager.BASE.getType()));
 
 		constructBuilding(xvr, building, buildTile);
 	}

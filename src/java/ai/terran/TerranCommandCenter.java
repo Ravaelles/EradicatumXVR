@@ -187,8 +187,9 @@ public class TerranCommandCenter {
 			if (!otherBase.equals(base) && baseReady && otherBase.distanceTo(base) <= 35) {
 				double otherBaseRatio = defineNumberOfWorkersToOptimalNumberRatioFor(otherBase);
 				System.out.println();
-				System.out.println("THEY/WE: " + mineralWorkersToOptimalRatio + " / "
-						+ otherBaseRatio);
+				// System.out.println("THEY/WE: " + mineralWorkersToOptimalRatio
+				// + " / "
+				// + otherBaseRatio);
 				if (mineralWorkersToOptimalRatio - 0.13 >= otherBaseRatio) {
 					sendOneWorkerFromTo(base, otherBase);
 					return;
@@ -723,6 +724,10 @@ public class TerranCommandCenter {
 
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
+	}
+
+	public static MapPoint get_cachedNextBaseTile() {
+		return _cachedNextBaseTile;
 	}
 
 }

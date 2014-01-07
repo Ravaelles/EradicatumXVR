@@ -84,8 +84,8 @@ public class BuildingManager {
 
 			// if (specialCaseRepairersNeeded > 0) {
 			// System.out.println("# specialNeeded / current " +
-			// specialCaseRepairersNeeded
-			// + " / " + currentRepairers);
+			// specialCaseRepairersNeeded + " / "
+			// + currentRepairers);
 			// }
 
 			for (int i = 0; i < specialCaseRepairersNeeded - currentRepairers; i++) {
@@ -142,7 +142,7 @@ public class BuildingManager {
 		// before the bunker is actually damaged, otherwise we will never make
 		// it
 		if (xvr.getTimeSeconds() < 900 && building.getType().isBunker()) {
-			int enemiesNearBunker = xvr.countUnitsEnemyInRadius(building, 16);
+			int enemiesNearBunker = xvr.countUnitsEnemyInRadius(building, 26);
 			// System.out.println("|" + building.getName() + "|" +
 			// building.toStringLocation() + "|"
 			// + enemiesNearBunker);
@@ -158,7 +158,7 @@ public class BuildingManager {
 				// + " / " + oursNearBunker);
 				// }
 
-				int enemyAdvantage = (int) (enemiesNearBunker - oursNearBunker * 0.6);
+				int enemyAdvantage = (int) (enemiesNearBunker - oursNearBunker * 0.77);
 				return Math.min(2, (int) (enemyAdvantage / 2.3));
 			}
 		}
@@ -227,7 +227,7 @@ public class BuildingManager {
 				shouldCancelConstruction = true;
 			}
 
-			if (shouldCancelConstruction) {
+			if (shouldCancelConstruction && !buildingType.isBunker()) {
 				System.out.println("CANCELLING CONSTRUCTION: " + building.getName() + " at "
 						+ building.toStringLocation());
 				xvr.getBwapi().cancelConstruction(building.getID());

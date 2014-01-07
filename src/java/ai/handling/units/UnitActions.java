@@ -137,6 +137,8 @@ public class UnitActions {
 			return;
 		}
 
+		unit.setAiOrder("Spreading out");
+
 		// Act when enemy detector is nearby, run away
 		if (!StrategyManager.isAttackPending()
 				&& (xvr.isEnemyDetectorNear(unit.getX(), unit.getY()) || xvr
