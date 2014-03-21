@@ -26,8 +26,16 @@ public class TerranBunker {
 	public static int MAX_STACK = 2;
 
 	private static MapPoint _placeToReinforceWithCannon = null;
+	private static int _skipForTurns = 0;
+
+	// =========================================================
 
 	public static boolean shouldBuild() {
+		if (_skipForTurns > 0) {
+			_skipForTurns--;
+			return false;
+		}
+
 		if (UnitCounter.weHaveBuilding(TerranBarracks.getBuildingType())
 				|| BuildingManager.countConstructionProgress(TerranBarracks.getBuildingType()) >= 95) {
 			int maxCannonStack = calculateMaxBunkerStack();
@@ -338,6 +346,8 @@ public class TerranBunker {
 				return tileForBunker;
 			}
 		}
+
+		_skipForTurns = 30;
 
 		return null;
 	}
