@@ -109,9 +109,8 @@ public class ArmyPlacing {
 		MapPoint safePlace = null;
 
 		if (unit.shouldFollowTanks()) {
-			if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
-				Unit tank = xvr.getNearestTankTo(unit);
-				safePlace = tank;
+			if (TerranSiegeTank.hasAnyTank()) {
+				safePlace = TerranSiegeTank.getMedianTank();
 			}
 		}
 
@@ -124,7 +123,7 @@ public class ArmyPlacing {
 
 		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
 			UnitActions.moveTo(unit, safePlace);
-		} else {
+			// } else {
 			// UnitActions.moveAwayFromNearestEnemy(unit);
 			// UnitActions.moveTo(unit, safePlace);
 		}

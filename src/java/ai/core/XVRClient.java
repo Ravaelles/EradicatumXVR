@@ -12,7 +12,7 @@ import jnibwapi.types.UnitDamages;
 import jnibwapi.types.UnitType;
 import ai.handling.map.MapExploration;
 import ai.handling.other.NukeHandling;
-import ai.managers.StrategyManager;
+import ai.managers.strategy.StrategyManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranComsatStation;
@@ -205,6 +205,11 @@ public class XVRClient implements BWAPIEventListener {
 		if (unitType != null) {
 			if (unitType.isBase() && wasOurUnit) {
 				TerranCommandCenter.updateNextBaseToExpand();
+			}
+
+			// Do not count spider mines as losses.
+			if (unitType.isSpiderMine()) {
+				Painter.ourDeaths--;
 			}
 		}
 

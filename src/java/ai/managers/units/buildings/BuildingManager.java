@@ -1,4 +1,4 @@
-package ai.managers;
+package ai.managers.units.buildings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +11,7 @@ import ai.core.XVR;
 import ai.handling.units.UnitActions;
 import ai.managers.constructing.Constructing;
 import ai.managers.units.UnitManager;
+import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranComsatStation;
 
 public class BuildingManager {
@@ -95,7 +96,7 @@ public class BuildingManager {
 		}
 
 		// Act only if building is not fully healthy
-		if (isBuildingDamaged) {
+		if (isBuildingDamaged && !building.isConstructing()) {
 
 			// Define number of repairers for this building
 			int numberOfRequiredRepairers = defineOptimalNumberOfRepairersFor(building);
@@ -182,7 +183,7 @@ public class BuildingManager {
 		// If building still isn't completed check if it has a builder,
 		// something might have accidentally killed him, like e.g. a lonely
 		// lurker, looking for some love
-		if (!building.isCompleted()) {
+		if (!building.isCompleted() && !building.getType().isAddon()) {
 			Unit builder = getWorkerBuilding(building);
 			if (builder == null
 					|| (builder != null && (!builder.isExists() || !builder.isConstructing()))) {
@@ -196,7 +197,7 @@ public class BuildingManager {
 		// System.out.println("TEST " + building.isUnderAttack() + " " +
 		// !building.isCompleted());
 		if (!building.isCompleted() && isBuildingAttacked(building)) {
-			System.out.println("BUILDING ATTACKED: " + building.getName());
+			// System.out.println("BUILDING ATTACKED: " + building.getName());
 			boolean shouldCancelConstruction = false;
 
 			// If this is normal building and it's severely damaged.

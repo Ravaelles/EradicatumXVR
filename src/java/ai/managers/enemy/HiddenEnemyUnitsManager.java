@@ -1,11 +1,13 @@
-package ai.managers.units;
+package ai.managers.enemy;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import ai.core.XVR;
+import ai.handling.map.MapExploration;
+import ai.handling.units.UnitActions;
 import ai.terran.TerranComsatStation;
 
-public class HiddenUnits {
+public class HiddenEnemyUnitsManager {
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -34,4 +36,19 @@ public class HiddenUnits {
 		}
 
 	}
+
+	public static void avoidHiddenUnitsIfNecessary(Unit unit) {
+		Unit hiddenEnemyUnitNearby = MapExploration.getHiddenEnemyUnitNearbyTo(unit);
+		if (hiddenEnemyUnitNearby != null && unit.isDetected()
+				&& !hiddenEnemyUnitNearby.isDetected()
+				&& shouldAvoidThisHiddenEnemyUnit(unit, hiddenEnemyUnitNearby)) {
+			UnitActions.moveAwayFromUnit(unit, hiddenEnemyUnitNearby);
+			unit.setAiOrder("Avoid hidden unit");
+		}
+	}
+
+	private static boolean shouldAvoidThisHiddenEnemyUnit(Unit ourUnit, Unit enemyUnit) {
+		return enemyUnit.canAttack(ourUnit);
+	}
+
 }

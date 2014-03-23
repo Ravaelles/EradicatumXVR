@@ -1,4 +1,4 @@
-package ai.managers;
+package ai.managers.units.workers;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,13 +9,12 @@ import jnibwapi.types.UnitType;
 import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.army.StrengthRatio;
-import ai.handling.map.Explorer;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
-import ai.managers.units.RepairAndSons;
-import ai.managers.units.UnitBasicBehavior;
 import ai.managers.units.UnitManager;
+import ai.managers.units.army.ArmyUnitBasicBehavior;
+import ai.managers.units.buildings.BuildingManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranRefinery;
@@ -27,7 +26,7 @@ public class WorkerManager {
 	public static final int WORKER_INDEX_GUY_TO_CHASE_OTHERS = 1;
 	public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
 	public static final ArrayList<Integer> EXTRA_PROFESSIONAL_REPAIRERERS = new ArrayList<>();
-	public static final int WORKER_INDEX_EXPLORER = 6;
+	public static final int WORKER_INDEX_EXPLORER = 6; // 6
 	public static final int DEFEND_BASE_RADIUS = 23;
 
 	private static XVR xvr = XVR.getInstance();
@@ -56,30 +55,29 @@ public class WorkerManager {
 		_counter = 0;
 
 		// ==================================
-		// boolean shouldStopExploring = Debug.ourDeaths >= 2
-		// && !MapExploration.getEnemyBuildingsDiscovered().isEmpty();
-
-		ArrayList<Unit> workers = xvr.getUnitsOfType(UnitManager.WORKER);
-		for (Unit worker : workers) {
+		// Handle every worker
+		for (Unit worker : xvr.getUnitsOfType(UnitManager.WORKER)) {
 			if (!worker.isCompleted()) {
 				continue;
 			}
 
-			checkStatusOfBuildingRepairing(worker);
+			// Check if worker isn't supposed to repair non-existing building
+			// or building that isn't damaged at all.
+			checkStatusOfBuildingsNeedingRepair(worker);
 
 			if (_counter == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
 				guyToChaseOthers = worker;
 			}
 
 			// It may happen that this unit is supposed to repair other unit. If
-			// so, it's the priority.
+			// so, this would have the highest priority.
 			if (!RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
 
 				// Unit can act as either a simple worker or as an explorer.
 				if (_counter != WORKER_INDEX_EXPLORER) {
 					WorkerManager.act(worker);
 				} else {
-					Explorer.explore(worker);
+					ExplorerManager.explore(worker);
 				}
 			}
 
@@ -87,7 +85,7 @@ public class WorkerManager {
 		}
 	}
 
-	private static void checkStatusOfBuildingRepairing(Unit worker) {
+	private static void checkStatusOfBuildingsNeedingRepair(Unit worker) {
 		if (worker.isRepairing() && BuildingManager.getBuildingToRepairBy(worker) != null) {
 			Unit buildingToRepair = BuildingManager.getBuildingToRepairBy(worker);
 			boolean targetValid = buildingToRepair.isExists() && buildingToRepair.isWounded();
@@ -183,11 +181,15 @@ public class WorkerManager {
 	}
 
 	public static void act(Unit unit) {
+		// if (true) {
+		// return;
+		// }
+
 		if (unit.isIdle() && _counter != WORKER_INDEX_PROFESSIONAL_REPAIRER) {
 			gatherResources(unit, xvr.getFirstBase());
 		}
 
-		if (unit.equals(Explorer.getExplorer())) {
+		if (unit.equals(ExplorerManager.getExplorer())) {
 			return;
 		}
 
@@ -212,7 +214,7 @@ public class WorkerManager {
 			return;
 		}
 
-		if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
+		if (ArmyUnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
 			return;
 		}
 

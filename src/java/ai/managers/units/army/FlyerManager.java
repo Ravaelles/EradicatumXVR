@@ -1,4 +1,4 @@
-package ai.managers.units;
+package ai.managers.units.army;
 
 import java.util.ArrayList;
 
@@ -37,19 +37,20 @@ public class FlyerManager {
 		// ==============================
 		// Move away from other flyers, thus enhancing the range
 		Unit aaUnitNearby = getAAUnitNearby(unit);
+		unit.setEnemyNearbyAA(aaUnitNearby);
 		Unit otherFlyer = getNearestFlyerToFlyer(unit);
 		if (aaUnitNearby == null && otherFlyer != null
 				&& otherFlyer.distanceTo(unit) < MIN_DIST_BETWEEN_FLYERS) {
 			UnitActions.moveAwayFromUnitIfPossible(unit, otherFlyer, 5);
-			return;
 		}
 
 		// ==============================
 		// Avoid units like: photon cannons, missile turrets, goliaths, marines.
 		boolean isAABuildingNearby = xvr.isEnemyDefensiveAirBuildingNear(unit);
 		boolean shouldRunFromHere = isAABuildingNearby || aaUnitNearby != null;
-		if (shouldRunFromHere && !unit.isStartingAttack()) {
+		if (shouldRunFromHere) {
 			UnitActions.moveAwayFromUnit(unit, aaUnitNearby);
+			return;
 		}
 	}
 

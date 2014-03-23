@@ -13,7 +13,7 @@ import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
-import ai.managers.StrategyManager;
+import ai.managers.strategy.StrategyManager;
 import ai.terran.TerranBunker;
 import ai.utils.RUtilities;
 
@@ -66,9 +66,10 @@ public class UnitActions {
 		}
 	}
 
-	public static void repair(Unit worker, Unit building) {
-		if (worker != null && building != null) {
-			xvr.getBwapi().repair(worker.getID(), building.getID());
+	public static void repair(Unit worker, Unit unitToRepair) {
+		if (worker != null && unitToRepair != null) {
+			xvr.getBwapi().repair(worker.getID(), unitToRepair.getID());
+			worker.setAiOrder("Repair " + unitToRepair.getName());
 		}
 	}
 
@@ -132,6 +133,11 @@ public class UnitActions {
 	}
 
 	public static void spreadOutRandomly(Unit unit) {
+		if (unit.isLoaded()) {
+			unit.unload();
+			return;
+		}
+
 		if (!StrengthRatio.isStrengthRatioFavorableFor(unit)) {
 			UnitActions.moveToSafePlace(unit);
 			return;

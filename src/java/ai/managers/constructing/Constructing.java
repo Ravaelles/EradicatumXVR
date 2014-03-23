@@ -29,6 +29,8 @@ public class Constructing {
 
 	private static XVR xvr = XVR.getInstance();
 
+	private static int _skipCheckingForTurns = 0;
+
 	// ============================
 
 	public static MapPoint findTileForStandardBuilding(UnitTypes typeToBuild) {
@@ -73,6 +75,10 @@ public class Constructing {
 
 		// Standard building
 		else {
+			if (_skipCheckingForTurns > 0) {
+				_skipCheckingForTurns--;
+				return null;
+			}
 			buildTile = findTileForStandardBuilding(building);
 		}
 

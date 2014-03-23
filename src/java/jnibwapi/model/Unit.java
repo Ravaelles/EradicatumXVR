@@ -22,6 +22,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	// ========
 	private static XVR xvr = XVR.getInstance();
 
+	private Unit aaUnitNearby = null;
 	private Unit mineralGathered = null;
 	private CallForHelp callForHelpMission = null;
 	private MapPoint properPlaceToBe = null;
@@ -32,6 +33,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	private int aiOrderTime = -1;
 	private Region _region = null;
 	private int lastTimeSieged = -1;
+	private MapPoint painterGoTo;
 	// ========
 
 	private int ID;
@@ -1087,6 +1089,22 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public void setLastTimeSieged(int lastTimeSieged) {
 		this.lastTimeSieged = lastTimeSieged;
+	}
+
+	public Unit getEnemyNearbyAA() {
+		return this.aaUnitNearby;
+	}
+
+	public void setEnemyNearbyAA(Unit aaUnitNearby) {
+		this.aaUnitNearby = aaUnitNearby;
+	}
+
+	public void setPainterGoTo(MapPoint painterGoTo) {
+		this.painterGoTo = painterGoTo;
+	}
+
+	public MapPoint getPainterGoTo() {
+		return this.painterGoTo;
 	}
 
 }

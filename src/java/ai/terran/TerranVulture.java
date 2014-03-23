@@ -12,7 +12,8 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
-import ai.managers.TechnologyManager;
+import ai.managers.economy.TechnologyManager;
+import ai.managers.units.army.ArmyUnitBasicBehavior;
 import ai.utils.RUtilities;
 
 public class TerranVulture {
@@ -21,9 +22,7 @@ public class TerranVulture {
 
 	private static UnitTypes unitType = UnitTypes.Terran_Vulture;
 
-	public static UnitTypes getUnitType() {
-		return unitType;
-	}
+	// =========================================================
 
 	public static boolean act(Unit unit) {
 		// int alliedUnitsNearby = xvr.countUnitsInRadius(unit, 10, true);
@@ -31,11 +30,8 @@ public class TerranVulture {
 		// !StrategyManager.isAnyAttackFormPending();
 
 		// =========================
-		Unit enemyDefensiveBuilding = xvr.getEnemyDefensiveGroundBuildingNear(unit);
-		if (enemyDefensiveBuilding != null) {
-			UnitActions.moveAwayFromUnit(unit, enemyDefensiveBuilding);
-			return true;
-		}
+		// Look out for enemy defensive buildings.
+		ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit);
 
 		// Don't interrupt unit on march
 		if (unit.isStartingAttack()) {
@@ -188,4 +184,7 @@ public class TerranVulture {
 		return UnitCounter.getNumberOfUnitsCompleted(unitType);
 	}
 
+	public static UnitTypes getUnitType() {
+		return unitType;
+	}
 }

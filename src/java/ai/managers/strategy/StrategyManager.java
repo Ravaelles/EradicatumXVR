@@ -1,4 +1,4 @@
-package ai.managers;
+package ai.managers.strategy;
 
 import java.util.Collection;
 

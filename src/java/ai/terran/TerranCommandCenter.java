@@ -11,13 +11,13 @@ import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
-import ai.managers.BotStrategyManager;
-import ai.managers.BuildingManager;
-import ai.managers.StrategyManager;
-import ai.managers.WorkerManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.strategy.BotStrategyManager;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
+import ai.managers.units.buildings.BuildingManager;
+import ai.managers.units.workers.WorkerManager;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
 
@@ -37,6 +37,8 @@ public class TerranCommandCenter {
 	private static int _lastTimeCalculatedTileForBase = -1;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Command_Center;
+
+	// =========================================================
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
@@ -59,7 +61,7 @@ public class TerranCommandCenter {
 				.getBuildingType());
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
-		if (bases == 1 && battleUnits >= 10
+		if (bases == 1 && battleUnits >= 9
 				&& TerranBunker.getNumberOfUnitsCompleted() == TerranBunker.MAX_STACK) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
@@ -344,28 +346,15 @@ public class TerranCommandCenter {
 
 		// ===============================
 		BaseLocation nearestFreeBaseLocation = getNearestFreeBaseLocation();
-		// System.out.println("BaseLocation nearestFreeBaseLocation = " +
-		// nearestFreeBaseLocation);
 		if (nearestFreeBaseLocation != null) {
 			MapPoint point = nearestFreeBaseLocation;
 
-			// MapPoint point = new MapPointInstance(
-			// nearestFreeBaseLocation.getTx(),
-			// nearestFreeBaseLocation.getTy());
-			// Debug.message(xvr, "Tile for new base: " + point.getTx() + ","
-			// + point.getTy());
-			// System.out.println("Tile for new base: " + point);
 			CodeProfiler.startMeasuring("New base");
 			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(
 					xvr.getOptimalBuilder(nearestFreeBaseLocation), buildingType, point, 0, 30);
 			CodeProfiler.endMeasuring("New base");
-			// System.out.println(" processed: " + _cachedNextBaseTile);
-			// System.out.println();
 		} else {
-			// if (UnitCounter.getNumberOfUnits(UnitManager.BASE) <= 1) {
-			// Debug.message(xvr, "Error! No place for next base!");
 			System.out.println("Error! No place for next base!");
-			// }
 			_cachedNextBaseTile = null;
 		}
 
@@ -387,8 +376,7 @@ public class TerranCommandCenter {
 
 			// If there's already a base there don't build. Check for both our
 			// and enemy bases.
-			if (existsBaseNear(location.getX(), location.getY())) {
-				// || !xvr.getBwapi().isVisible(location)
+			if (existsBaseNear(location)) {
 				continue;
 			}
 

@@ -12,9 +12,9 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
-import ai.managers.BotStrategyManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
 import ai.utils.RUtilities;
 

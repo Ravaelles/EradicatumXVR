@@ -1,3 +1,21 @@
+- Unosiæ budynek dla czo³gów
+- czo³gi nie mog¹ odjechaæ dalej ni¿ 8 kratek od czo³gu-mediany
+- vultury czasami jada doi bazy nie sa naprawiane
+- vultury wpierdalaja sie na budynki obronne
+
+
+
+
+
+
+
+
+- Okr¹¿anie bazy musi znaleŸæ tak¹ drogê, do której jest dojœcie.
+- TOTALNIE nie dzia³a unikanie budynków
+
+
+
+
 =========== BUGS ==============
 
 Tanks move to buildings and attack from close

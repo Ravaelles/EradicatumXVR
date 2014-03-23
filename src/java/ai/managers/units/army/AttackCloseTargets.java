@@ -1,4 +1,4 @@
-package ai.managers.units;
+package ai.managers.units.army;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,7 +9,8 @@ import ai.core.XVR;
 import ai.handling.army.StrengthRatio;
 import ai.handling.army.TargetHandling;
 import ai.handling.units.UnitActions;
-import ai.managers.StrategyManager;
+import ai.managers.strategy.StrategyManager;
+import ai.managers.units.UnitManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 

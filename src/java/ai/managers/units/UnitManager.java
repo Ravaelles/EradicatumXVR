@@ -11,8 +11,12 @@ import ai.handling.army.ArmyPlacing;
 import ai.handling.army.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
-import ai.managers.BuildingManager;
-import ai.managers.StrategyManager;
+import ai.managers.enemy.HiddenEnemyUnitsManager;
+import ai.managers.strategy.StrategyManager;
+import ai.managers.units.army.ArmyUnitBasicBehavior;
+import ai.managers.units.army.AttackCloseTargets;
+import ai.managers.units.army.FlyerManager;
+import ai.managers.units.buildings.BuildingManager;
 
 public class UnitManager {
 
@@ -97,59 +101,60 @@ public class UnitManager {
 		// TOP PRIORITY ACTIONS, order is important!
 
 		// Try to load infantry inside bunkers if possible.
-		if (UnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
+		if (ArmyUnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
 			unit.setAiOrder("Into bunker");
 			return;
 		}
 
 		// Wounded units should avoid being killed (if possible you know...)
-		if (UnitBasicBehavior.tryRunningIfSeriouslyWounded(unit)) {
+		if (ArmyUnitBasicBehavior.tryRunningIfSeriouslyWounded(unit)) {
+			unit.setAiOrder("Is badly wounded");
 			return;
 		}
 
 		// If enemy has got very close near to us, move away
-		if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
-			unit.setAiOrder("Run");
+		if (ArmyUnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
+			unit.setAiOrder("Run from enemy");
 			return;
 		}
 
 		// Disallow units to move close to the defensive building like
 		// Photon Cannon
-		if (UnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
-			unit.setAiOrder("Avoid building");
+		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
 			return;
 		}
 
 		// Disallow fighting when overwhelmed.
-		if (UnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
-			unit.setAiOrder("Would lose");
+		if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
 			return;
 		}
 
 		// ===============================
 		// Act according to STRATEGY, attack strategic targets,
 		// define proper place for a unit.
-		UnitBasicBehavior.act(unit);
+		ArmyUnitBasicBehavior.act(unit);
 
 		// ===============================
 		// ATTACK CLOSE targets (Tactics phase)
 		if (AttackCloseTargets.tryAttackingCloseTargets(unit)) {
-			UnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
-			unit.setAiOrder("Attack");
+			unit.setAiOrder("Attack close targets");
 		}
+		ArmyUnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
 
 		// ===============================
 		// Run from hidden Lurkers, Dark Templars etc.
-		UnitBasicBehavior.avoidHiddenUnitsIfNecessary(unit);
+		HiddenEnemyUnitsManager.avoidHiddenUnitsIfNecessary(unit);
 
 		// If enemy has got very close near to us, move away
-		if (UnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
-			unit.setAiOrder("Run");
+		if (ArmyUnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
+			unit.setAiOrder("Run from enemy 2");
 			return;
 		}
 	}
 
-	protected static void actWhenOnCallForHelpMission(Unit unit) {
+	// =========================================================
+
+	public static void actWhenOnCallForHelpMission(Unit unit) {
 		Unit caller = unit.getCallForHelpMission().getCaller();
 
 		// If already close to the point to be, cancel order.
@@ -187,7 +192,7 @@ public class UnitManager {
 		return false;
 	}
 
-	protected static void actWhenNoMassiveAttack(Unit unit) {
+	public static void actWhenNoMassiveAttack(Unit unit) {
 		if (shouldUnitBeExplorer(unit) && !unit.isRunningFromEnemy()) {
 			UnitActions.spreadOutRandomly(unit);
 		} else {
@@ -224,7 +229,7 @@ public class UnitManager {
 		// unit.getTypeID() == UnitTypes.Terran_Vulture.ordinal();
 	}
 
-	protected static void actWhenMassiveAttackIsPending(Unit unit) {
+	public static void actWhenMassiveAttackIsPending(Unit unit) {
 
 		// If unit is surrounded by other units (doesn't attack alone)
 		// if (isPartOfClusterOfMinXUnits(unit)) {
@@ -288,10 +293,10 @@ public class UnitManager {
 
 	public static void avoidSpellEffectsAndMinesIfNecessary() {
 		for (Unit unit : xvr.getBwapi().getMyUnits()) {
-			if (UnitBasicBehavior.tryAvoidingSeriousSpellEffectsIfNecessary(unit)) {
+			if (ArmyUnitBasicBehavior.tryAvoidingSeriousSpellEffectsIfNecessary(unit)) {
 				continue;
 			}
-			if (UnitBasicBehavior.tryAvoidingActivatedSpiderMines(unit)) {
+			if (ArmyUnitBasicBehavior.tryAvoidingActivatedSpiderMines(unit)) {
 				continue;
 			}
 		}

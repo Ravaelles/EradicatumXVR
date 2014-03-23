@@ -15,16 +15,17 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
-import ai.managers.ArmyCreationManager;
-import ai.managers.StrategyManager;
-import ai.managers.TechnologyManager;
-import ai.managers.WorkerManager;
 import ai.managers.constructing.ConstructingManager;
-import ai.managers.units.HiddenUnits;
+import ai.managers.economy.TechnologyManager;
+import ai.managers.enemy.HiddenEnemyUnitsManager;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
+import ai.managers.units.army.ArmyCreationManager;
+import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
+import ai.terran.TerranSiegeTank;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
 
@@ -76,6 +77,12 @@ public class XVR {
 	/** This method is called every 30th frame (approx. once a second). */
 	public void act() {
 		try {
+
+			// Slow down after the start
+			if (secondCounter > 60) {
+				bwapi.setGameSpeed(8);
+			}
+
 			frameCounter++;
 			secondCounter = frameCounter / 30;
 
@@ -92,7 +99,7 @@ public class XVR {
 
 			// Try to detect hidden enemy units
 			if (getFrames() % 13 == 0) {
-				HiddenUnits.act();
+				HiddenEnemyUnitsManager.act();
 			}
 
 			// See if we're strong enough to attack the enemy
@@ -147,9 +154,13 @@ public class XVR {
 				ConstructingManager.act();
 				CodeProfiler.endMeasuring("Construct");
 			}
+
+			// Define median siege tank i.e. the one in the center of others
+			if (getFrames() % 48 == 0) {
+				TerranSiegeTank.defineMedianTank();
+			}
 		} catch (Exception e) {
-			Painter.errorOcurred = true;
-			Painter.errorOcurredDetails = e.getStackTrace()[0].toString();
+			Painter.errorOccured(e.getStackTrace()[0].toString());
 			System.err.println("--------------------------------------");
 			System.err.println("---------- NON CRITICAL ERROR OCCURED: ");
 			e.printStackTrace();

@@ -14,11 +14,12 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.other.NukeHandling;
 import ai.handling.units.UnitCounter;
-import ai.managers.ArmyCreationManager;
-import ai.managers.BuildingManager;
-import ai.managers.StrategyManager;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
+import ai.managers.units.army.ArmyCreationManager;
+import ai.managers.units.buildings.BuildingManager;
+import ai.managers.units.workers.ExplorerCirclingEnemyBase;
 import ai.terran.TerranCommandCenter;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
@@ -30,10 +31,23 @@ public class Painter {
 	public static String errorOcurredDetails = "";
 
 	private static int messageCounter = 1;
+	private static int debugMessageCounter = 1;
 	private static int mainMessageRowCounter = 0;
 
 	public static int ourDeaths = 0;
 	public static int enemyDeaths = 0;
+
+	// =========================================================
+
+	private static void paintDebugMessages(XVR xvr) {
+		debugMessageCounter = 1;
+
+		paintDebugMessage(xvr, "Circling phase: ",
+				ExplorerCirclingEnemyBase.get_circlingEnemyBasePhase());
+
+		MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
+		paintDebugMessage(xvr, "Next base", "X: " + nextBase.getTx() + ", Y: " + nextBase.getTy());
+	}
 
 	public static void paintAll(XVR xvr) {
 		CodeProfiler.startMeasuring("Painting");
@@ -94,9 +108,12 @@ public class Painter {
 		// Statistics
 		paintStatistics(xvr);
 
+		// Aditional messages for debug purpose
+		paintDebugMessages(xvr);
+
 		if (Painter.errorOcurred) {
 			String string = "!!! EXCEPTION (" + errorOcurredDetails + ") !!!";
-			xvr.getBwapi().drawText(new Point(320 - string.length() * 3, 20),
+			xvr.getBwapi().drawText(new Point(320 - string.length() * 3, 100),
 					BWColor.getToStringHex(BWColor.RED) + string, true);
 		}
 
@@ -333,101 +350,125 @@ public class Painter {
 
 			boolean isBuilding = u.getType().isBuilding();
 			if (FULL_DEBUG && !isBuilding) {
-				if (u.isGatheringMinerals()) {
-					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.BLUE, false, false);
-				} else if (u.isGatheringGas()) {
-					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREEN, false, false);
-				} else if (u.isMoving() && !u.isConstructing()) {
-					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false, false);
-
-					if (xvr.getDistanceBetween(u, u.getTargetX(), u.getTargetY()) <= 15) {
-						bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(),
-								BWColor.GREY, false);
-					}
-				} else if (u.isRepairing()) {
-					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false, false);
-					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.PURPLE, false, false);
-					bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.PURPLE, false, false);
-				} else if (u.isConstructing()
-						|| u.getLastCommandID() == UnitCommandTypes.Build.ordinal()) {
-					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false, false);
-					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.ORANGE, false, false);
-				} else if (u.isStuck()) {
-					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.TEAL, false, false);
-					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.TEAL, false, false);
-					bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.TEAL, false, false);
-					bwapi.drawCircle(u.getX(), u.getY(), 9, BWColor.TEAL, false, false);
-				}
-
-				// ATTACKING: Display red circle around unit and paint a
-				// line to the target
-				else if (u.isAttacking()) {
-					bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.RED, false, false);
-					bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.RED, false, false);
-				}
-
-				// HEALED unit, draw Red Cross on white background
-				else if (u.isBeingHealed() || u.isBeingRepaired()) {
-					bwapi.drawBox(u.getX() - 8, u.getY() - 8, u.getX() + 8, u.getY() + 8,
-							BWColor.WHITE, true, false);
-					bwapi.drawBox(u.getX() - 5, u.getY() - 2, u.getX() + 5, u.getY() + 2,
-							BWColor.RED, true, false);
-					bwapi.drawBox(u.getX() - 2, u.getY() - 5, u.getX() + 2, u.getY() + 5,
-							BWColor.RED, true, false);
-				}
-
-				// IDLE unit, draw question mark
-				else if (u.isIdle() && !u.getType().isBuilding()) {
-					bwapi.drawText(u.getX() - 2, u.getY() - 2,
-							BWColor.getToStringHex(BWColor.YELLOW) + "?", false);
-				}
-
-				// CONSTRUCTING: display building name
-				if (u.isConstructing()) {
-					paintConstructionProgress(u);
-					String name = (UnitType.getUnitTypesByID(u.getBuildTypeID()) + "").replace(
-							"Terran_", "");
-					bwapi.drawText(u.getX() - 30, u.getY(), BWColor.getToStringHex(BWColor.GREY)
-							+ "-> " + name, false);
-				}
-
-				// ACTION LABEL: display action like #RUN, #LOAD
-				if (u.hasAiOrder()) {
-					bwapi.drawText(u.getX() - u.getAiOrderString().length() * 3, u.getY(),
-							BWColor.getToStringHex(BWColor.WHITE) + u.getAiOrderString(), false);
-				}
+				paintUnit(xvr, bwapi, u);
 			}
 
 			// IS BUILDING: display action name that's currently pending.
 			else if (isBuilding) {
-				if (u.isTraining()) {
-					String name = (bwapi.getUnitCommandType(u.getLastCommandID()).getName() + "")
-							.replace("Terran_", "");
-					bwapi.drawText(u.getX() - 30, u.getY() + 10,
-							BWColor.getToStringHex(BWColor.GREY) + "-> " + name, false);
-				}
+				paintBuilding(xvr, bwapi, u);
+			}
+		}
+	}
 
-				int enemiesNearby = xvr.countUnitsEnemyInRadius(u, 11);
-				if (enemiesNearby > 0) {
-					String string = enemiesNearby + " enemies";
-					bwapi.drawText(u.getX() - string.length() * 4, u.getY(),
-							BWColor.getToStringHex(BWColor.RED) + string, false);
-				}
-				if (u.getType().isBunker()) {
-					int repairers = BuildingManager.countNumberOfRepairersForBuilding(u);
-					if (repairers > 0) {
-						String repairersString = repairers + " repairers";
-						bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 10,
-								BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
-					}
+	private static void paintUnit(XVR xvr, JNIBWAPI bwapi, Unit u) {
 
-					int specialCaseRepairers = BuildingManager.getSpecialCaseRepairers(u);
-					if (specialCaseRepairers > 0) {
-						String repairersString = specialCaseRepairers + " required";
-						bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 20,
-								BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
-					}
-				}
+		// Paint go to place for unit, if manually specified
+		if (u.getPainterGoTo() != null) {
+			MapPoint goTo = u.getPainterGoTo();
+			bwapi.drawLine(u.getX(), u.getY(), goTo.getX(), goTo.getY(), BWColor.GREY, false);
+		}
+
+		if (u.isGatheringMinerals()) {
+			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.BLUE, false, false);
+		} else if (u.isGatheringGas()) {
+			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREEN, false, false);
+		} else if (u.isMoving() && !u.isConstructing()) {
+			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false, false);
+
+			if (xvr.getDistanceBetween(u, u.getTargetX(), u.getTargetY()) <= 15) {
+				bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(), BWColor.GREY,
+						false);
+			}
+		} else if (u.isRepairing()) {
+			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false, false);
+			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.PURPLE, false, false);
+			bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.PURPLE, false, false);
+		} else if (u.isConstructing() || u.getLastCommandID() == UnitCommandTypes.Build.ordinal()) {
+			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false, false);
+			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.ORANGE, false, false);
+		} else if (u.isStuck()) {
+			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.TEAL, false, false);
+			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.TEAL, false, false);
+			bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.TEAL, false, false);
+			bwapi.drawCircle(u.getX(), u.getY(), 9, BWColor.TEAL, false, false);
+		}
+
+		// ATTACKING: Display red circle around unit and paint a
+		// line to the target
+		else if (u.isAttacking()) {
+			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.RED, false, false);
+			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.RED, false, false);
+		}
+
+		// HEALED unit, draw Red Cross on white background
+		else if (u.isBeingHealed() || u.isBeingRepaired()) {
+			bwapi.drawBox(u.getX() - 8, u.getY() - 8, u.getX() + 8, u.getY() + 8, BWColor.WHITE,
+					true, false);
+			bwapi.drawBox(u.getX() - 5, u.getY() - 2, u.getX() + 5, u.getY() + 2, BWColor.RED,
+					true, false);
+			bwapi.drawBox(u.getX() - 2, u.getY() - 5, u.getX() + 2, u.getY() + 5, BWColor.RED,
+					true, false);
+		}
+
+		// IDLE unit, draw question mark
+		else if (u.isIdle() && !u.getType().isBuilding()) {
+			bwapi.drawText(u.getX() - 2, u.getY() - 2,
+					BWColor.getToStringHex(BWColor.YELLOW) + "?", false);
+		}
+
+		// CONSTRUCTING: display building name
+		if (u.isConstructing()) {
+			paintConstructionProgress(u);
+			String name = (UnitType.getUnitTypesByID(u.getBuildTypeID()) + "").replace("Terran_",
+					"");
+			bwapi.drawText(u.getX() - 30, u.getY(), BWColor.getToStringHex(BWColor.GREY) + "-> "
+					+ name, false);
+		}
+
+		// ACTION LABEL: display action like #RUN, #LOAD
+		if (u.hasAiOrder()) {
+			bwapi.drawText(u.getX() - u.getAiOrderString().length() * 3, u.getY(),
+					BWColor.getToStringHex(BWColor.WHITE) + u.getAiOrderString(), false);
+		}
+
+		// FLYERS: paint nearest AntiAir enemy unit.
+		if (u.getType().isFlyer()) {
+			if (u.getEnemyNearbyAA() != null) {
+				int enemyX = u.getEnemyNearbyAA().getX();
+				int enemyY = u.getEnemyNearbyAA().getY();
+				bwapi.drawCircle(enemyX, enemyY, 20, BWColor.YELLOW, false, false);
+				bwapi.drawLine(u.getX(), u.getY(), enemyX, enemyY, BWColor.YELLOW, false);
+			}
+		}
+	}
+
+	private static void paintBuilding(XVR xvr, JNIBWAPI bwapi, Unit u) {
+		if (u.isTraining()) {
+			String name = (bwapi.getUnitCommandType(u.getLastCommandID()).getName() + "").replace(
+					"Terran_", "");
+			bwapi.drawText(u.getX() - 30, u.getY() + 10, BWColor.getToStringHex(BWColor.GREY)
+					+ "-> " + name, false);
+		}
+
+		int enemiesNearby = xvr.countUnitsEnemyInRadius(u, 11);
+		if (enemiesNearby > 0) {
+			String string = enemiesNearby + " enemies";
+			bwapi.drawText(u.getX() - string.length() * 4, u.getY(),
+					BWColor.getToStringHex(BWColor.RED) + string, false);
+		}
+		if (u.getType().isBunker()) {
+			int repairers = BuildingManager.countNumberOfRepairersForBuilding(u);
+			if (repairers > 0) {
+				String repairersString = repairers + " repairers";
+				bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 10,
+						BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
+			}
+
+			int specialCaseRepairers = BuildingManager.getSpecialCaseRepairers(u);
+			if (specialCaseRepairers > 0) {
+				String repairersString = specialCaseRepairers + " required";
+				bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 20,
+						BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
 			}
 		}
 	}
@@ -600,6 +641,29 @@ public class Painter {
 		String building = "#" + UnitType.getUnitTypesByID(type.ordinal()).name();
 
 		message(xvr, "Trying to build " + building);
+	}
+
+	public static void errorOccured(String errorString) {
+		Painter.errorOcurred = true;
+		Painter.errorOcurredDetails = errorString;
+	}
+
+	private static void paintDebugMessage(XVR xvr, String message, Object value) {
+		String valueString = "ERROR";
+		if (value instanceof Boolean) {
+			if (((boolean) value) == true) {
+				valueString = "TRUE";
+			} else {
+				valueString = "false";
+			}
+		} else {
+			valueString = value + "";
+		}
+
+		message += ": " + valueString;
+
+		xvr.getBwapi().drawText(new Point(320 - message.length() * 3, 12 * debugMessageCounter++),
+				BWColor.getToStringHex(BWColor.RED) + message, true);
 	}
 
 }

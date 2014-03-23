@@ -1,4 +1,4 @@
-package ai.managers.units;
+package ai.managers.units.army;
 
 import java.util.ArrayList;
 
@@ -12,15 +12,16 @@ import ai.handling.army.StrengthRatio;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
-import ai.managers.StrategyManager;
-import ai.managers.TechnologyManager;
+import ai.managers.economy.TechnologyManager;
+import ai.managers.strategy.StrategyManager;
+import ai.managers.units.UnitManager;
+import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBunker;
 import ai.terran.TerranMedic;
-import ai.terran.TerranSiegeTank;
 import ai.terran.TerranVulture;
 import ai.utils.RUtilities;
 
-public class UnitBasicBehavior {
+public class ArmyUnitBasicBehavior {
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -28,7 +29,7 @@ public class UnitBasicBehavior {
 
 	// =============================================
 
-	protected static void act(Unit unit) {
+	public static void act(Unit unit) {
 		UnitType unitType = unit.getType();
 		if (unitType == null) {
 			return;
@@ -79,12 +80,29 @@ public class UnitBasicBehavior {
 
 		// Tank
 		if (unitType.isTank()) {
-			TerranSiegeTank.act(unit);
+			SiegeTankManager.act(unit);
 		}
 	}
 
+	// =========================================================
+
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
 		UnitType type = unit.getType();
+
+		// Define nearest enemy (threat)
+		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		double distToEnemy = unit.distanceTo(nearestEnemy);
+
+		if (distToEnemy > 12) {
+			return false;
+		}
+
+		if (distToEnemy < 3.5 && !type.isFirebat()) {
+			unit.setIsRunningFromEnemyNow();
+			UnitActions.moveToSafePlace(unit);
+			return true;
+		}
+
 		boolean hasPrettyGoodChances = unit.getStrengthRatio() > 1.6 || unit.getStrengthRatio() < 0;
 
 		double distanceBonusIfWounded = (unit.isWounded() ? 0.95 : 0);
@@ -101,9 +119,6 @@ public class UnitBasicBehavior {
 			return true;
 		}
 
-		// Define nearest enemy (threat)
-		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		double distToEnemy = unit.distanceTo(nearestEnemy);
 		if (distToEnemy < 0) {
 			return false;
 		}
@@ -287,7 +302,7 @@ public class UnitBasicBehavior {
 		return false;
 	}
 
-	private static boolean isBunkerTooFarFromCombat(Unit unit, Unit bunker) {
+	public static boolean isBunkerTooFarFromCombat(Unit unit, Unit bunker) {
 		if (unit == null || bunker == null) {
 			return false;
 		}
@@ -296,7 +311,7 @@ public class UnitBasicBehavior {
 		return bunker.distanceTo(unit) >= 7;
 	}
 
-	protected static boolean loadIntoBunkerNearbyIfPossible(Unit unit) {
+	public static boolean loadIntoBunkerNearbyIfPossible(Unit unit) {
 		final int MAX_DIST_TO_BUNKER_TO_LOAD_INTO_IT = 28;
 
 		if (unit.getType().isMedic()) {
@@ -377,8 +392,10 @@ public class UnitBasicBehavior {
 				}
 				return false;
 			} else {
-				UnitActions.moveAwayFromUnit(unit, defensiveBuilding);
+				// UnitActions.moveAwayFromUnit(unit, defensiveBuilding);
+				UnitActions.moveToSafePlace(unit);
 				unit.setIsRunningFromEnemyNow();
+				unit.setAiOrder("Avoid building");
 				return true;
 			}
 		} else {
@@ -386,7 +403,7 @@ public class UnitBasicBehavior {
 		}
 	}
 
-	protected static boolean tryAvoidingSeriousSpellEffectsIfNecessary(Unit unit) {
+	public static boolean tryAvoidingSeriousSpellEffectsIfNecessary(Unit unit) {
 		if (unit.isUnderStorm() || unit.isUnderDisruptionWeb()) {
 			if (unit.isMoving()) {
 				return true;
@@ -398,7 +415,7 @@ public class UnitBasicBehavior {
 		return false;
 	}
 
-	protected static boolean tryAvoidingActivatedSpiderMines(Unit unit) {
+	public static boolean tryAvoidingActivatedSpiderMines(Unit unit) {
 		if (unit.getType().isFlyer()) {
 			return false;
 		}
@@ -426,7 +443,7 @@ public class UnitBasicBehavior {
 		return false;
 	}
 
-	protected static boolean tryRunningIfSeriouslyWounded(Unit unit) {
+	public static boolean tryRunningIfSeriouslyWounded(Unit unit) {
 		double ratio = 0.4;
 		if (xvr.getTimeSeconds() < 330) {
 			ratio = 0.62;
@@ -455,27 +472,39 @@ public class UnitBasicBehavior {
 				unit.setAiOrder("Almost dead");
 			}
 
+			// If unit can be repaired
 			if (unit.isRepairable()) {
+
+				// Issue order to repair this unit
 				RepairAndSons.issueTicketToRepairIfHasnt(unit);
 
+				// Get SCV that is supposed to repair it
 				Unit repairer = RepairAndSons.getRepairerForUnit(unit);
 				if (repairer != null) {
+
+					// If wrong worker was assigned (e.g. busy), change request.
 					if (repairer.isConstructing() || !repairer.isExists()
 							|| (!repairer.isRepairing() && !repairer.isMoving())) {
 						RepairAndSons.removeTicketFor(unit, repairer);
 						RepairAndSons.issueTicketToRepairIfHasnt(unit);
 					}
-					if (repairer.distanceTo(unit) >= 1.3) {
+
+					// If unit is far from the worker that's supposed to repair
+					// it, go near him.
+					if (repairer.distanceTo(unit) >= 1.9) {
 						UnitActions.moveTo(unit, repairer);
 						unit.setAiOrder("Go to repair");
-					} else {
-						Unit nearEnemy = xvr.getNearestEnemyInRadius(unit, 11, true, true);
-						if (nearEnemy != null) {
+					}
+
+					// Repairer is close to this unit.
+					else {
+						Unit nearEnemy = xvr.getNearestEnemyInRadius(unit, 6, true, true);
+						if (nearEnemy != null && nearEnemy.canAttack(unit)) {
 							WeaponType groundWeapon = nearEnemy.getType().getGroundWeapon();
 							if (groundWeapon != null
 									&& unit.distanceTo(nearEnemy) <= groundWeapon
 											.getMaxRangeInTiles() + 1.9) {
-								unit.setAiOrder("Almost dead - Run");
+								unit.setAiOrder("Should be repaired, but RUN!");
 								// UnitActions.moveAwayFromNearestEnemy(unit);
 								UnitActions.moveToSafePlace(unit);
 							}
@@ -489,15 +518,6 @@ public class UnitBasicBehavior {
 		return false;
 	}
 
-	protected static void avoidHiddenUnitsIfNecessary(Unit unit) {
-		Unit hiddenEnemyUnitNearby = MapExploration.getHiddenEnemyUnitNearbyTo(unit);
-		if (hiddenEnemyUnitNearby != null && unit.isDetected()
-				&& !hiddenEnemyUnitNearby.isDetected()) {
-			UnitActions.moveAwayFromUnit(unit, hiddenEnemyUnitNearby);
-			unit.setAiOrder("Avoid hidden unit");
-		}
-	}
-
 	public static void tryUsingStimpacksIfNeeded(Unit unit) {
 		if (unit.getType().canUseStimpacks() && TechnologyManager.isStimpacksResearched()
 				&& !unit.isStimmed()) {
@@ -507,7 +527,7 @@ public class UnitBasicBehavior {
 		}
 	}
 
-	protected static boolean tryRetreatingIfChancesNotFavorable(Unit unit) {
+	public static boolean tryRetreatingIfChancesNotFavorable(Unit unit) {
 
 		// If no base isn't existing, screw this.
 		Unit firstBase = xvr.getFirstBase();
@@ -572,6 +592,7 @@ public class UnitBasicBehavior {
 			} else {
 				UnitActions.moveAwayFromNearestEnemy(unit);
 			}
+			unit.setAiOrder("Would lose");
 			return true;
 		}
 

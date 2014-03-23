@@ -18,6 +18,8 @@ import ai.handling.map.MapPoint;
 public class Map {
 	public static final int TILE_SIZE = 32;
 
+	private static Map instance = null;
+
 	private final int width;
 	private final int height;
 	private final int walkWidth;
@@ -41,6 +43,8 @@ public class Map {
 
 	public Map(int width, int height, String name, String fileName, String hash, int[] heightMap,
 			int[] buildable, int[] walkable) {
+		this.instance = this;
+
 		this.width = width;
 		this.height = height;
 		this.walkWidth = 4 * width;
@@ -252,13 +256,8 @@ public class Map {
 		return aStarSearchDistance(startTx, startTy, endTx, endTy);
 	}
 
-	public double getGroundDistance(Unit unit, int endTx, int endTy) {
+	public double getGroundDistance(MapPoint unit, int endTx, int endTy) {
 		return getGroundDistance(unit.getX() / 32, unit.getY() / 32, endTx, endTy);
-	}
-
-	public double getGroundDistance(Unit unit, Unit unit2) {
-		return getGroundDistance(unit.getX() / 32, unit.getY() / 32, unit2.getX() / 32,
-				unit2.getY() / 32);
 	}
 
 	/**
@@ -359,6 +358,29 @@ public class Map {
 		public int compareTo(AStarTile o) {
 			return Integer.compare(distPlusCost, o.distPlusCost);
 		}
+	}
+
+	// =========================================================
+
+	public static MapPoint getClosestWalkablePointTo(MapPoint point) {
+		int startFromRange = 0;
+		int maxRange = 50;
+
+		int currentMaxRange = startFromRange;
+		while (currentMaxRange < maxRange) {
+			for (int dx = -currentMaxRange; dx < currentMaxRange; dx++) {
+				for (int dy = -currentMaxRange; dy < currentMaxRange; dy++) {
+					MapPoint potentialPoint = point.getMapPoint().translate(dx, dy);
+					if (instance.isConnected(point, potentialPoint)) {
+						return potentialPoint;
+					}
+				}
+			}
+			currentMaxRange++;
+		}
+
+		System.out.println("ERROR: getWalkableTileExceptionSafe");
+		return null;
 	}
 
 }

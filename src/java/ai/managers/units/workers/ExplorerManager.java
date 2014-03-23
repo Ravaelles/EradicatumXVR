@@ -1,4 +1,4 @@
-package ai.handling.map;
+package ai.managers.units.workers;
 
 import java.util.ArrayList;
 
@@ -6,15 +6,17 @@ import jnibwapi.model.BaseLocation;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.map.MapExploration;
+import ai.handling.map.MapPoint;
+import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
-import ai.managers.WorkerManager;
-import ai.managers.units.UnitBasicBehavior;
 import ai.managers.units.UnitManager;
+import ai.managers.units.army.ArmyUnitBasicBehavior;
 import ai.terran.TerranCommandCenter;
 import ai.utils.RUtilities;
 
-public class Explorer {
+public class ExplorerManager {
 
 	private static Unit explorer;
 	private static XVR xvr = XVR.getInstance();
@@ -28,14 +30,22 @@ public class Explorer {
 	private static boolean _isDiscoveringEnemyBase = false;
 
 	public static void explore(Unit explorer) {
+		// ExplorerCirclingEnemyBase.circleAroundEnemyBaseWith(explorer,
+		// xvr.getFirstBase());
+		//
+		// if (true) {
+		// return;
+		// }
+
 		if (!explorer.isCompleted()) {
 			return;
 		}
-		Explorer.explorer = explorer;
+		ExplorerManager.explorer = explorer;
 
 		// Disallow units to move close to the defensive building like
 		// Photon Cannon
-		if (UnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(explorer)) {
+		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(explorer)) {
+			explorer.setAiOrder("Avoid building");
 			return;
 		}
 
@@ -55,9 +65,16 @@ public class Explorer {
 		boolean shouldBeConstructing = explorer.isConstructing();
 		boolean shouldContinueAttacking = explorer.isAttacking() && !isWounded;
 		boolean shouldBeDiscovering = _isDiscoveringEnemyBase || !_exploredSecondBase
-				|| MapExploration.enemyBuildingsDiscovered.isEmpty();
+				|| MapExploration.getEnemyBuildingsDiscovered().isEmpty();
 		boolean isEnemyClose = distToEnemy > 0 && distToEnemy < 3;
 		boolean shouldBeMoving = explorer.isMoving() && isEnemyClose;
+
+		// Try running around enemy base
+		if (ExplorerCirclingEnemyBase.tryRunningAroundEnemyBaseIfPossible()) {
+			explorer.setAiOrder("Circle enemy base");
+			return;
+		}
+
 		if (!explorer.isIdle()
 				&& (shouldBeDiscovering || shouldBeMoving || shouldBeConstructing || shouldContinueAttacking)) {
 			return;
@@ -66,6 +83,7 @@ public class Explorer {
 		// ===========================
 		// If unit is WOUNDED, then retreat to the main base
 		if (tryRunningFromEnemiesIfNecessary()) {
+			explorer.setAiOrder("Run from enemies");
 			return;
 		}
 
@@ -73,18 +91,20 @@ public class Explorer {
 		// Explorer ACTIONS
 
 		// If we need to scout next base location (Nexus construction can screw
-		// otherwise), do it.
+		// it)
 		if (tryScoutingNextBaseLocation()) {
 			return;
 		}
 
 		// Discover base location of the enemy
 		if (tryDiscoveringEnemyBaseLocation()) {
+			explorer.setAiOrder("Discover enemy");
 			return;
 		}
 
 		// Always when possible, try to trololo the enemy
 		if (tryAttackingEnemyIfPossible()) {
+			explorer.setAiOrder("Harass the enemy");
 			return;
 		}
 
@@ -94,6 +114,7 @@ public class Explorer {
 
 	private static void gatherResourcesIfIdle() {
 		if (explorer.isIdle()) {
+			explorer.setAiOrder("Gather resources");
 			WorkerManager.gatherResources(explorer, xvr.getFirstBase());
 		}
 	}
@@ -110,6 +131,11 @@ public class Explorer {
 
 	private static boolean tryRunningFromEnemiesIfNecessary() {
 		boolean isWounded = isExplorerWounded();
+
+		// Never run if not even wounded.
+		if (!isWounded) {
+			return false;
+		}
 
 		Unit nearestEnemy = xvr.getUnitNearestFromList(explorer.getX(), explorer.getY(),
 				xvr.getEnemyUnitsVisible(), true, true);
@@ -160,6 +186,16 @@ public class Explorer {
 
 	private static boolean tryAttackingEnemyIfPossible() {
 		Unit enemyUnit = null;
+
+		// Disallow heavily wounded explorer to atttack.
+		if (explorer.getHP() < 14) {
+			return false;
+		}
+
+		// Disallow explorer to attack if he's circling enemy base.
+		if (ExplorerCirclingEnemyBase.isCirclingOrHasCircled()) {
+			return false;
+		}
 
 		// if (XVR.isEnemyProtoss()) {
 		// Collection<Unit> pylons =
@@ -260,14 +296,14 @@ public class Explorer {
 	}
 
 	private static boolean tryDiscoveringEnemyBaseLocation() {
-		boolean hasDiscoveredBaseLocation = !MapExploration.enemyBuildingsDiscovered.isEmpty();
+		boolean hasDiscoveredBaseLocation = !MapExploration.getEnemyBuildingsDiscovered().isEmpty();
 		if (!hasDiscoveredBaseLocation) {
 			BaseLocation goTo = null;
 
 			// Filter out visited bases.
 			ArrayList<BaseLocation> possibleBases = new ArrayList<BaseLocation>();
 			possibleBases.addAll(xvr.getBwapi().getMap().getStartLocations());
-			possibleBases.removeAll(MapExploration.baseLocationsDiscovered);
+			possibleBases.removeAll(MapExploration.getBaseLocationsDiscovered());
 			possibleBases.remove(MapExploration.getOurBaseLocation());
 
 			// If there is any unvisited base- go there. If no- go to the random
@@ -282,7 +318,7 @@ public class Explorer {
 			if (goTo != null) {
 				_isDiscoveringEnemyBase = true;
 				UnitActions.moveTo(explorer, goTo);
-				MapExploration.baseLocationsDiscovered.add(goTo);
+				MapExploration.getBaseLocationsDiscovered().add(goTo);
 				return true;
 			}
 		}
@@ -295,6 +331,7 @@ public class Explorer {
 
 		// Explore place behind our minerals
 		if (!_exploredBackOfMainBase) {
+			explorer.setAiOrder("Explore back of base");
 			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
 			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
 				_explorerForBackOfBase = xvr.getOptimalBuilder(backOfTheBasePoint);
@@ -319,6 +356,7 @@ public class Explorer {
 
 		// Explore the place where the second base will be built
 		if (!_exploredSecondBase) {
+			explorer.setAiOrder("Explore second base");
 			MapPoint secondBase = TerranCommandCenter.getSecondBaseLocation();
 			UnitActions.moveTo(explorer, secondBase);
 			_exploredSecondBase = true;
@@ -327,6 +365,7 @@ public class Explorer {
 
 		// Explore random base location
 		if (!explorer.isMoving() && RUtilities.rand(0, 1) == 0) {
+			explorer.setAiOrder("Scout random base");
 			scoutRandomBaseLocation();
 		}
 
@@ -334,10 +373,12 @@ public class Explorer {
 		if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
 			MapPoint tileForNextBase = TerranCommandCenter.findTileForNextBase(false);
 			if (!xvr.getBwapi().isVisible(tileForNextBase.getTx(), tileForNextBase.getTy())) {
+				explorer.setAiOrder("Scout 3rd base");
 				UnitActions.moveTo(explorer, tileForNextBase);
 				return true;
 			} else {
 				if (!explorer.isMoving()) {
+					explorer.setAiOrder("Explore unknown");
 					UnitActions.moveTo(
 							explorer,
 							MapExploration.getNearestUnknownPointFor(explorer.getX(),

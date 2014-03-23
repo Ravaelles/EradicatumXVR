@@ -120,7 +120,7 @@ public class MapExploration {
 		return result;
 	}
 
-	protected static BaseLocation getOurBaseLocation() {
+	public static BaseLocation getOurBaseLocation() {
 		List<BaseLocation> baseLocations = xvr.getBwapi().getMap().getBaseLocations();
 		Unit ourBase = xvr.getFirstBase();
 
@@ -658,4 +658,45 @@ public class MapExploration {
 			_disabledChokePointsNearMainBase = true;
 		}
 	}
+
+	public static JNIBWAPI getBwapi() {
+		return bwapi;
+	}
+
+	public static void setBwapi(JNIBWAPI bwapi) {
+		MapExploration.bwapi = bwapi;
+	}
+
+	public static ArrayList<ChokePoint> getChokePointsProcessed() {
+		return chokePointsProcessed;
+	}
+
+	public static void setChokePointsProcessed(ArrayList<ChokePoint> chokePointsProcessed) {
+		MapExploration.chokePointsProcessed = chokePointsProcessed;
+	}
+
+	public static TreeSet<BaseLocation> getBaseLocationsDiscovered() {
+		return baseLocationsDiscovered;
+	}
+
+	public static void setBaseLocationsDiscovered(TreeSet<BaseLocation> baseLocationsDiscovered) {
+		MapExploration.baseLocationsDiscovered = baseLocationsDiscovered;
+	}
+
+	public static HashMap<Integer, Unit> getEnemyBasesDiscovered() {
+		return enemyBasesDiscovered;
+	}
+
+	public static void setEnemyBasesDiscovered(HashMap<Integer, Unit> enemyBasesDiscovered) {
+		MapExploration.enemyBasesDiscovered = enemyBasesDiscovered;
+	}
+
+	public static void setEnemyBuildingsDiscovered(HashMap<Integer, Unit> enemyBuildingsDiscovered) {
+		MapExploration.enemyBuildingsDiscovered = enemyBuildingsDiscovered;
+	}
+
+	public static void setEnemyUnitsDiscovered(HashMap<Integer, Unit> enemyUnitsDiscovered) {
+		MapExploration.enemyUnitsDiscovered = enemyUnitsDiscovered;
+	}
+
 }

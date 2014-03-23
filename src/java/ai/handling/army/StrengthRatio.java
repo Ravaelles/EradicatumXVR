@@ -11,7 +11,7 @@ import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitCounter;
-import ai.managers.StrategyManager;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;

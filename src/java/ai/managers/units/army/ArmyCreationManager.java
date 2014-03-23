@@ -1,4 +1,4 @@
-package ai.managers;
+package ai.managers.units.army;
 
 import java.util.ArrayList;
 
@@ -7,6 +7,7 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
+import ai.managers.economy.TechnologyManager;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;

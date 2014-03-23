@@ -4,9 +4,9 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
-import ai.managers.BotStrategyManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.strategy.BotStrategyManager;
 
 public class TerranEngineeringBay {
 

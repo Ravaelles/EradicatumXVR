@@ -5,6 +5,7 @@ import jnibwapi.model.Map;
 import jnibwapi.model.Region;
 import jnibwapi.model.Unit;
 import ai.core.XVR;
+import ai.utils.RUtilities;
 
 public abstract class MapPoint {
 
@@ -15,6 +16,10 @@ public abstract class MapPoint {
 	public abstract int getX();
 
 	public abstract int getY();
+
+	public MapPoint getMapPoint() {
+		return this;
+	}
 
 	public int getTx() {
 		return getX() / 32;
@@ -79,6 +84,16 @@ public abstract class MapPoint {
 
 	public MapPoint translate(int dx, int dy) {
 		return new MapPointInstance(getX() + dx, getY() + dy);
+	}
+
+	public MapPoint translateSafe(int dTileX, int dTileY) {
+		int safeX = getX() + dTileX * 32;
+		int safeY = getY() + dTileY * 32;
+
+		safeX = RUtilities.forceValueInRange(safeX, 0, getMap().getWidth() * 32 - 32);
+		safeY = RUtilities.forceValueInRange(safeY, 0, getMap().getHeight() * 32 - 32);
+
+		return new MapPointInstance(safeX, safeY);
 	}
 
 	private Map getMap() {

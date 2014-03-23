@@ -6,9 +6,9 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
-import ai.managers.TechnologyManager;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.economy.TechnologyManager;
 import ai.managers.units.UnitManager;
 
 public class TerranBarracks {
@@ -147,7 +147,7 @@ public class TerranBarracks {
 			freeGas -= 150;
 		}
 
-		boolean shouldSpareGasForOtherUnits = false;
+		// boolean shouldSpareGasForOtherUnits = false;
 		if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
 			freeGas -= 150;
 		}

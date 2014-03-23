@@ -1,4 +1,4 @@
-package ai.managers;
+package ai.managers.economy;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.TechType.TechTypes;

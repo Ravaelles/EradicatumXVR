@@ -1,4 +1,4 @@
-package ai.managers;
+package ai.managers.strategy;
 
 public class BotStrategyManager {
 
@@ -26,5 +26,5 @@ public class BotStrategyManager {
 		BotStrategyManager.expandWithBarracks = expandWithGateways;
 		BotStrategyManager.expandWithBunkers = false;
 	}
-	
+
 }

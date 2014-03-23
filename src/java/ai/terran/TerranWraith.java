@@ -5,7 +5,7 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
-import ai.managers.TechnologyManager;
+import ai.managers.economy.TechnologyManager;
 
 public class TerranWraith {
 
