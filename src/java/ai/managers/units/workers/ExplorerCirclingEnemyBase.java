@@ -43,13 +43,16 @@ public class ExplorerCirclingEnemyBase {
 		// Define explorer action according to the last action
 		MapPoint tryGoTo = null;
 		if (_circlingEnemyBasePhase <= 1) {
-			tryGoTo = aroundThisPoint.getMapPoint().translateSafe(0, CIRCLING_RADIUS);
+			tryGoTo = aroundThisPoint.getMapPoint().translateSafe(CIRCLING_RADIUS, CIRCLING_RADIUS);
 		} else if (_circlingEnemyBasePhase == 2) {
-			tryGoTo = aroundThisPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS, 0);
+			tryGoTo = aroundThisPoint.getMapPoint()
+					.translateSafe(-CIRCLING_RADIUS, CIRCLING_RADIUS);
 		} else if (_circlingEnemyBasePhase == 3) {
-			tryGoTo = aroundThisPoint.getMapPoint().translateSafe(0, -CIRCLING_RADIUS);
+			tryGoTo = aroundThisPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS,
+					-CIRCLING_RADIUS);
 		} else if (_circlingEnemyBasePhase == 4) {
-			tryGoTo = aroundThisPoint.getMapPoint().translateSafe(CIRCLING_RADIUS, 0);
+			tryGoTo = aroundThisPoint.getMapPoint()
+					.translateSafe(CIRCLING_RADIUS, -CIRCLING_RADIUS);
 		}
 
 		// Paint destination for this unit

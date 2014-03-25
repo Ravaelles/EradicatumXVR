@@ -43,9 +43,8 @@ public class WorkerManager {
 
 		private AutoLoader() {
 			EXTRA_PROFESSIONAL_REPAIRERERS.add(20);
-			EXTRA_PROFESSIONAL_REPAIRERERS.add(21);
-			EXTRA_PROFESSIONAL_REPAIRERERS.add(22);
-			// System.out.println("TEST");
+			// EXTRA_PROFESSIONAL_REPAIRERERS.add(21);
+			// EXTRA_PROFESSIONAL_REPAIRERERS.add(22);
 		}
 	}
 
@@ -84,6 +83,131 @@ public class WorkerManager {
 			_counter++;
 		}
 	}
+
+	public static void act(Unit unit) {
+		// if (true) {
+		// return;
+		// }
+
+		if (unit.isIdle() && _counter != WORKER_INDEX_PROFESSIONAL_REPAIRER) {
+			gatherResources(unit, xvr.getFirstBase());
+		}
+
+		if (unit.equals(ExplorerManager.getExplorer())) {
+			return;
+		}
+
+		// Don't interrupt when REPAIRING
+		if (unit.isRepairing()) {
+			return;
+		}
+
+		if (xvr.getTimeSeconds() < 300) {
+			defendBase(unit);
+		}
+
+		if (unit.isAttacking()
+				&& (unit.distanceTo(xvr.getFirstBase()) < 17 || unit.distanceTo(xvr.getFirstBase()) < 17)) {
+			return;
+		}
+
+		// ==================================
+
+		if (isProfessionalRepairer(unit) && TerranBunker.getNumberOfUnits() > 0) {
+			handleProfessionalRepairer(unit);
+			return;
+		}
+
+		if (ArmyUnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
+			unit.setAiOrder("Worker: Run from enemy");
+			return;
+		}
+
+		// ==================================
+
+		// If we should destroy this unit
+		// if (unit.isShouldScrapUnit()) {
+		// UnitActions
+		// .attackTo(unit, MapExploration.getNearestEnemyBuilding());
+		// return;
+		// }
+
+		// If this worker is attacking, and he's far from base, make him go
+		// back.
+		int distToMainBase = xvr.getDistanceSimple(unit, xvr.getFirstBase());
+		if (unit.isAttacking()
+				&& distToMainBase >= 7
+				|| (unit.isConstructing() && unit.getHP() < 21 && StrengthRatio
+						.isStrengthRatioCriticalFor(unit))) {
+			UnitActions.moveTo(unit, xvr.getFirstBase());
+			return;
+		}
+
+		// Act with worker that is under attack
+		if (unit.isUnderAttack()) {
+
+			// If nearest enemy is worker, attack this bastard!
+			Unit nearestEnemy = xvr.getUnitNearestFromList(unit, xvr.getBwapi().getEnemyUnits());
+			if (nearestEnemy != null) {
+				if (xvr.getDistanceSimple(unit, xvr.getFirstBase()) <= 9 && !unit.isConstructing()) {
+					UnitActions.attackEnemyUnit(unit, nearestEnemy);
+					return;
+				}
+			}
+
+			// ================================
+			// Don't attack, do something else
+			MapPoint goTo = null;
+
+			// Try to go to the nearest bunker
+			Unit defensiveBuildings = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
+					unit);
+			if (defensiveBuildings != null) {
+				goTo = defensiveBuildings;
+			} else {
+				goTo = xvr.getFirstBase();
+			}
+
+			if (goTo != null) {
+				if (xvr.getDistanceSimple(unit, goTo) >= 15) {
+					UnitActions.moveTo(unit, goTo.getX(), goTo.getY());
+				} else {
+					UnitActions.moveTo(unit, goTo.getX() + 5 - RUtilities.rand(0, 12), goTo.getY()
+							+ 5 - RUtilities.rand(0, 12));
+					UnitActions.callForHelp(unit, false);
+				}
+			}
+		}
+
+		// Act with idle worker
+		if (unit.isIdle() && !unit.isGatheringGas() && !unit.isGatheringMinerals()
+				&& !unit.isAttacking()) {
+
+			// Find the nearest base for this SCV
+			Unit nearestBase = TerranCommandCenter.getNearestBaseForUnit(unit);
+
+			// If base exists try to gather resources
+			if (nearestBase != null) {
+				gatherResources(unit, nearestBase);
+				return;
+			}
+		}
+
+		// Act with unit that is possibly stuck e.g. by just built Protoss
+		// building, yeah it happens this shit.
+		else if (unit.isConstructing() && !unit.isMoving()) {
+			UnitActions.moveTo(unit, TerranCommandCenter.getNearestBaseForUnit(unit));
+			return;
+		}
+
+		// // If unit is building something check if there's no duplicate
+		// // constructions going on
+		// else if (unit.isConstructing()) {
+		// Constructing.removeDuplicateConstructionsPending(unit);
+		// }
+	}
+
+	// =========================================================
 
 	private static void checkStatusOfBuildingsNeedingRepair(Unit worker) {
 		if (worker.isRepairing() && BuildingManager.getBuildingToRepairBy(worker) != null) {
@@ -178,128 +302,6 @@ public class WorkerManager {
 				return;
 			}
 		}
-	}
-
-	public static void act(Unit unit) {
-		// if (true) {
-		// return;
-		// }
-
-		if (unit.isIdle() && _counter != WORKER_INDEX_PROFESSIONAL_REPAIRER) {
-			gatherResources(unit, xvr.getFirstBase());
-		}
-
-		if (unit.equals(ExplorerManager.getExplorer())) {
-			return;
-		}
-
-		// Don't interrupt when REPAIRING
-		if (unit.isRepairing()) {
-			return;
-		}
-
-		if (xvr.getTimeSeconds() < 300) {
-			defendBase(unit);
-		}
-
-		if (unit.isAttacking()
-				&& (unit.distanceTo(xvr.getFirstBase()) < 17 || unit.distanceTo(xvr.getFirstBase()) < 17)) {
-			return;
-		}
-
-		// ==================================
-
-		if (isProfessionalRepairer(unit) && TerranBunker.getNumberOfUnits() > 0) {
-			handleProfessionalRepairer(unit);
-			return;
-		}
-
-		if (ArmyUnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
-			return;
-		}
-
-		// ==================================
-
-		// If we should destroy this unit
-		// if (unit.isShouldScrapUnit()) {
-		// UnitActions
-		// .attackTo(unit, MapExploration.getNearestEnemyBuilding());
-		// return;
-		// }
-
-		// If this worker is attacking, and he's far from base, make him go
-		// back.
-		int distToMainBase = xvr.getDistanceSimple(unit, xvr.getFirstBase());
-		if (unit.isAttacking()
-				&& distToMainBase >= 7
-				|| (unit.isConstructing() && unit.getHP() < 21 && StrengthRatio
-						.isStrengthRatioCriticalFor(unit))) {
-			UnitActions.moveTo(unit, xvr.getFirstBase());
-			return;
-		}
-
-		// Act with worker that is under attack
-		if (unit.isUnderAttack()) {
-
-			// If nearest enemy is worker, attack this bastard!
-			Unit nearestEnemy = xvr.getUnitNearestFromList(unit, xvr.getBwapi().getEnemyUnits());
-			if (nearestEnemy != null) {
-				if (xvr.getDistanceSimple(unit, xvr.getFirstBase()) <= 9 && !unit.isConstructing()) {
-					UnitActions.attackEnemyUnit(unit, nearestEnemy);
-					return;
-				}
-			}
-
-			// ================================
-			// Don't attack, do something else
-			MapPoint goTo = null;
-
-			// Try to go to the nearest bunker
-			Unit defensiveBuildings = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
-					unit);
-			if (defensiveBuildings != null) {
-				goTo = defensiveBuildings;
-			} else {
-				goTo = xvr.getFirstBase();
-			}
-
-			if (goTo != null) {
-				if (xvr.getDistanceSimple(unit, goTo) >= 15) {
-					UnitActions.moveTo(unit, goTo.getX(), goTo.getY());
-				} else {
-					UnitActions.moveTo(unit, goTo.getX() + 5 - RUtilities.rand(0, 12), goTo.getY()
-							+ 5 - RUtilities.rand(0, 12));
-					UnitActions.callForHelp(unit, false);
-				}
-			}
-		}
-
-		// Act with idle worker
-		if (unit.isIdle() && !unit.isGatheringGas() && !unit.isGatheringMinerals()
-				&& !unit.isAttacking()) {
-
-			// Find the nearest base for this SCV
-			Unit nearestBase = TerranCommandCenter.getNearestBaseForUnit(unit);
-
-			// If base exists try to gather resources
-			if (nearestBase != null) {
-				gatherResources(unit, nearestBase);
-				return;
-			}
-		}
-
-		// Act with unit that is possibly stuck e.g. by just built Protoss
-		// building, yeah it happens this shit.
-		else if (unit.isConstructing() && !unit.isMoving()) {
-			UnitActions.moveTo(unit, TerranCommandCenter.getNearestBaseForUnit(unit));
-			return;
-		}
-
-		// // If unit is building something check if there's no duplicate
-		// // constructions going on
-		// else if (unit.isConstructing()) {
-		// Constructing.removeDuplicateConstructionsPending(unit);
-		// }
 	}
 
 	private static boolean isProfessionalRepairer(Unit unit) {

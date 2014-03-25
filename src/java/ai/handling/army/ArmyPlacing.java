@@ -126,6 +126,8 @@ public class ArmyPlacing {
 			// } else {
 			// UnitActions.moveAwayFromNearestEnemy(unit);
 			// UnitActions.moveTo(unit, safePlace);
+		} else {
+			UnitActions.moveToMainBase(unit);
 		}
 	}
 

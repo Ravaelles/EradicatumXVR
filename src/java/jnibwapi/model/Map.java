@@ -379,7 +379,7 @@ public class Map {
 			currentMaxRange++;
 		}
 
-		System.out.println("ERROR: getWalkableTileExceptionSafe");
+		// System.out.println("ERROR: getWalkableTileExceptionSafe");
 		return null;
 	}
 

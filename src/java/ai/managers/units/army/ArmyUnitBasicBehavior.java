@@ -97,7 +97,7 @@ public class ArmyUnitBasicBehavior {
 			return false;
 		}
 
-		if (distToEnemy < 3.5 && !type.isFirebat()) {
+		if (distToEnemy > 0.1 && distToEnemy < 3.5 && !type.isFirebat()) {
 			unit.setIsRunningFromEnemyNow();
 			UnitActions.moveToSafePlace(unit);
 			return true;
@@ -389,11 +389,12 @@ public class ArmyUnitBasicBehavior {
 			if (unit.getType().isTank()) {
 				if (unit.distanceTo(defensiveBuilding) <= 10.8) {
 					unit.siege();
+					unit.setAiOrder("Siege because building");
 				}
 				return false;
 			} else {
-				// UnitActions.moveAwayFromUnit(unit, defensiveBuilding);
-				UnitActions.moveToSafePlace(unit);
+				UnitActions.moveAwayFromUnit(unit, defensiveBuilding);
+				// UnitActions.moveToSafePlace(unit);
 				unit.setIsRunningFromEnemyNow();
 				unit.setAiOrder("Avoid building");
 				return true;
@@ -408,6 +409,7 @@ public class ArmyUnitBasicBehavior {
 			if (unit.isMoving()) {
 				return true;
 			}
+			unit.setAiOrder("Avoid spell !!!");
 			UnitActions.moveTo(unit, unit.getX() + 5 * 32 * (-1 * RUtilities.rand(0, 1)),
 					unit.getY() + 5 * 32 * (-1 * RUtilities.rand(0, 1)));
 			return true;
@@ -539,9 +541,9 @@ public class ArmyUnitBasicBehavior {
 		// Some top level situations when don't try retreating
 
 		// If no enemy is critically close, don't retreat
-		if (xvr.getNearestEnemyDistance(unit, true, false) <= 2) {
-			return false;
-		}
+		// if (xvr.getNearestEnemyDistance(unit, true, false) <= 2) {
+		// return false;
+		// }
 
 		// Don't interrupt unit that has just started shooting.
 		if (unit.isStartingAttack()) {

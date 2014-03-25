@@ -188,7 +188,6 @@ public class TerranCommandCenter {
 
 			if (!otherBase.equals(base) && baseReady && otherBase.distanceTo(base) <= 35) {
 				double otherBaseRatio = defineNumberOfWorkersToOptimalNumberRatioFor(otherBase);
-				System.out.println();
 				// System.out.println("THEY/WE: " + mineralWorkersToOptimalRatio
 				// + " / "
 				// + otherBaseRatio);

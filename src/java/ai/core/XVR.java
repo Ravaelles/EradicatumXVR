@@ -21,6 +21,7 @@ import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
+import ai.managers.units.buildings.FlyingBuildingManager;
 import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
@@ -83,7 +84,8 @@ public class XVR {
 				bwapi.setGameSpeed(8);
 			}
 
-			frameCounter++;
+			// Update time
+			frameCounter = bwapi.getFrameCount();
 			secondCounter = frameCounter / 30;
 
 			// Calculate numbers of units by type, so this info can be used in
@@ -158,6 +160,11 @@ public class XVR {
 			// Define median siege tank i.e. the one in the center of others
 			if (getFrames() % 48 == 0) {
 				TerranSiegeTank.defineMedianTank();
+			}
+
+			// Handle flying building, that will enhance shoot range for tanks
+			if (getFrames() % 35 == 0) {
+				FlyingBuildingManager.act();
 			}
 		} catch (Exception e) {
 			Painter.errorOccured(e.getStackTrace()[0].toString());
@@ -948,7 +955,7 @@ public class XVR {
 		for (Unit enemy : enemiesNearby) {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackGroundUnits()) {
-				if (getDistanceBetween(enemy, x, y) + 2 <= enemy.getType().getGroundWeapon()
+				if (getDistanceBetween(enemy, x, y) + 3.6 <= enemy.getType().getGroundWeapon()
 						.getMaxRangeInTiles()) {
 					return enemy;
 				}
