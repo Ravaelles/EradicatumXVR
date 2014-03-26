@@ -1,6 +1,7 @@
 package ai.managers.units.workers;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import jnibwapi.model.BaseLocation;
 import jnibwapi.model.Unit;
@@ -28,6 +29,8 @@ public class ExplorerManager {
 	private static boolean _exploredSecondBase = false;
 	private static boolean _exploredBackOfMainBase = false;
 	private static boolean _isDiscoveringEnemyBase = false;
+
+	// =========================================================
 
 	public static void explore(Unit explorer) {
 		// ExplorerCirclingEnemyBase.circleAroundEnemyBaseWith(explorer,
@@ -71,7 +74,6 @@ public class ExplorerManager {
 
 		// Try running around enemy base
 		if (ExplorerCirclingEnemyBase.tryRunningAroundEnemyBaseIfPossible()) {
-			explorer.setAiOrder("Circle enemy base");
 			return;
 		}
 
@@ -111,6 +113,8 @@ public class ExplorerManager {
 		// Gather minerals if idle
 		gatherResourcesIfIdle();
 	}
+
+	// =========================================================
 
 	private static void gatherResourcesIfIdle() {
 		if (explorer.isIdle()) {
@@ -184,11 +188,11 @@ public class ExplorerManager {
 		}
 	}
 
-	private static boolean tryAttackingEnemyIfPossible() {
+	public static boolean tryAttackingEnemyIfPossible() {
 		Unit enemyUnit = null;
 
 		// Disallow heavily wounded explorer to atttack.
-		if (explorer.getHP() < 14) {
+		if (explorer.getHP() < 19) {
 			return false;
 		}
 
@@ -213,13 +217,14 @@ public class ExplorerManager {
 		// nearestEnemyBuilding = xvr.getEnemyWorkerInRadius(300, explorer);
 		// }
 
-		enemyUnit = xvr.getEnemyWorkerInRadius(300, explorer);
+		// Enemy is TERRAN
 		if (XVR.isEnemyTerran()) {
-			enemyUnit = xvr.getEnemyWorkerConstructingInRadius(300, explorer);
-			if (enemyUnit == null) {
-				enemyUnit = xvr.getEnemyWorkerInRadius(300, explorer);
-			}
+			enemyUnit = xvr.getEnemyWorkerConstructingInRadius(20, explorer);
 		}
+		if (enemyUnit == null) {
+			enemyUnit = getClosestEnemyWorker(explorer);
+		}
+
 		if (enemyUnit != null && enemyUnit.distanceTo(xvr.getFirstBase()) < 20) {
 			enemyUnit = null;
 		}
@@ -259,40 +264,16 @@ public class ExplorerManager {
 			return true;
 		}
 
-		// boolean isProperTargetSelected = nearestEnemyBuilding != null;
-		// boolean isNormalBuilding = isProperTargetSelected
-		// && (!nearestEnemyBuilding.isDefensiveGroundBuilding() ||
-		// !nearestEnemyBuilding
-		// .isCompleted());
-		// boolean isNeighborhoodQuiteSafe = (xvr.getEnemyUnitsInRadius(3,
-		// explorer).size() == 0 && xvr
-		// .getEnemyUnitsInRadius(6, explorer).size() <= 1);
-		// boolean isUnitVeryMuchAlive = explorer.getShields() >= 19;
-		//
-		// if (isProperTargetSelected && isNormalBuilding
-		// && (isNeighborhoodQuiteSafe || isUnitVeryMuchAlive)) {
-		// UnitActions.attackTo(explorer, nearestEnemyBuilding);
-		// return true;
-		// }
-		//
-		// // System.out.println(isNormalBuilding + " / " +
-		// isNeighborhoodQuiteSafe
-		// // + " / "
-		// // + isUnitVeryMuchAlive);
-		//
-		// if (explorer.isIdle() || (!_isDiscoveringEnemyBase &&
-		// nearestEnemyBuilding == null)) {
-		// Unit nearestEnemyUnit = xvr.getUnitNearestFromList(explorer,
-		// xvr.getBwapi()
-		// .getEnemyUnits());
-		// if (nearestEnemyUnit != null && xvr.getEnemyUnitsInRadius(6,
-		// explorer).size() <= 1) {
-		// UnitActions.attackTo(explorer, nearestEnemyUnit);
-		// return true;
-		// }
-		// }
-
 		return false;
+	}
+
+	private static Unit getClosestEnemyWorker(MapPoint point) {
+		Collection<Unit> enemyWorkers = xvr.getEnemyWorkersInRadius(300, explorer);
+		if (enemyWorkers != null && !enemyWorkers.isEmpty()) {
+			return xvr.getUnitNearestFromList(point, enemyWorkers);
+		} else {
+			return null;
+		}
 	}
 
 	private static boolean tryDiscoveringEnemyBaseLocation() {
@@ -416,6 +397,11 @@ public class ExplorerManager {
 			y += mineral.getY();
 			counter++;
 		}
+
+		if (counter == 0) {
+			return null;
+		}
+
 		x /= counter;
 		y /= counter;
 		MapPoint backOfTheBase = new MapPointInstance(x, y);

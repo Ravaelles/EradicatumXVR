@@ -58,6 +58,8 @@ public class XVR {
 	protected static boolean enemyZerg = false;
 	protected static boolean enemyProtoss = false;
 
+	private static boolean _gameSpeedChangeApplied = false;
+
 	private XVRClient client;
 	private JNIBWAPI bwapi;
 
@@ -80,8 +82,9 @@ public class XVR {
 		try {
 
 			// Slow down after the start
-			if (secondCounter > 60) {
+			if (!_gameSpeedChangeApplied && secondCounter > 60) {
 				bwapi.setGameSpeed(8);
+				_gameSpeedChangeApplied = true;
 			}
 
 			// Update time
@@ -1075,6 +1078,10 @@ public class XVR {
 
 	public Unit getNearestGroundEnemy(MapPoint point) {
 		return getUnitNearestFromList(point, getEnemyUnitsVisible(), true, false);
+	}
+
+	public Unit getNearestEnemy(MapPoint point) {
+		return getUnitNearestFromList(point, getEnemyUnitsVisible(), true, true);
 	}
 
 	// private Collection<Unit> getEnemyGroundUnits() {

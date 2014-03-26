@@ -80,6 +80,8 @@ public class TerranVulture {
 		return false;
 	}
 
+	// =========================================================
+
 	private static boolean tryPlantingMines(Unit unit) {
 		if (unit.getSpiderMineCount() > 0) {
 

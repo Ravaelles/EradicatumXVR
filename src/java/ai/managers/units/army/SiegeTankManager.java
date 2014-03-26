@@ -19,7 +19,9 @@ public class SiegeTankManager {
 
 	private static UnitTypes unitType = UnitTypes.Terran_Siege_Tank_Tank_Mode;
 
-	static class DecisionHelper {
+	// =========================================================
+
+	static class TargettingDetails {
 		static boolean _isUnitWhereItShouldBe;
 		static MapPoint _properPlace;
 		static Unit _nearestEnemy;
@@ -36,13 +38,13 @@ public class SiegeTankManager {
 	// =========================================================
 
 	public static void act(Unit unit) {
-		DecisionHelper._properPlace = unit.getProperPlaceToBe();
+		TargettingDetails._properPlace = unit.getProperPlaceToBe();
 		updateProperPlaceToBeForTank(unit);
-		DecisionHelper._isUnitWhereItShouldBe = DecisionHelper._properPlace == null
-				|| DecisionHelper._properPlace.distanceTo(unit) <= 3;
-		DecisionHelper._nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		DecisionHelper._nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding(unit);
-		DecisionHelper._nearestEnemyDist = DecisionHelper._nearestEnemy != null ? DecisionHelper._nearestEnemy
+		TargettingDetails._isUnitWhereItShouldBe = TargettingDetails._properPlace == null
+				|| TargettingDetails._properPlace.distanceTo(unit) <= 3;
+		TargettingDetails._nearestEnemy = xvr.getNearestGroundEnemy(unit);
+		TargettingDetails._nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding(unit);
+		TargettingDetails._nearestEnemyDist = TargettingDetails._nearestEnemy != null ? TargettingDetails._nearestEnemy
 				.distanceTo(unit) : -1;
 
 		if (unit.isSieged()) {
@@ -52,15 +54,17 @@ public class SiegeTankManager {
 		}
 	}
 
+	// =========================================================
+
 	private static void updateProperPlaceToBeForTank(Unit unit) {
 		Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit, xvr.getUnitsArmyNonTanks(), true,
 				false);
 		if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
-			DecisionHelper._properPlace = nearestArmyUnit;
+			TargettingDetails._properPlace = nearestArmyUnit;
 		}
 
 		if (StrategyManager.isAnyAttackFormPending()) {
-			DecisionHelper._properPlace = StrategyManager.getTargetPoint();
+			TargettingDetails._properPlace = StrategyManager.getTargetPoint();
 		}
 	}
 
@@ -77,8 +81,8 @@ public class SiegeTankManager {
 	private static boolean mustSiege(Unit unit) {
 
 		// If there's enemy building in range, siege.
-		if (DecisionHelper._nearestEnemyBuilding != null
-				&& DecisionHelper._nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
+		if (TargettingDetails._nearestEnemyBuilding != null
+				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
 			return true;
 		}
 
@@ -134,8 +138,8 @@ public class SiegeTankManager {
 	}
 
 	private static boolean isUnsiegingIdeaTimerExpired(Unit unit) {
-		if (DecisionHelper.unsiegeIdeasMap.containsKey(unit)) {
-			if (xvr.getTimeSeconds() - DecisionHelper.unsiegeIdeasMap.get(unit) >= 14) {
+		if (TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
+			if (xvr.getTimeSeconds() - TargettingDetails.unsiegeIdeasMap.get(unit) >= 14) {
 				return true;
 			}
 		}
@@ -143,18 +147,18 @@ public class SiegeTankManager {
 	}
 
 	private static void infoTankIsConsideringUnsieging(Unit unit) {
-		if (!DecisionHelper.unsiegeIdeasMap.containsKey(unit)) {
-			DecisionHelper.unsiegeIdeasMap.put(unit, xvr.getTimeSeconds());
+		if (!TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
+			TargettingDetails.unsiegeIdeasMap.put(unit, xvr.getTimeSeconds());
 		}
 	}
 
 	private static boolean shouldSiege(Unit unit) {
-		boolean isEnemyNearShootRange = (DecisionHelper._nearestEnemyDist > 0 && DecisionHelper._nearestEnemyDist <= (DecisionHelper._nearestEnemy
+		boolean isEnemyNearShootRange = (TargettingDetails._nearestEnemyDist > 0 && TargettingDetails._nearestEnemyDist <= (TargettingDetails._nearestEnemy
 				.getType().isBuilding() ? 10.6 : 13));
 
 		// Check if should siege, based on unit proper place to be (e.g. near
 		// the bunker), but consider the neighborhood, if it's safe etc.
-		if ((DecisionHelper._isUnitWhereItShouldBe && notTooManySiegedInArea(unit))
+		if ((TargettingDetails._isUnitWhereItShouldBe && notTooManySiegedInArea(unit))
 				|| isEnemyNearShootRange) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)) {
 				return true;
@@ -169,8 +173,8 @@ public class SiegeTankManager {
 		}
 
 		// If there's enemy building in range, siege.
-		if (DecisionHelper._nearestEnemyBuilding != null
-				&& DecisionHelper._nearestEnemyBuilding.distanceTo(unit) <= 10.5 && oursNearby >= 2) {
+		if (TargettingDetails._nearestEnemyBuilding != null
+				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5 && oursNearby >= 2) {
 			return true;
 		}
 

@@ -16,7 +16,9 @@ import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.ArmyUnitBasicBehavior;
 import ai.managers.units.army.AttackCloseTargets;
 import ai.managers.units.army.FlyerManager;
+import ai.managers.units.army.RunManager;
 import ai.managers.units.buildings.BuildingManager;
+import ai.managers.units.workers.RepairAndSons;
 
 public class UnitManager {
 
@@ -89,8 +91,7 @@ public class UnitManager {
 		// would mess the things up.
 
 		// Don't interrupt when shooting or don't move when being repaired.
-		if (unit.isStartingAttack() || unit.isBeingRepaired() || unit.isRunningFromEnemy()
-				|| type.isSpiderMine()) {
+		if (unit.isStartingAttack() || unit.isBeingRepaired() || type.isSpiderMine()) {
 			return;
 		}
 
@@ -99,6 +100,12 @@ public class UnitManager {
 
 		// ======================================
 		// TOP PRIORITY ACTIONS, order is important!
+
+		// Make sure unit will get repaired
+		RepairAndSons.tryIssuingRepairOrderIfPossible(unit);
+
+		// Use Stimpacks if need.
+		ArmyUnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
 
 		// Try to load infantry inside bunkers if possible.
 		if (ArmyUnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
@@ -113,8 +120,7 @@ public class UnitManager {
 		}
 
 		// If enemy has got very close near to us, move away
-		if (ArmyUnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
-			unit.setAiOrder("Run from enemy");
+		if (RunManager.runFromCloseOpponentsIfNecessary(unit)) {
 			return;
 		}
 
@@ -126,6 +132,7 @@ public class UnitManager {
 
 		// Disallow fighting when overwhelmed.
 		if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
+			unit.setAiOrder("Would lose");
 			return;
 		}
 
@@ -139,17 +146,10 @@ public class UnitManager {
 		if (AttackCloseTargets.tryAttackingCloseTargets(unit)) {
 			unit.setAiOrder("Attack close targets");
 		}
-		ArmyUnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
 
 		// ===============================
 		// Run from hidden Lurkers, Dark Templars etc.
 		HiddenEnemyUnitsManager.avoidHiddenUnitsIfNecessary(unit);
-
-		// If enemy has got very close near to us, move away
-		if (ArmyUnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
-			unit.setAiOrder("Run from enemy 2");
-			return;
-		}
 	}
 
 	// =========================================================
@@ -170,7 +170,7 @@ public class UnitManager {
 		}
 	}
 
-	protected static boolean actMakeDecisionSomeoneCalledForHelp(Unit unit) {
+	public static boolean decideWhetherToHelpSomeoneCalledForHelp(Unit unit) {
 		for (CallForHelp call : CallForHelp.getThoseInNeedOfHelp()) {
 			boolean willAcceptCallForHelp = false;
 
@@ -180,7 +180,7 @@ public class UnitManager {
 			}
 
 			// No critical call, react only if we're not too far
-			else if (xvr.getDistanceBetween(call.getCaller(), unit) < 30) {
+			else if (xvr.getDistanceBetween(call.getCaller(), unit) < 20) {
 				willAcceptCallForHelp = true;
 			}
 
@@ -192,39 +192,7 @@ public class UnitManager {
 		return false;
 	}
 
-	public static void actWhenNoMassiveAttack(Unit unit) {
-		if (shouldUnitBeExplorer(unit) && !unit.isRunningFromEnemy()) {
-			UnitActions.spreadOutRandomly(unit);
-		} else {
-			if (isUnitAttackingSomeone(unit)) {
-				return;
-			}
-
-			// =====================================
-			// Possible override of orders if some unit needs help
-
-			// If some unit called for help
-			boolean isOnCallForHelpMission = false;
-			if (CallForHelp.isAnyCallForHelp()) {
-				boolean accepted = actMakeDecisionSomeoneCalledForHelp(unit);
-				if (!isOnCallForHelpMission && accepted) {
-					isOnCallForHelpMission = true;
-				}
-			}
-
-			// Call for help isn't active right now
-			if (!isOnCallForHelpMission) {
-				ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
-			}
-		}
-
-		// // Now try to hide in nearby bunker if possible
-		// if (unit.isNotMedic()) {
-		// ProtossCannon.tryToLoadIntoBunker(unit);
-		// }
-	}
-
-	protected static boolean shouldUnitBeExplorer(Unit unit) {
+	public static boolean shouldUnitBeExplorer(Unit unit) {
 		return (_unitCounter == 5 || _unitCounter == 14);
 		// unit.getTypeID() == UnitTypes.Terran_Vulture.ordinal();
 	}
@@ -240,12 +208,12 @@ public class UnitManager {
 				return;
 			}
 
-			if (isUnitAttackingSomeone(unit)) {
+			if (isHasValidTargetToAttack(unit)) {
 				return;
 			}
 
 			if (StrategyManager.getTargetPoint() != null) {
-				if (!isUnitAttackingSomeone(unit)) {
+				if (!isHasValidTargetToAttack(unit)) {
 					UnitActions.attackTo(unit, StrategyManager.getTargetPoint());
 					unit.setAiOrder("Forward!");
 				}
@@ -282,13 +250,14 @@ public class UnitManager {
 		return false;
 	}
 
-	protected static boolean isUnitFullyIdle(Unit unit) {
+	public static boolean isUnitFullyIdle(Unit unit) {
 		return !unit.isAttacking() && !unit.isMoving() && !unit.isUnderAttack() && unit.isIdle();
 		// && unit.getGroundWeaponCooldown() == 0
 	}
 
-	protected static boolean isUnitAttackingSomeone(Unit unit) {
-		return unit.getOrderTargetID() != -1 || unit.getTargetUnitID() != -1;
+	public static boolean isHasValidTargetToAttack(Unit unit) {
+		return unit.getOrderTargetID() != -1 || unit.getTargetUnitID() != -1
+				|| unit.isStartingAttack();
 	}
 
 	public static void avoidSpellEffectsAndMinesIfNecessary() {
@@ -316,6 +285,17 @@ public class UnitManager {
 			if (unit.distanceTo(enemy) < 1.5 + enemyRange) {
 				return false;
 			}
+		}
+
+		return true;
+	}
+
+	public static boolean isUnitSafeFromEnemyShootRange(Unit unit, Unit enemy) {
+		// int ourRange = unit.getType().getGroundWeapon().getMinRangeInTiles();
+
+		int enemyRange = enemy.getType().getGroundWeapon().getMinRangeInTiles();
+		if (unit.distanceTo(enemy) < 1.7 + enemyRange) {
+			return false;
 		}
 
 		return true;

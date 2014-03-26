@@ -363,20 +363,24 @@ public class Map {
 	// =========================================================
 
 	public static MapPoint getClosestWalkablePointTo(MapPoint point) {
+		if (point.isWalkable()) {
+			return point;
+		}
+
 		int startFromRange = 0;
 		int maxRange = 50;
 
-		int currentMaxRange = startFromRange;
-		while (currentMaxRange < maxRange) {
-			for (int dx = -currentMaxRange; dx < currentMaxRange; dx++) {
-				for (int dy = -currentMaxRange; dy < currentMaxRange; dy++) {
-					MapPoint potentialPoint = point.getMapPoint().translate(dx, dy);
+		int currentRange = startFromRange;
+		while (currentRange < maxRange) {
+			for (int dx = -currentRange; dx < currentRange; dx++) {
+				for (int dy = -currentRange; dy < currentRange; dy++) {
+					MapPoint potentialPoint = point.translateSafe(dx, dy);
 					if (instance.isConnected(point, potentialPoint)) {
 						return potentialPoint;
 					}
 				}
 			}
-			currentMaxRange++;
+			currentRange++;
 		}
 
 		// System.out.println("ERROR: getWalkableTileExceptionSafe");

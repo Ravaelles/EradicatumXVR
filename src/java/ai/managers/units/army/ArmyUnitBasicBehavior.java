@@ -14,7 +14,6 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.strategy.StrategyManager;
-import ai.managers.units.UnitManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBunker;
 import ai.terran.TerranMedic;
@@ -24,8 +23,6 @@ import ai.utils.RUtilities;
 public class ArmyUnitBasicBehavior {
 
 	private static XVR xvr = XVR.getInstance();
-
-	private static final double SAFE_DIST_FROM_ENEMY = 1.9;
 
 	// =============================================
 
@@ -54,24 +51,25 @@ public class ArmyUnitBasicBehavior {
 		// STANDARD ARMY UNIT COMMANDS
 		else {
 
-			// If unit has personalized order
-			if (unit.getCallForHelpMission() != null) {
-				UnitManager.actWhenOnCallForHelpMission(unit);
-			}
-
-			// Standard action for unit
-			else {
-
-				// If we're ready to total attack
-				if (StrategyManager.isAttackPending()) {
-					UnitManager.actWhenMassiveAttackIsPending(unit);
-				}
-
-				// Standard situation
-				else {
-					UnitManager.actWhenNoMassiveAttack(unit);
-				}
-			}
+			ArmyUnitBehavior.actStandardUnit(unit);
+			// // If unit has personalized order
+			// if (unit.getCallForHelpMission() != null) {
+			// UnitManager.actWhenOnCallForHelpMission(unit);
+			// }
+			//
+			// // Standard action for unit
+			// else {
+			//
+			// // If we're ready to total attack
+			// if (StrategyManager.isAttackPending()) {
+			// UnitManager.actWhenMassiveAttackIsPending(unit);
+			// }
+			//
+			// // Standard situation
+			// else {
+			// UnitManager.actWhenNoMassiveAttack(unit);
+			// }
+			// }
 		}
 
 		// ======================================
@@ -86,148 +84,6 @@ public class ArmyUnitBasicBehavior {
 
 	// =========================================================
 
-	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
-		UnitType type = unit.getType();
-
-		// Define nearest enemy (threat)
-		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		double distToEnemy = unit.distanceTo(nearestEnemy);
-
-		if (distToEnemy > 12) {
-			return false;
-		}
-
-		if (distToEnemy > 0.1 && distToEnemy < 3.5 && !type.isFirebat()) {
-			unit.setIsRunningFromEnemyNow();
-			UnitActions.moveToSafePlace(unit);
-			return true;
-		}
-
-		boolean hasPrettyGoodChances = unit.getStrengthRatio() > 1.6 || unit.getStrengthRatio() < 0;
-
-		double distanceBonusIfWounded = (unit.isWounded() ? 0.95 : 0);
-		double criticallyCloseDistance = 3 + distanceBonusIfWounded + (type.isTank() ? 1.5 : 0)
-				- (type.isMedic() ? 1 : 0);
-		boolean safeFromEnemyShootRange = UnitManager.isUnitSafeFromEnemiesShootRange(unit,
-				xvr.getEnemyUnitsInRadius(11, unit));
-
-		// If unit can be attacked by enemy distant attack and chances aren't
-		// great, pull back.
-		if (!safeFromEnemyShootRange && !hasPrettyGoodChances) {
-			unit.setIsRunningFromEnemyNow();
-			UnitActions.moveToSafePlace(unit);
-			return true;
-		}
-
-		if (distToEnemy < 0) {
-			return false;
-		}
-
-		// If near units are retreating and enemy is nearby, also run.
-		if (distToEnemy <= 6
-				&& UnitManager.areVeryCloseUnitsReatreting(unit,
-						xvr.getUnitsInRadius(unit, 4, xvr.getUnitsArmy()))) {
-			unit.setIsRunningFromEnemyNow();
-			UnitActions.moveToSafePlace(unit);
-			return true;
-		}
-
-		if (distToEnemy <= 1.8 && !nearestEnemy.getType().isZergling()) {
-			unit.setIsRunningFromEnemyNow();
-			UnitActions.moveAwayFromUnit(unit, nearestEnemy);
-			return true;
-		}
-
-		boolean isEnemyCriticallyClose = distToEnemy < criticallyCloseDistance
-				- (nearestEnemy.getType().isZergling() ? 1 : 0);
-
-		// ==============================================
-
-		if (unit.isRunningFromEnemy() && (!hasPrettyGoodChances && isEnemyCriticallyClose)) {
-			unit.setIsRunningFromEnemyNow();
-			// UnitActions.moveAwayFromNearestEnemy(unit);
-			UnitActions.moveToSafePlace(unit);
-			return true;
-		}
-
-		// Don't interrupt when just starting an attack
-		if (unit.isLoaded() || (unit.getType().isFirebat() && unit.getHP() > 25)) {
-			return false;
-		}
-
-		// =============================================
-
-		// CHECK if to RUN, but include STRENGTH RATIO
-		if (distToEnemy >= 0 && distToEnemy <= criticallyCloseDistance && !hasPrettyGoodChances) {
-			unit.setIsRunningFromEnemyNow();
-			// UnitActions.moveAwayFromNearestEnemy(unit);
-			UnitActions.moveToSafePlace(unit);
-			return true;
-		}
-
-		// RUN if ENEMY very CLOSE
-		if (distToEnemy >= 0 && distToEnemy <= 2.5 + distanceBonusIfWounded) {
-			unit.setIsRunningFromEnemyNow();
-			// UnitActions.moveAwayFromNearestEnemy(unit);
-			UnitActions.moveToSafePlace(unit);
-			return true;
-		}
-
-		// if ((!unit.isWounded() || (unit.getGroundWeaponCooldown() > 0 &&
-		// !isEnemyCriticallyClose))
-		// && !unit.isUnderAttack()
-		// && xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(),
-		// 3.5, unit,
-		// true) > 0) {
-		// return false;
-		// }
-
-		// If there's dangerous enemy nearby and he's close, try to move away.
-		boolean unitHasMovedItsAss = false;
-		if (nearestEnemy != null && !nearestEnemy.isWorker()) {
-			// if (unit.isStartingAttack() && nearestEnemy.distanceTo(unit) >=
-			// SAFE_DIST_FROM_ENEMY) {
-			// return false;
-			// }
-
-			int ourShootRange = type.getGroundWeapon().getMaxRangeInTiles();
-			boolean isEnemyVeryClose = distToEnemy <= SAFE_DIST_FROM_ENEMY;
-
-			// If enemy is close, run!
-			if (isEnemyVeryClose) {
-
-				// ===================================
-				// SPECIAL UNITS
-				// Sieged tanks have to unsiege first
-				if (type.isTank() && unit.isSieged() && unit.getStrengthRatio() < 1.7) {
-					unit.unsiege();
-					return true;
-				}
-			}
-
-			// Enemy isn't critically close
-			else {
-
-				// ===================================
-				// Define attack range
-				int enemyShootRange = nearestEnemy.getType().getGroundWeapon().getMaxRangeInTiles();
-				boolean weHaveBiggerRangeThanEnemy = ourShootRange > enemyShootRange;
-
-				// Check if we have bigger shoot range than the enemy. If not,
-				// it doesn't make any sense to run away from him just because
-				// he's near.
-				if (weHaveBiggerRangeThanEnemy && unit.getGroundWeaponCooldown() > 0) {
-					// UnitActions.moveAwayFromUnit(unit, nearestEnemy);
-					UnitActions.moveToSafePlace(unit);
-					unit.setIsRunningFromEnemyNow();
-					return true;
-				}
-			}
-		}
-
-		return unitHasMovedItsAss;
-	}
-
 	public static boolean tryLoadingIntoBunkersIfPossible(Unit unit) {
 		if (!unit.getType().isTerranInfantry()) {
 			return false;
@@ -238,10 +94,8 @@ public class ArmyUnitBasicBehavior {
 		}
 
 		boolean isUnitInsideBunker = unit.isLoaded();
-		// boolean enemyIsNearby = xvr.getNearestEnemyInRadius(unit, 12, true,
-		// true) != null;
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		if (nearestEnemy == null && StrategyManager.isAnyAttackFormPending()) {
+		if (nearestEnemy == null) {
 			if (isUnitInsideBunker
 					|| isBunkerTooFarFromCombat(unit, unit.getBunkerThatsIsLoadedInto())) {
 				unit.unload();

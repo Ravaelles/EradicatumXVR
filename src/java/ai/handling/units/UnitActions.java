@@ -426,7 +426,7 @@ public class UnitActions {
 		// Try to move away from unit and if can't (e.g. a wall
 		// behind), try to increase tiles away from current location
 		if (shouldRunFromUnitNotGoToSafePlace) {
-			for (int i = 7; i >= 3; i -= 2) {
+			for (int i = 8; i >= 2; i -= 2) {
 				if (UnitActions.moveAwayFromUnitIfPossible(unit, enemy, i)) {
 					unitHasMovedItsAss = true;
 					break;

@@ -3,8 +3,8 @@ package ai.handling.units;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import ai.core.XVR;
 import jnibwapi.model.Unit;
+import ai.core.XVR;
 
 public class CallForHelp {
 
@@ -18,14 +18,25 @@ public class CallForHelp {
 	private boolean critical;
 	private int callsAccepted = 0;
 
-	public CallForHelp(Unit caller, int time, ArrayList<Unit> enemiesNearby,
-			boolean critical) {
+	// =========================================================
+
+	public CallForHelp(Unit caller, int time, ArrayList<Unit> enemiesNearby, boolean critical) {
 		super();
 		this.caller = caller;
 		this.time = time;
 		this.enemiesNearby = enemiesNearby;
 		this.critical = critical;
 	}
+
+	// =========================================================
+
+	public static void issueCallForHelp(Unit toRescue, boolean critical) {
+		ArrayList<Unit> enemies = xvr.getUnitsInRadius(toRescue, 15, xvr.getEnemyUnitsVisible());
+		CallForHelp call = new CallForHelp(toRescue, xvr.getFrames(), enemies, critical);
+		callsForHelp.add(call);
+	}
+
+	// =========================================================
 
 	public Unit getCaller() {
 		return caller;
@@ -59,14 +70,6 @@ public class CallForHelp {
 		this.enemiesNearby = enemiesNearby;
 	}
 
-	public static void issueCallForHelp(Unit toRescue, boolean critical) {
-		ArrayList<Unit> enemies = xvr.getUnitsInRadius(toRescue, 15,
-				xvr.getEnemyUnitsVisible());
-		CallForHelp call = new CallForHelp(toRescue, xvr.getFrames(), enemies,
-				critical);
-		callsForHelp.add(call);
-	}
-
 	public static boolean isAnyCallForHelp() {
 		return !callsForHelp.isEmpty();
 	}
@@ -93,8 +96,7 @@ public class CallForHelp {
 	}
 
 	public static void clearOldOnes() {
-		for (Iterator<CallForHelp> iterator = callsForHelp.iterator(); iterator
-				.hasNext();) {
+		for (Iterator<CallForHelp> iterator = callsForHelp.iterator(); iterator.hasNext();) {
 			CallForHelp call = (CallForHelp) iterator.next();
 			if (xvr.getTimeDifferenceBetweenNowAnd(call.time) > 12) {
 				iterator.remove();

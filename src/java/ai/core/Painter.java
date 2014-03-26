@@ -19,7 +19,6 @@ import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.buildings.BuildingManager;
-import ai.managers.units.workers.ExplorerCirclingEnemyBase;
 import ai.terran.TerranCommandCenter;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
@@ -42,11 +41,14 @@ public class Painter {
 	private static void paintDebugMessages(XVR xvr) {
 		debugMessageCounter = 1;
 
-		paintDebugMessage(xvr, "Circling phase: ",
-				ExplorerCirclingEnemyBase.get_circlingEnemyBasePhase());
+		// paintDebugMessage(xvr, "Circling phase: ",
+		// ExplorerCirclingEnemyBase.get_circlingEnemyBasePhase());
 
 		MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
-		paintDebugMessage(xvr, "Next base", "X: " + nextBase.getTx() + ", Y: " + nextBase.getTy());
+		if (nextBase != null) {
+			paintDebugMessage(xvr, "Next base",
+					"X: " + nextBase.getTx() + ", Y: " + nextBase.getTy());
+		}
 	}
 
 	public static void paintAll(XVR xvr) {

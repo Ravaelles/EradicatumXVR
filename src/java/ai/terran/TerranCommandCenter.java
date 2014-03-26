@@ -50,8 +50,7 @@ public class TerranCommandCenter {
 
 	public static boolean shouldBuild() {
 		if (Constructing.weAreBuilding(buildingType)) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		int bases = UnitCounter.getNumberOfUnits(buildingType);
@@ -63,29 +62,24 @@ public class TerranCommandCenter {
 
 		if (bases == 1 && battleUnits >= 9
 				&& TerranBunker.getNumberOfUnitsCompleted() == TerranBunker.MAX_STACK) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		if (xvr.canAfford(550) && battleUnits >= 18) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		if (xvr.getTimeSeconds() >= 390 && bases <= 1
 				&& !Constructing.weAreBuilding(UnitManager.BASE) && battleUnits >= 11) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		if (bases >= 2 && (battleUnits <= bases * 8 && !xvr.canAfford(600))) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
-		if (battleUnits < StrategyManager.getMinBattleUnits() + 2 && !xvr.canAfford(550)) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			return false;
+		if (battleUnits < StrategyManager.getMinBattleUnits() + 2 && !xvr.canAfford(500)) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		// int quickUnitsThreshold = BotStrategyManager.isExpandWithBunkers() ?
@@ -127,8 +121,7 @@ public class TerranCommandCenter {
 		// base.
 		if (bases == 1) {
 			if (barracksCompleted <= 2 && !xvr.canAfford(500)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}
 
@@ -136,14 +129,12 @@ public class TerranCommandCenter {
 		else {
 
 			// But if we already have another base...
-			if ((bases * ARMY_UNITS_PER_NEW_BASE > battleUnits && !xvr.canAfford(550))) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
+			if ((bases * ARMY_UNITS_PER_NEW_BASE > battleUnits && !xvr.canAfford(500))) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}
 
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		return true;
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 	}
 
 	public static void act() {
@@ -165,6 +156,8 @@ public class TerranCommandCenter {
 		// ======== SSCAI FIX: Remove 0 minerals ===
 		checkIfRemoveZeroMineralsCrystal(base);
 	}
+
+	// =========================================================
 
 	private static void checkNumberOfWorkersOverallAtBase(Unit base) {
 		if (shouldBuildWorkers(base)) {
@@ -349,8 +342,8 @@ public class TerranCommandCenter {
 			MapPoint point = nearestFreeBaseLocation;
 
 			CodeProfiler.startMeasuring("New base");
-			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(
-					xvr.getOptimalBuilder(nearestFreeBaseLocation), buildingType, point, 0, 30);
+			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
+					buildingType, point, 0, 10);
 			CodeProfiler.endMeasuring("New base");
 		} else {
 			System.out.println("Error! No place for next base!");

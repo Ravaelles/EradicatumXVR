@@ -27,6 +27,39 @@ public class TerranFactory {
 	private static final UnitTypes buildingType = UnitTypes.Terran_Factory;
 	private static XVR xvr = XVR.getInstance();
 
+	// =========================================================
+
+	public static void act(Unit facility) {
+		if (facility == null) {
+			return;
+		}
+
+		int[] buildingQueueDetails = Constructing.shouldBuildAnyBuilding();
+		int freeMinerals = xvr.getMinerals();
+		int freeGas = xvr.getGas();
+
+		if (facility.getAddOnID() == -1 && TerranMachineShop.shouldBuild()) {
+			return;
+		}
+
+		if (buildingQueueDetails != null) {
+			freeMinerals -= buildingQueueDetails[0];
+			freeGas -= buildingQueueDetails[1];
+		}
+
+		if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
+			freeGas -= 150;
+		}
+
+		if (buildingQueueDetails == null || (freeMinerals >= 125 && freeGas >= 25)) {
+			if (facility.getTrainingQueueSize() == 0) {
+				xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
+			}
+		}
+	}
+
+	// =========================================================
+
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			Constructing.construct(xvr, buildingType);
@@ -86,35 +119,6 @@ public class TerranFactory {
 
 	// ==========================
 	// Unit creating
-
-	public static void act(Unit facility) {
-		if (facility == null) {
-			return;
-		}
-
-		int[] buildingQueueDetails = Constructing.shouldBuildAnyBuilding();
-		int freeMinerals = xvr.getMinerals();
-		int freeGas = xvr.getGas();
-
-		if (facility.getAddOnID() == -1 && TerranMachineShop.shouldBuild()) {
-			return;
-		}
-
-		if (buildingQueueDetails != null) {
-			freeMinerals -= buildingQueueDetails[0];
-			freeGas -= buildingQueueDetails[1];
-		}
-
-		if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
-			freeGas -= 150;
-		}
-
-		if (buildingQueueDetails == null || (freeMinerals >= 125 && freeGas >= 25)) {
-			if (facility.getTrainingQueueSize() == 0) {
-				xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
-			}
-		}
-	}
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
 		boolean tanksAllowed = (freeMinerals >= 125 && freeGas >= 50)

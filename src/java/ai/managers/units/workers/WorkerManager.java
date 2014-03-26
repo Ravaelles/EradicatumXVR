@@ -13,7 +13,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
-import ai.managers.units.army.ArmyUnitBasicBehavior;
+import ai.managers.units.army.RunManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -118,8 +118,8 @@ public class WorkerManager {
 			return;
 		}
 
-		if (ArmyUnitBasicBehavior.runFromCloseOpponentsIfNecessary(unit)) {
-			unit.setAiOrder("Worker: Run from enemy");
+		if (RunManager.runFromCloseOpponentsIfNecessary(unit)) {
+			// unit.setAiOrder("Worker: Run from enemy");
 			return;
 		}
 

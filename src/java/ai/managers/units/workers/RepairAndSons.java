@@ -12,6 +12,16 @@ public class RepairAndSons {
 	private static HashMap<Unit, Unit> unitsToRepairers = new HashMap<>();
 	private static HashMap<Unit, Unit> repairersToUnits = new HashMap<>();
 
+	// =========================================================
+
+	public static void tryIssuingRepairOrderIfPossible(Unit unit) {
+		if (unit.isRepairable() && unit.isWounded()) {
+			issueTicketToRepairIfHasnt(unit);
+		}
+	}
+
+	// =========================================================
+
 	public static boolean tryRepairingSomethingIfNeeded(Unit worker) {
 		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
 

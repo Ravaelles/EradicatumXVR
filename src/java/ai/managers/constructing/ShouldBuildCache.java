@@ -9,13 +9,14 @@ public class ShouldBuildCache {
 
 	private static HashMap<UnitTypes, Boolean> shouldBuildMap = new HashMap<UnitTypes, Boolean>();
 
-	public static void cacheShouldBuildInfo(UnitTypes buildingType,
-			boolean shouldBuild) {
+	public static boolean cacheShouldBuildInfo(UnitTypes buildingType, boolean shouldBuild) {
 		if (shouldBuild) {
 			shouldBuildMap.put(buildingType, true);
 		} else {
 			shouldBuildMap.remove(buildingType);
 		}
+
+		return shouldBuild;
 	}
 
 	public static boolean getCachedValueOfShouldBuild(UnitTypes buildingType) {

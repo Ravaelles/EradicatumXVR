@@ -2,34 +2,21 @@ package ai.managers.units.workers;
 
 import jnibwapi.model.Map;
 import jnibwapi.model.Unit;
-import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 
 public class ExplorerCirclingEnemyBase {
 
-	private static XVR xvr = XVR.getInstance();
+	// private static XVR xvr = XVR.getInstance();
 
 	private static boolean _forbidCirclingBase = false;
 	private static int _circlingEnemyBasePhase = 0;
 	private static Unit _lastExplorer = null;
 
+	private static final int CIRCLING_RADIUS = 10;
+
 	// =========================================================
-
-	public static boolean tryRunningAroundEnemyBaseIfPossible() {
-		if (!shouldTryThisMode()) {
-			return false;
-		}
-
-		// Define enemy base
-		Unit enemyBase = MapExploration.getNearestEnemyBase();
-
-		// Made the actual move
-		circleAroundEnemyBaseWith(_lastExplorer, enemyBase);
-
-		return true;
-	}
 
 	public static void circleAroundEnemyBaseWith(Unit explorer, MapPoint aroundThisPoint) {
 		// System.out.println("$$$$ " + explorer.toStringShort() + " / "
@@ -38,22 +25,8 @@ public class ExplorerCirclingEnemyBase {
 			return;
 		}
 
-		int CIRCLING_RADIUS = 13;
-
 		// Define explorer action according to the last action
-		MapPoint tryGoTo = null;
-		if (_circlingEnemyBasePhase <= 1) {
-			tryGoTo = aroundThisPoint.getMapPoint().translateSafe(CIRCLING_RADIUS, CIRCLING_RADIUS);
-		} else if (_circlingEnemyBasePhase == 2) {
-			tryGoTo = aroundThisPoint.getMapPoint()
-					.translateSafe(-CIRCLING_RADIUS, CIRCLING_RADIUS);
-		} else if (_circlingEnemyBasePhase == 3) {
-			tryGoTo = aroundThisPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS,
-					-CIRCLING_RADIUS);
-		} else if (_circlingEnemyBasePhase == 4) {
-			tryGoTo = aroundThisPoint.getMapPoint()
-					.translateSafe(CIRCLING_RADIUS, -CIRCLING_RADIUS);
-		}
+		MapPoint tryGoTo = defineGoToPointAccordingToPhase(aroundThisPoint, _circlingEnemyBasePhase);
 
 		// Paint destination for this unit
 		explorer.setPainterGoTo(tryGoTo);
@@ -64,22 +37,87 @@ public class ExplorerCirclingEnemyBase {
 		tryGoTo = Map.getClosestWalkablePointTo(tryGoTo);
 		if (tryGoTo != null) {
 			UnitActions.moveTo(explorer, tryGoTo);
-			explorer.setAiOrder("Around the base!");
+			explorer.setAiOrder("Around the base! (" + _circlingEnemyBasePhase + ")");
 		}
 
 		// if already near the point, update the circling phase
-		if (explorer.distanceTo(tryGoTo) <= 3 || _circlingEnemyBasePhase == 0) {
+		if (explorer.distanceTo(tryGoTo) <= 1.2 || !explorer.isMoving()
+				|| _circlingEnemyBasePhase == 0) {
 			_circlingEnemyBasePhase++;
-			if (_circlingEnemyBasePhase > 4) {
+			if (_circlingEnemyBasePhase > 7) {
 				_circlingEnemyBasePhase = 1;
 			}
 		}
 	}
 
+	// =========================================================
+
+	public static boolean tryRunningAroundEnemyBaseIfPossible() {
+		if (ExplorerManager.getExplorer() == null) {
+			return false;
+		}
+
+		if (!shouldTryThisMode()) {
+			return false;
+		}
+
+		if (tryAttackingIfNotWounded()) {
+			return true;
+		}
+
+		// Define enemy base
+		Unit enemyBase = MapExploration.getNearestEnemyBase();
+
+		// Made the actual move
+		circleAroundEnemyBaseWith(ExplorerManager.getExplorer(), enemyBase);
+
+		return true;
+	}
+
+	private static boolean tryAttackingIfNotWounded() {
+		boolean foundTarget = false;
+
+		if (!ExplorerManager.getExplorer().isWounded()) {
+			foundTarget = ExplorerManager.tryAttackingEnemyIfPossible();
+			return foundTarget;
+		}
+		// System.out.println("HP: " + ExplorerManager.getExplorer().getHP() +
+		// " (WOUNDED: "
+		// + ExplorerManager.getExplorer().isWounded() + "),   FOUND TARGET:" +
+		// foundTarget);
+
+		return foundTarget;
+	}
+
+	private static MapPoint defineGoToPointAccordingToPhase(MapPoint centralPoint, int phase) {
+		double SINGLE_COORDINATE = CIRCLING_RADIUS * 1.35;
+
+		if (_circlingEnemyBasePhase == 0) {
+			return centralPoint.getMapPoint().translateSafe(CIRCLING_RADIUS, CIRCLING_RADIUS);
+		} else if (_circlingEnemyBasePhase == 1) {
+			return centralPoint.getMapPoint().translateSafe(0, SINGLE_COORDINATE);
+		} else if (_circlingEnemyBasePhase == 2) {
+			return centralPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS, CIRCLING_RADIUS);
+		} else if (_circlingEnemyBasePhase == 3) {
+			return centralPoint.getMapPoint().translateSafe(-SINGLE_COORDINATE, 0);
+		} else if (_circlingEnemyBasePhase == 4) {
+			return centralPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS, -CIRCLING_RADIUS);
+		} else if (_circlingEnemyBasePhase == 5) {
+			return centralPoint.getMapPoint().translateSafe(0, -SINGLE_COORDINATE);
+		} else if (_circlingEnemyBasePhase == 6) {
+			return centralPoint.getMapPoint().translateSafe(CIRCLING_RADIUS, -CIRCLING_RADIUS);
+		} else if (_circlingEnemyBasePhase == 7) {
+			return centralPoint.getMapPoint().translateSafe(SINGLE_COORDINATE, 0);
+		}
+
+		return null;
+	}
+
 	public static boolean shouldTryThisMode() {
 
 		// // Only allow to circle if has attacked (and is wounded)
-		// if (_lastExplorer != null && !_lastExplorer.isWounded()) {
+		// if (ExplorerManager.getExplorer() != null &&
+		// !ExplorerManager.getExplorer().isWounded()) {
 		// return false;
 		// }
 
@@ -100,8 +138,7 @@ public class ExplorerCirclingEnemyBase {
 		// getting killed all our workers.
 		if (_lastExplorer == null) {
 			_lastExplorer = ExplorerManager.getExplorer();
-		}
-		if (!_lastExplorer.equals(ExplorerManager.getExplorer())) {
+		} else if (!_lastExplorer.equals(ExplorerManager.getExplorer())) {
 			_forbidCirclingBase = true;
 			return false;
 		}

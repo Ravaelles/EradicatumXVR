@@ -20,7 +20,13 @@ public class TerranRefinery {
 	public static boolean shouldBuild() {
 		int minGateways = BotStrategyManager.isExpandWithBunkers() ? 3 : 4;
 		int barracks = UnitCounter.getNumberOfUnits(UnitManager.BARRACKS);
+		int refineries = UnitCounter.getNumberOfUnits(buildingType);
+		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());
+
+		if (refineries == 0 && battleUnits >= 6) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
 
 		if (UnitCounter.getNumberOfUnitsCompleted(TerranEngineeringBay.getBuildingType()) == 0
 				&& UnitCounter.getNumberOfUnits(TerranBunker.getBuildingType()) == 0) {
@@ -39,7 +45,7 @@ public class TerranRefinery {
 				&& (weHaveAcademy || barracks >= minGateways || xvr.canAfford(700))
 				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
 						.getNumberOfUnitsCompleted(UnitManager.BASE)) {
-			if (UnitCounter.getNumberOfBattleUnits() >= TerranBarracks.MIN_UNITS_FOR_DIFF_BUILDING) {
+			if (battleUnits >= TerranBarracks.MIN_UNITS_FOR_DIFF_BUILDING) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}

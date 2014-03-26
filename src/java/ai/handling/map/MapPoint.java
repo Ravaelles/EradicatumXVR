@@ -86,9 +86,9 @@ public abstract class MapPoint {
 		return new MapPointInstance(getX() + dx, getY() + dy);
 	}
 
-	public MapPoint translateSafe(int dTileX, int dTileY) {
-		int safeX = getX() + dTileX * 32;
-		int safeY = getY() + dTileY * 32;
+	public MapPoint translateSafe(double dTileX, double dTileY) {
+		int safeX = (int) (getX() + dTileX * 32);
+		int safeY = (int) (getY() + dTileY * 32);
 
 		safeX = RUtilities.forceValueInRange(safeX, 0, getMap().getWidth() * 32 - 32);
 		safeY = RUtilities.forceValueInRange(safeY, 0, getMap().getHeight() * 32 - 32);

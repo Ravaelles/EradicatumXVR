@@ -39,6 +39,9 @@ public class TerranBarracks {
 		int bases = UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE);
 
 		boolean enoughBarracks = barracks >= 2;
+		if (enoughBarracks) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
 
 		// =========================================================
 		// ANTI-ZERGLING RUSH
@@ -47,40 +50,33 @@ public class TerranBarracks {
 		// Normally it would be: 2 x Barracks, only then bunker.
 		if (XVR.isEnemyZerg()) {
 			if (barracks == 0 && !Constructing.weAreBuilding(buildingType)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 
 			if (barracks >= 1 && TerranBunker.getNumberOfUnits() == 0) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 
 			if (barracks == 1 && xvr.canAfford(200)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}
 
 		// =========================================================
 
 		if (TerranCommandCenter.shouldBuild() && barracks >= (2 * bases)) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		if ((TerranSupplyDepot.getNumberOfUnits() > 0 || xvr.canAfford(142)) && !enoughBarracks) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		if (bases <= 1) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	// private static boolean isMajorityOfBarracksTrainingUnits() {

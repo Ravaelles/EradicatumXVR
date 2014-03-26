@@ -21,7 +21,7 @@ public class ArmyCreationManager {
 	private static XVR xvr = XVR.getInstance();
 
 	private static final int MINIMUM_UNITS = 15;
-	private static final int MINIMUM_MARINES = 9;
+	private static final int MINIMUM_MARINES = 7;
 
 	public static void act() {
 		if (weShouldBuildBattleUnits()) {

@@ -39,8 +39,9 @@ public class AttackCloseTargets {
 		UnitType type = unit.getType();
 
 		// !type.isTank() &&
-		boolean canTryAttackingCloseTargets = !type.isWorker() && !type.isMedic();
-		if (!canTryAttackingCloseTargets || unit.isRunningFromEnemy()) {
+		// boolean canTryAttackingCloseTargets = !type.isWorker() &&
+		// !type.isMedic();
+		if (unit.isRunningFromEnemy()) {
 			return false;
 		}
 

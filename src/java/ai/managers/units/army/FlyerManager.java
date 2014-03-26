@@ -15,7 +15,7 @@ public class FlyerManager {
 	private static final int MIN_DIST_BETWEEN_FLYERS = 4;
 	private static XVR xvr = XVR.getInstance();
 
-	// =========================
+	// =========================================================
 
 	public static void act(Unit unit) {
 		UnitType type = unit.getType();
@@ -33,6 +33,12 @@ public class FlyerManager {
 		// Define place where to be
 		MapPoint point = ArmyPlacing.getFlyersGatheringPoint();
 		UnitActions.attackTo(unit, point);
+
+		// =========================================================
+		// Avoid anti-air units
+		if (tryAvoidingAntiAirUnits(unit)) {
+			return;
+		}
 
 		// ==============================
 		// Move away from other flyers, thus enhancing the range
@@ -53,6 +59,18 @@ public class FlyerManager {
 			return;
 		}
 	}
+
+	private static boolean tryAvoidingAntiAirUnits(Unit unit) {
+		Unit aaUnitNearby = getAAUnitNearby(unit);
+		if (aaUnitNearby != null) {
+			UnitActions.moveAwayFromUnit(unit, aaUnitNearby);
+			unit.setAiOrder("Fly away from AA");
+			return true;
+		}
+		return false;
+	}
+
+	// =========================================================
 
 	private static Unit getNearestFlyerToFlyer(Unit unit) {
 		ArrayList<Unit> airUnits = xvr.getUnitsArmyFlyers();

@@ -23,7 +23,7 @@ public class TerranBunker {
 	private static XVR xvr = XVR.getInstance();
 
 	private static final double MAX_DIST_FROM_CHOKE_POINT_MODIFIER = 1.8;
-	public static int MAX_STACK = 2;
+	public static int MAX_STACK = 1;
 
 	private static MapPoint _placeToReinforceWithCannon = null;
 	private static int _skipForTurns = 0;
@@ -36,12 +36,16 @@ public class TerranBunker {
 			return false;
 		}
 
+		if (xvr.getTimeSeconds() > 200 && UnitCounter.getNumberOfBattleUnits() < 7) {
+			return false;
+		}
+
 		if (UnitCounter.weHaveBuilding(TerranBarracks.getBuildingType())
 				|| BuildingManager.countConstructionProgress(TerranBarracks.getBuildingType()) >= 95) {
 			int maxCannonStack = calculateMaxBunkerStack();
 
 			int bunkers = UnitCounter.getNumberOfUnits(type);
-			int battleUnits = UnitCounter.getNumberOfBattleUnits();
+			int infantryUnits = UnitCounter.getNumberOfInfantryUnits();
 
 			if (bunkers == 0) {
 				ShouldBuildCache.cacheShouldBuildInfo(type, true);
@@ -53,7 +57,7 @@ public class TerranBunker {
 			// return false;
 			// }
 
-			if (bunkers < MAX_STACK && battleUnits >= (bunkers * 4 + 1)) {
+			if (bunkers < MAX_STACK && infantryUnits >= (bunkers * 4 + 1)) {
 				ShouldBuildCache.cacheShouldBuildInfo(type, true);
 				return true;
 			}
@@ -214,23 +218,22 @@ public class TerranBunker {
 			return false;
 		}
 
-		int numberOfCannonsNearby = calculateBunkersNearby(chokePoint);
+		int numberOfDefensiveBuildingsNearby = calculateBunkersNearby(chokePoint);
 
 		int bonus = 0;
-		if (xvr.getDistanceBetween(TerranCommandCenter.getSecondBaseLocation(), chokePoint) < 14) {
-			// if (!xvr.getFirstBase().equals(
-			// ProtossNexus.getNearestBaseForUnit(chokePoint))) {
-			bonus = 1;
-		}
+		// if
+		// (xvr.getDistanceBetween(TerranCommandCenter.getSecondBaseLocation(),
+		// chokePoint) < 14) {
+		// bonus = 1;
+		// }
 
 		// If there isn't too many cannons defending this choke point
-		if (numberOfCannonsNearby < calculateMaxBunkerStack() + bonus) {
+		if (numberOfDefensiveBuildingsNearby < calculateMaxBunkerStack() + bonus) {
 			return true;
 		}
 
-		// No, there's too many cannons. Don't build next one.
+		// No, there's too many defensive buildings. Don't build next one.
 		else {
-			// System.out.println("TOO MANY CANNONS NEARBY");
 			return false;
 		}
 	}

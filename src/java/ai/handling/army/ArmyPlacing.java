@@ -105,11 +105,15 @@ public class ArmyPlacing {
 		// }
 	}
 
-	public static void goToSafePlaceIfNotAlreadyThere(Unit unit) {
+	/**
+	 * @param unit
+	 * @return safe point
+	 */
+	public static MapPoint goToSafePlaceIfNotAlreadyThere(Unit unit) {
 		MapPoint safePlace = null;
 
 		if (unit.shouldFollowTanks()) {
-			if (TerranSiegeTank.hasAnyTank()) {
+			if (TerranSiegeTank.getNumberOfUnits() > 1) {
 				safePlace = TerranSiegeTank.getMedianTank();
 			}
 		}
@@ -117,18 +121,22 @@ public class ArmyPlacing {
 		if (safePlace == null) {
 			safePlace = getSafePointFor(unit);
 			if (safePlace == null) {
-				return;
+				return null;
 			}
 		}
 
 		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
 			UnitActions.moveTo(unit, safePlace);
+			return safePlace;
 			// } else {
 			// UnitActions.moveAwayFromNearestEnemy(unit);
 			// UnitActions.moveTo(unit, safePlace);
-		} else {
-			UnitActions.moveToMainBase(unit);
 		}
+		// else {
+		// UnitActions.moveToMainBase(unit);
+		// }
+
+		return null;
 	}
 
 	public static MapPoint getArmyCenterPoint() {
