@@ -73,7 +73,7 @@ public class TerranFactory {
 			boolean weAreConstructing = Constructing.weAreBuilding(buildingType);
 			int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
-			if (factories == 0 && !weAreConstructing && battleUnits >= 10) {
+			if (factories == 0 && !weAreConstructing) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}

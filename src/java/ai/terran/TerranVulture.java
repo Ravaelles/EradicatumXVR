@@ -14,6 +14,7 @@ import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.units.army.ArmyUnitBasicBehavior;
+import ai.managers.units.army.RunManager;
 import ai.utils.RUtilities;
 
 public class TerranVulture {
@@ -21,6 +22,8 @@ public class TerranVulture {
 	private static XVR xvr = XVR.getInstance();
 
 	private static UnitTypes unitType = UnitTypes.Terran_Vulture;
+
+	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.3;
 
 	// =========================================================
 
@@ -31,10 +34,16 @@ public class TerranVulture {
 
 		// =========================
 		// Look out for enemy defensive buildings.
-		ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit);
+		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+			return true;
+		}
 
 		// Don't interrupt unit on march
 		if (unit.isStartingAttack()) {
+			return true;
+		}
+
+		if (RunManager.runFromCloseOpponentsIfNecessary(unit, SAFE_DISTANCE_FROM_ENEMY)) {
 			return true;
 		}
 

@@ -14,7 +14,7 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.RunManager;
-import ai.managers.units.buildings.BuildingManager;
+import ai.managers.units.buildings.BuildingRepairManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranRefinery;
@@ -119,7 +119,7 @@ public class WorkerManager {
 		}
 
 		if (RunManager.runFromCloseOpponentsIfNecessary(unit)) {
-			// unit.setAiOrder("Worker: Run from enemy");
+			unit.setAiOrder("Fuck...");
 			return;
 		}
 
@@ -210,8 +210,8 @@ public class WorkerManager {
 	// =========================================================
 
 	private static void checkStatusOfBuildingsNeedingRepair(Unit worker) {
-		if (worker.isRepairing() && BuildingManager.getBuildingToRepairBy(worker) != null) {
-			Unit buildingToRepair = BuildingManager.getBuildingToRepairBy(worker);
+		if (worker.isRepairing() && BuildingRepairManager.getBuildingToRepairBy(worker) != null) {
+			Unit buildingToRepair = BuildingRepairManager.getBuildingToRepairBy(worker);
 			boolean targetValid = buildingToRepair.isExists() && buildingToRepair.isWounded();
 			if (!targetValid) {
 				UnitActions.holdPosition(worker);
@@ -493,12 +493,13 @@ public class WorkerManager {
 		return findNearestWorkerTo(building.getX(), building.getY());
 	}
 
-	public static Unit findNearestRepairerTo(Unit unit) {
+	public static Unit findBestRepairerNear(Unit unit) {
 		double nearestDistance = 999999;
 		Unit nearestUnit = null;
 
 		for (Unit otherUnit : xvr.getUnitsOfType(UnitManager.WORKER)) {
-			if (!otherUnit.isCompleted() || otherUnit.isRepairing() || otherUnit.isConstructing()) {
+			if (!otherUnit.isCompleted() || otherUnit.isRepairing() || otherUnit.isConstructing()
+					|| !otherUnit.isInterruptable()) {
 				continue;
 			}
 

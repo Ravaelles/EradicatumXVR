@@ -18,6 +18,7 @@ public class TechnologyManager {
 	public static final TechTypes SPIDER_MINES = TechTypes.Spider_Mines;
 	public static final TechTypes CLOAKING_FIELD = TechTypes.Cloaking_Field;
 	public static final TechTypes STIMPACKS = TechTypes.Stim_Packs;
+	public static final UpgradeTypes U238_SHELLS = UpgradeTypes.U_238_Shells;
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -43,6 +44,12 @@ public class TechnologyManager {
 		technology = TANK_SIEGE_MODE;
 		if (isPossibleSiegeResearch) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
+		}
+
+		// U-238 Shells
+		upgrade = U238_SHELLS;
+		if (vultures > 2 && marines >= 6) {
+			tryToUpgrade(TerranAcademy.getOneNotBusy(), upgrade);
 		}
 
 		// Spider Mines

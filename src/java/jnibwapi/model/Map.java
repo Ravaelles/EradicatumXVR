@@ -363,6 +363,10 @@ public class Map {
 	// =========================================================
 
 	public static MapPoint getClosestWalkablePointTo(MapPoint point) {
+		if (point == null) {
+			return null;
+		}
+
 		if (point.isWalkable()) {
 			return point;
 		}

@@ -28,7 +28,6 @@ public class UnitManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	@SuppressWarnings("unused")
 	private static int _unitCounter = 0;
 
 	// ===========================================================
@@ -48,6 +47,14 @@ public class UnitManager {
 		// Act with non workers units
 		for (Unit unit : xvr.getUnitsNonWorkerAllowIncompleted()) {
 			UnitType type = unit.getType();
+
+			// Reject non controllable unit types
+			if (type.isSpiderMine()) {
+				continue;
+			}
+
+			// =========================================================
+
 			updateBeingRepairedStatus(unit);
 
 			// ===============================
@@ -84,14 +91,14 @@ public class UnitManager {
 	}
 
 	private static void act(Unit unit) {
-		UnitType type = unit.getType();
+		// UnitType type = unit.getType();
 
 		// ==============================
 		// Should not listen to any actions that we announce here because it
 		// would mess the things up.
 
 		// Don't interrupt when shooting or don't move when being repaired.
-		if (unit.isStartingAttack() || unit.isBeingRepaired() || type.isSpiderMine()) {
+		if (unit.isStartingAttack()) {
 			return;
 		}
 
@@ -101,8 +108,15 @@ public class UnitManager {
 		// ======================================
 		// TOP PRIORITY ACTIONS, order is important!
 
+		// Avoid activated mines
+		if (ArmyUnitBasicBehavior.tryAvoidingActivatedSpiderMines(unit)) {
+			return;
+		}
+
 		// Make sure unit will get repaired
-		RepairAndSons.tryIssuingRepairOrderIfPossible(unit);
+		if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
+			return;
+		}
 
 		// Use Stimpacks if need.
 		ArmyUnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
@@ -131,10 +145,10 @@ public class UnitManager {
 		}
 
 		// Disallow fighting when overwhelmed.
-		if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
-			unit.setAiOrder("Would lose");
-			return;
-		}
+		// if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
+		// unit.setAiOrder("Would lose");
+		// return;
+		// }
 
 		// ===============================
 		// Act according to STRATEGY, attack strategic targets,
@@ -142,14 +156,20 @@ public class UnitManager {
 		ArmyUnitBasicBehavior.act(unit);
 
 		// ===============================
+		// Run from hidden Lurkers, Dark Templars etc.
+		HiddenEnemyUnitsManager.avoidHiddenUnitsIfNecessary(unit);
+
+		// ===============================
+		// Don't interrupt units being repaired
+		if (unit.isBeingRepaired()) {
+			return;
+		}
+
+		// ===============================
 		// ATTACK CLOSE targets (Tactics phase)
 		if (AttackCloseTargets.tryAttackingCloseTargets(unit)) {
 			unit.setAiOrder("Attack close targets");
 		}
-
-		// ===============================
-		// Run from hidden Lurkers, Dark Templars etc.
-		HiddenEnemyUnitsManager.avoidHiddenUnitsIfNecessary(unit);
 	}
 
 	// =========================================================
@@ -197,46 +217,7 @@ public class UnitManager {
 		// unit.getTypeID() == UnitTypes.Terran_Vulture.ordinal();
 	}
 
-	public static void actWhenMassiveAttackIsPending(Unit unit) {
-
-		// If unit is surrounded by other units (doesn't attack alone)
-		// if (isPartOfClusterOfMinXUnits(unit)) {
-
-		// If there is attack target defined, go for it.
-		if (StrategyManager.isSomethingToAttackDefined()) {
-			if (unitIsTooFarFromSafePlaceWhenAttackPending(unit)) {
-				return;
-			}
-
-			if (isHasValidTargetToAttack(unit)) {
-				return;
-			}
-
-			if (StrategyManager.getTargetPoint() != null) {
-				if (!isHasValidTargetToAttack(unit)) {
-					UnitActions.attackTo(unit, StrategyManager.getTargetPoint());
-					unit.setAiOrder("Forward!");
-				}
-				if (isUnitFullyIdle(unit)) {
-					UnitActions.spreadOutRandomly(unit);
-				}
-			} else {
-				UnitActions.spreadOutRandomly(unit);
-			}
-		}
-
-		// If no attack target is defined it probably means that the fog
-		// of war is hiding from us other enemy buildings
-		else {
-			UnitActions.spreadOutRandomly(unit);
-		}
-
-		if (!StrengthRatio.isStrengthRatioFavorableFor(unit)) {
-			UnitActions.moveToSafePlace(unit);
-		}
-	}
-
-	private static boolean unitIsTooFarFromSafePlaceWhenAttackPending(Unit unit) {
+	public static boolean unitIsTooFarFromSafePlaceWhenAttackPending(Unit unit) {
 		if (StrategyManager.getMinBattleUnits() <= 5) {
 			return false;
 		}
@@ -263,9 +244,6 @@ public class UnitManager {
 	public static void avoidSpellEffectsAndMinesIfNecessary() {
 		for (Unit unit : xvr.getBwapi().getMyUnits()) {
 			if (ArmyUnitBasicBehavior.tryAvoidingSeriousSpellEffectsIfNecessary(unit)) {
-				continue;
-			}
-			if (ArmyUnitBasicBehavior.tryAvoidingActivatedSpiderMines(unit)) {
 				continue;
 			}
 		}

@@ -174,7 +174,8 @@ public class SiegeTankManager {
 
 		// If there's enemy building in range, siege.
 		if (TargettingDetails._nearestEnemyBuilding != null
-				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5 && oursNearby >= 2) {
+				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5
+				&& oursNearby >= 2) {
 			return true;
 		}
 
@@ -221,6 +222,10 @@ public class SiegeTankManager {
 		}
 
 		return true;
+	}
+
+	public static UnitTypes getUnitType() {
+		return unitType;
 	}
 
 }

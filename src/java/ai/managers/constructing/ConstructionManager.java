@@ -6,7 +6,6 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
-import ai.handling.units.UnitActions;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranArmory;
 import ai.terran.TerranBarracks;
@@ -23,11 +22,11 @@ import ai.terran.TerranScienceFacility;
 import ai.terran.TerranStarport;
 import ai.terran.TerranSupplyDepot;
 
-public class ConstructingManager {
+public class ConstructionManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static final int PROLONGATED_CONSTRUCTION_TIME = 350; // in fps
+	// private static final int PROLONGATED_CONSTRUCTION_TIME = 350; // in fps
 
 	private static HashMap<UnitTypes, Unit> _recentConstructionsInfo = new HashMap<>();
 	private static HashMap<UnitTypes, MapPoint> _recentConstructionsPlaces = new HashMap<>();
@@ -36,7 +35,8 @@ public class ConstructingManager {
 
 	private static int _recentConstructionsCounter = 0;
 	private static int _actCounter = 0;
-	private static int _lastCheckedForProlongated = -1;
+
+	// private static int _lastCheckedForProlongated = -1;
 
 	// ====================================
 
@@ -85,25 +85,26 @@ public class ConstructingManager {
 		// }
 	}
 
-	private static void checkForProlongatedConstructions() {
-		int now = xvr.getFrames();
-		for (Unit builder : _recentConstructionsTimes.keySet()) {
-			if (!builder.isConstructing()) {
-				continue;
-			}
-
-			if (now - _recentConstructionsTimes.get(builder) > PROLONGATED_CONSTRUCTION_TIME) {
-				MapPoint buildTile = _recentConstructionsPlaces.get(builder);
-				UnitTypes building = _recentConstructionsUnitToType.get(builder);
-
-				// Issue new construction order
-				Constructing.constructBuilding(xvr, building, buildTile);
-
-				// Cancel previous construction by moving the unit
-				UnitActions.moveTo(builder, xvr.getFirstBase());
-			}
-		}
-	}
+	// private static void checkForProlongatedConstructions() {
+	// int now = xvr.getFrames();
+	// for (Unit builder : _recentConstructionsTimes.keySet()) {
+	// if (!builder.isConstructing()) {
+	// continue;
+	// }
+	//
+	// if (now - _recentConstructionsTimes.get(builder) >
+	// PROLONGATED_CONSTRUCTION_TIME) {
+	// MapPoint buildTile = _recentConstructionsPlaces.get(builder);
+	// UnitTypes building = _recentConstructionsUnitToType.get(builder);
+	//
+	// // Issue new construction order
+	// Constructing.constructBuilding(xvr, building, buildTile);
+	//
+	// // Cancel previous construction by moving the unit
+	// UnitActions.moveTo(builder, xvr.getFirstBase());
+	// }
+	// }
+	// }
 
 	public static boolean weAreBuilding(UnitTypes type) {
 		if (_recentConstructionsInfo.containsKey(type)) {
@@ -131,6 +132,10 @@ public class ConstructingManager {
 		_recentConstructionsUnitToType.put(builder, building);
 		_recentConstructionsTimes.put(builder, xvr.getFrames());
 		ShouldBuildCache.cacheShouldBuildInfo(building, false);
+	}
+
+	public static HashMap<UnitTypes, MapPoint> get_recentConstructionsPlaces() {
+		return _recentConstructionsPlaces;
 	}
 
 }

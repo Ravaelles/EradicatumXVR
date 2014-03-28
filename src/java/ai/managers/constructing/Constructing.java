@@ -33,6 +33,25 @@ public class Constructing {
 
 	// ============================
 
+	public static void construct(XVR xvr, UnitTypes building) {
+
+		// Define tile where to build according to type of building.
+		MapPoint buildTile = getTileAccordingToBuildingType(building);
+		// System.out.println("buildTile FOR: " + building + " = " + buildTile);
+		// Debug.message(xvr, "buildTile FOR: " + building + " = " + buildTile);
+
+		// Check if build tile is okay.
+		if (buildTile != null) {
+			// if (building.getType().isBase()) {
+			// handleBaseConstruction(building, buildTile);
+			// } else {
+			constructBuilding(xvr, building, buildTile);
+			// }
+		}
+	}
+
+	// ============================
+
 	public static MapPoint findTileForStandardBuilding(UnitTypes typeToBuild) {
 		Unit base = xvr.getFirstBase();
 		if (base == null) {
@@ -47,6 +66,7 @@ public class Constructing {
 
 	private static MapPoint getTileAccordingToBuildingType(UnitTypes building) {
 		MapPoint buildTile = null;
+		boolean disableReportOfNoPlaceFound = false;
 
 		// Supply Depot
 		if (TerranSupplyDepot.getBuildingType().ordinal() == building.ordinal()) {
@@ -66,6 +86,7 @@ public class Constructing {
 		// Refinery
 		else if (TerranRefinery.getBuildingType().ordinal() == building.ordinal()) {
 			buildTile = TerranRefinery.findTileForRefinery();
+			disableReportOfNoPlaceFound = true;
 		}
 
 		// Base
@@ -82,7 +103,7 @@ public class Constructing {
 			buildTile = findTileForStandardBuilding(building);
 		}
 
-		if (buildTile == null) {
+		if (buildTile == null && !disableReportOfNoPlaceFound) {
 			System.out.println("# No tile found for: " + building.getType().getName());
 		}
 
@@ -448,71 +469,51 @@ public class Constructing {
 		return false;
 	}
 
-	public static void construct(XVR xvr, UnitTypes building) {
-
-		// Define tile where to build according to type of building.
-		MapPoint buildTile = getTileAccordingToBuildingType(building);
-		// System.out.println("buildTile FOR: " + building + " = " + buildTile);
-		// Debug.message(xvr, "buildTile FOR: " + building + " = " + buildTile);
-
-		// Check if build tile is okay.
-		if (buildTile != null) {
-
-			// If this building is base, make sure there's a pylon and at least
-			// two cannons build nearby
-			if (building.getType().isBase()) {
-				handleBaseConstruction(building, buildTile);
-			} else {
-				constructBuilding(xvr, building, buildTile);
-			}
-
-		}
-	}
-
 	/** The idea is to build pylon and cannon first, just then build Nexus. */
-	private static void handleBaseConstruction(UnitTypes building, MapPoint buildTile) {
-		boolean baseInterrupted = false;
-
-		// System.out.println("Base build: " + buildTile);
-
-		// ==============================
-
-		// Try to find proper choke to reinforce
-		// ChokePoint choke =
-		// MapExploration.getImportantChokePointNear(buildTile);
-
-		// Get point in between choke and base
-		// MapPointInstance point =
-		// MapPointInstance.getMiddlePointBetween(buildTile, choke);
-
-		// int bunkersNearby =
-		// xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 16,
-		// point, true);
-
-		// ==============================
-		// Ensure there's a bunker nearby
-		// if (bunkersNearby == 0) {
-		// baseInterrupted = true;
-		// building = TerranBunker.getBuildingType();
-		// buildTile = TerranBunker.findTileForBunker();
-		// }
-
-		// ==============================
-		// We can build the base
-		if (!baseInterrupted) {
-			if (buildTile == null
-					|| !Constructing.canBuildAt(buildTile, UnitManager.BASE.getType())) {
-				System.out.println("TEST cant Build At: " + buildTile);
-				buildTile = TerranCommandCenter.findTileForNextBase(true);
-			}
-		}
-
-		// System.out.println((buildTile != null ? buildTile.toStringLocation()
-		// : buildTile) + " : "
-		// + Constructing.canBuildAt(buildTile, UnitManager.BASE.getType()));
-
-		constructBuilding(xvr, building, buildTile);
-	}
+	// private static void handleBaseConstruction(UnitTypes building, MapPoint
+	// buildTile) {
+	// boolean baseInterrupted = false;
+	//
+	// // System.out.println("Base build: " + buildTile);
+	//
+	// // ==============================
+	//
+	// // Try to find proper choke to reinforce
+	// // ChokePoint choke =
+	// // MapExploration.getImportantChokePointNear(buildTile);
+	//
+	// // Get point in between choke and base
+	// // MapPointInstance point =
+	// // MapPointInstance.getMiddlePointBetween(buildTile, choke);
+	//
+	// // int bunkersNearby =
+	// // xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 16,
+	// // point, true);
+	//
+	// // ==============================
+	// // Ensure there's a bunker nearby
+	// // if (bunkersNearby == 0) {
+	// // baseInterrupted = true;
+	// // building = TerranBunker.getBuildingType();
+	// // buildTile = TerranBunker.findTileForBunker();
+	// // }
+	//
+	// // ==============================
+	// // We can build the base
+	// if (!baseInterrupted) {
+	// if (buildTile == null
+	// || !Constructing.canBuildAt(buildTile, UnitManager.BASE.getType())) {
+	// System.out.println("TEST cant Build At: " + buildTile);
+	// buildTile = TerranCommandCenter.findTileForNextBase(true);
+	// }
+	// }
+	//
+	// // System.out.println((buildTile != null ? buildTile.toStringLocation()
+	// // : buildTile) + " : "
+	// // + Constructing.canBuildAt(buildTile, UnitManager.BASE.getType()));
+	//
+	// constructBuilding(xvr, building, buildTile);
+	// }
 
 	private static boolean canBuildAt(MapPoint point, UnitType type) {
 		Unit randomWorker = xvr.getRandomWorker();
@@ -572,7 +573,7 @@ public class Constructing {
 	}
 
 	public static boolean weAreBuilding(UnitTypes type) {
-		return ConstructingManager.weAreBuilding(type);
+		return ConstructionManager.weAreBuilding(type);
 	}
 
 	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
@@ -607,7 +608,7 @@ public class Constructing {
 		if (canProceed) {
 			xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
 					building.ordinal());
-			ConstructingManager.addInfoAboutConstruction(building, builder, buildTile);
+			ConstructionManager.addInfoAboutConstruction(building, builder, buildTile);
 		}
 	}
 

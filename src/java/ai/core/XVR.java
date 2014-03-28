@@ -15,7 +15,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
-import ai.managers.constructing.ConstructingManager;
+import ai.managers.constructing.ConstructionManager;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
@@ -156,7 +156,7 @@ public class XVR {
 			// Handle constructing new buildings
 			if (getFrames() % 9 == 0) {
 				CodeProfiler.startMeasuring("Construct");
-				ConstructingManager.act();
+				ConstructionManager.act();
 				CodeProfiler.endMeasuring("Construct");
 			}
 
@@ -559,7 +559,7 @@ public class XVR {
 		return getUnitsInRadius(point, tileRadius, bwapi.getMyUnits()).size();
 	}
 
-	public int countUnitsEnemyInRadius(MapPoint point, int tileRadius) {
+	public int countUnitsEnemyInRadius(MapPoint point, double tileRadius) {
 		// return countUnitsInRadius(point, tileRadius, getEnemyUnitsVisible());
 		return getUnitsInRadius(point, tileRadius, getEnemyUnitsVisible()).size();
 	}

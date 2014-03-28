@@ -11,8 +11,6 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
-import ai.handling.units.UnitCounter;
-import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyUnitBasicBehavior;
 import ai.terran.TerranCommandCenter;
 import ai.utils.RUtilities;
@@ -350,24 +348,26 @@ public class ExplorerManager {
 			scoutRandomBaseLocation();
 		}
 
-		// Explore place for the 3rd and later bases
-		if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
-			MapPoint tileForNextBase = TerranCommandCenter.findTileForNextBase(false);
-			if (!xvr.getBwapi().isVisible(tileForNextBase.getTx(), tileForNextBase.getTy())) {
-				explorer.setAiOrder("Scout 3rd base");
-				UnitActions.moveTo(explorer, tileForNextBase);
-				return true;
-			} else {
-				if (!explorer.isMoving()) {
-					explorer.setAiOrder("Explore unknown");
-					UnitActions.moveTo(
-							explorer,
-							MapExploration.getNearestUnknownPointFor(explorer.getX(),
-									explorer.getY(), true));
-					return true;
-				}
-			}
-		}
+		// // Explore place for the 3rd and later bases
+		// if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
+		// MapPoint tileForNextBase =
+		// TerranCommandCenter.findTileForNextBase(false);
+		// if (!xvr.getBwapi().isVisible(tileForNextBase.getTx(),
+		// tileForNextBase.getTy())) {
+		// explorer.setAiOrder("Scout 3rd base");
+		// UnitActions.moveTo(explorer, tileForNextBase);
+		// return true;
+		// } else {
+		// if (!explorer.isMoving()) {
+		// explorer.setAiOrder("Explore unknown");
+		// UnitActions.moveTo(
+		// explorer,
+		// MapExploration.getNearestUnknownPointFor(explorer.getX(),
+		// explorer.getY(), true));
+		// return true;
+		// }
+		// }
+		// }
 
 		return false;
 	}

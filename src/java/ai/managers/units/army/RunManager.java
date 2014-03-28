@@ -17,6 +17,10 @@ public class RunManager {
 	// =========================================================
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
+		return runFromCloseOpponentsIfNecessary(unit, SAFE_DIST_FROM_ENEMY);
+	}
+
+	public static boolean runFromCloseOpponentsIfNecessary(Unit unit, double safeDistance) {
 		UnitType type = unit.getType();
 
 		// take into calculation all nearby enemies
@@ -28,8 +32,7 @@ public class RunManager {
 				double distToEnemy = unit.distanceTo(enemy);
 
 				// Define if enemy is real danger or maybe he's too far etc
-				boolean enemyCriticallyClose = distToEnemy > 0.1
-						&& distToEnemy < SAFE_DIST_FROM_ENEMY;
+				boolean enemyCriticallyClose = distToEnemy > 0.1 && distToEnemy < safeDistance;
 				boolean enemyCanShootAtUs = !enemyCriticallyClose
 						&& !UnitManager.isUnitSafeFromEnemyShootRange(unit, enemy);
 				boolean canConsiderRunningFromEnemy = enemyCriticallyClose || enemyCanShootAtUs;

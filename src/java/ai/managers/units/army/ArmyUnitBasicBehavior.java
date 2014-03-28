@@ -7,13 +7,14 @@ import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.WeaponType;
 import ai.core.XVR;
-import ai.handling.army.ArmyPlacing;
 import ai.handling.army.StrengthRatio;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
+import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.strategy.StrategyManager;
+import ai.managers.units.UnitManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBunker;
 import ai.terran.TerranMedic;
@@ -50,26 +51,11 @@ public class ArmyUnitBasicBehavior {
 		// ======================================
 		// STANDARD ARMY UNIT COMMANDS
 		else {
-
-			ArmyUnitBehavior.actStandardUnit(unit);
-			// // If unit has personalized order
-			// if (unit.getCallForHelpMission() != null) {
-			// UnitManager.actWhenOnCallForHelpMission(unit);
-			// }
-			//
-			// // Standard action for unit
-			// else {
-			//
-			// // If we're ready to total attack
-			// if (StrategyManager.isAttackPending()) {
-			// UnitManager.actWhenMassiveAttackIsPending(unit);
-			// }
-			//
-			// // Standard situation
-			// else {
-			// UnitManager.actWhenNoMassiveAttack(unit);
-			// }
-			// }
+			if (tryConsideringCallForHelpMission(unit)) {
+				UnitManager.actWhenOnCallForHelpMission(unit);
+			} else {
+				ArmyRendezvousActions.act(unit);
+			}
 		}
 
 		// ======================================
@@ -83,6 +69,22 @@ public class ArmyUnitBasicBehavior {
 	}
 
 	// =========================================================
+
+	private static boolean tryConsideringCallForHelpMission(Unit unit) {
+
+		// If any call for help has been issued, decide whether to help or not
+		if (CallForHelp.isAnyCallForHelp()) {
+			UnitManager.decideWhetherToHelpSomeoneCalledForHelp(unit);
+		}
+
+		// =========================================================
+		// If unit has personalized order
+		if (unit.isOnCallForHelpMission()) {
+			return true;
+		}
+
+		return false;
+	}
 
 	public static boolean tryLoadingIntoBunkersIfPossible(Unit unit) {
 		if (!unit.getType().isTerranInfantry()) {
@@ -109,7 +111,7 @@ public class ArmyUnitBasicBehavior {
 		boolean enemyIsNearby = nearestEnemy != null
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
-		if (StrategyManager.isAnyAttackFormPending() && !enemyIsNearby) {
+		if (StrategyManager.isAnyAttackFormPending() && !unit.isIdle() && !enemyIsNearby) {
 			if (isUnitInsideBunker
 					|| isBunkerTooFarFromCombat(unit, unit.getBunkerThatsIsLoadedInto())) {
 				unit.unload();
@@ -125,7 +127,7 @@ public class ArmyUnitBasicBehavior {
 
 		// If unit should be inside bunker, try to load it inside.
 		if (!isUnitInsideBunker) {
-			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending()) {
+			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending() && !unit.isIdle()) {
 				if (isUnitInsideBunker
 						|| isBunkerTooFarFromCombat(unit, unit.getBunkerThatsIsLoadedInto())) {
 					unit.unload();
@@ -144,7 +146,7 @@ public class ArmyUnitBasicBehavior {
 			if (!enemyIsNearby) {
 				Unit bunker = unit.getBunkerThatsIsLoadedInto();
 				if (bunker != null && bunker.getNumLoadedUnits() > 1
-						&& StrategyManager.isAnyAttackFormPending()) {
+						&& StrategyManager.isAnyAttackFormPending() && !unit.isIdle()) {
 					if (isUnitInsideBunker) {
 						unit.unload();
 					}
@@ -161,7 +163,6 @@ public class ArmyUnitBasicBehavior {
 			return false;
 		}
 
-		MapPoint safePoint = ArmyPlacing.getSafePointFor(unit);
 		return bunker.distanceTo(unit) >= 7;
 	}
 
@@ -281,7 +282,7 @@ public class ArmyUnitBasicBehavior {
 		// Check if there's any activted mine nearby and if so, get the fuck out
 		// of here.
 		for (Unit spiderMine : xvr.getUnitsOfGivenTypeInRadius(
-				UnitTypes.Terran_Vulture_Spider_Mine, 4, unit, true)) {
+				UnitTypes.Terran_Vulture_Spider_Mine, 5, unit, true)) {
 			if (spiderMine.isMoving() || spiderMine.isAttacking()) {
 				activatedMine = spiderMine;
 				break;
@@ -292,7 +293,7 @@ public class ArmyUnitBasicBehavior {
 		if (activatedMine != null) {
 			UnitActions.moveAwayFromUnit(unit, activatedMine);
 			unit.setIsRunningFromEnemyNow();
-			unit.setAiOrder("MINE !!!");
+			unit.setAiOrder("MINE!");
 			return true;
 		}
 
@@ -301,9 +302,9 @@ public class ArmyUnitBasicBehavior {
 
 	public static boolean tryRunningIfSeriouslyWounded(Unit unit) {
 		double ratio = 0.4;
-		if (xvr.getTimeSeconds() < 330) {
-			ratio = 0.62;
-		}
+		// if (xvr.getTimeSeconds() < 330) {
+		// ratio = 0.4;
+		// }
 
 		if (unit.getHP() <= unit.getMaxHP() * ratio) {
 			// // If there are tanks nearby, DON'T RUN. Rather die first!

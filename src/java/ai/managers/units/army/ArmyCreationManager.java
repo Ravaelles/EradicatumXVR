@@ -15,6 +15,7 @@ import ai.terran.TerranCommandCenter;
 import ai.terran.TerranFactory;
 import ai.terran.TerranMachineShop;
 import ai.terran.TerranStarport;
+import ai.terran.TerranVulture;
 
 public class ArmyCreationManager {
 
@@ -22,6 +23,9 @@ public class ArmyCreationManager {
 
 	private static final int MINIMUM_UNITS = 15;
 	private static final int MINIMUM_MARINES = 7;
+	private static final int MAXIMUM_MARINES = 12;
+
+	// =========================================================
 
 	public static void act() {
 		if (weShouldBuildBattleUnits()) {
@@ -46,23 +50,19 @@ public class ArmyCreationManager {
 				}
 			}
 
-			int infantry = UnitCounter.getNumberOfInfantryUnits();
-			boolean fewInfantry = infantry <= MINIMUM_MARINES;
-			boolean weShouldBuildInfantryUnits = factories.isEmpty() || xvr.canAfford(100)
-					|| fewInfantry;
-
 			// If we have factories and have free spot, don't build infantry.
-			if (weShouldBuildInfantryUnits && !factories.isEmpty() && !xvr.canAfford(200)) {
-				// TerranFactory.getOneNotBusy() != null &&
+			boolean weShouldBuildInfantryUnits = shouldBuildInfantry(factories);
+			if (weShouldBuildInfantryUnits && TerranFactory.getOneNotBusy() != null) {
 				weShouldBuildInfantryUnits = false;
 			}
 
 			// BARRACKS
 			if (weShouldBuildInfantryUnits) {
+				boolean isFewInfantry = isCriticallyFewInfantry();
 				boolean noFactories = TerranFactory.getNumberOfUnitsCompleted() == 0;
 				boolean haveFreeFactorySpots = TerranFactory.getOneNotBusy() != null;
-				boolean shouldBuildInfantry = fewInfantry || noFactories
-						|| (!haveFreeFactorySpots && fewInfantry);
+				boolean shouldBuildInfantry = isFewInfantry || noFactories
+						|| (!haveFreeFactorySpots && isFewInfantry);
 				if (shouldBuildInfantry) {
 					ArrayList<Unit> barracks = TerranBarracks.getAllObjects();
 					if (!barracks.isEmpty()) {
@@ -76,8 +76,29 @@ public class ArmyCreationManager {
 		}
 	}
 
+	// =========================================================
+
+	private static boolean shouldBuildInfantry(ArrayList<Unit> factories) {
+		if (!isTooMuchInfantry()) {
+			if (isCriticallyFewInfantry()) {
+				boolean factoriesHaveEnoughPriority = factories.isEmpty()
+						|| (xvr.canAfford(200) && !isTooMuchInfantry() && TerranVulture
+								.getNumberOfUnits() >= 3);
+				if (factoriesHaveEnoughPriority) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	public static boolean isCriticallyFewInfantry() {
 		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) <= MINIMUM_MARINES;
+	}
+
+	private static boolean isTooMuchInfantry() {
+		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) >= MAXIMUM_MARINES;
 	}
 
 	public static boolean weShouldBuildBattleUnits() {

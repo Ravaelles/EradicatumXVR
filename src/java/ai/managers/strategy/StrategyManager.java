@@ -75,43 +75,11 @@ public class StrategyManager {
 
 	private static double allowedDistanceFromSafePoint = 0;
 	private static int _lastTimeDistancePenalty = 0;
-	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.9;
+	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.8;
 
 	// private static boolean pushedInitially = false;
 
 	// ====================================================
-
-	private static boolean decideIfWeAreReadyToAttack() {
-		int battleUnits = UnitCounter.getNumberOfBattleUnitsCompleted();
-		int minUnits = calculateMinimumUnitsToAttack();
-		boolean haveEnoughMedics = TerranMedic.getNumberOfUnitsCompleted() >= MIN_MEDICS;
-		boolean haveEnoughTanks = TerranSiegeTank.getNumberOfUnitsCompleted() >= MIN_TANKS;
-
-		// if (xvr.getTimeSeconds() >= 380 && minUnits < 5) {
-		// final int EXTRA = 5;
-		// minUnits += EXTRA;
-		// _minBattleUnits += EXTRA;
-		// }
-
-		if (haveEnoughMedics && haveEnoughTanks && battleUnits >= minUnits || _minBattleUnits <= 5) {
-			return true;
-		} else {
-			boolean weAreReady = (battleUnits >= minUnits * 0.35) && isAnyAttackFormPending();
-
-			if (battleUnits > MINIMUM_THRESHOLD_ARMY_TO_PUSH) {
-				weAreReady = true;
-			}
-
-			return weAreReady;
-		}
-	}
-
-	public static int calculateMinimumUnitsToAttack() {
-		return getMinBattleUnits();
-		// return getMinBattleUnits() + retreatsCounter *
-		// EXTRA_UNITS_PER_RETREAT
-		// + (retreatsCounter >= 2 ? retreatsCounter * 2 : 0);
-	}
 
 	/**
 	 * Decide if full attack makes sense or if we're already attacking decide
@@ -129,6 +97,34 @@ public class StrategyManager {
 			allowedDistanceFromSafePoint += STEP_DISTANCE_WHEN_ATTACK_PENDING;
 			decisionWhenAttacking();
 		}
+	}
+
+	private static boolean decideIfWeAreReadyToAttack() {
+		int battleUnits = UnitCounter.getNumberOfBattleUnitsCompleted();
+		int minUnits = calculateMinimumUnitsToAttack();
+		boolean haveEnoughMedics = TerranMedic.getNumberOfUnitsCompleted() >= MIN_MEDICS;
+		boolean haveEnoughTanks = TerranSiegeTank.getNumberOfUnitsCompleted() >= MIN_TANKS;
+
+		if (haveEnoughMedics && haveEnoughTanks && battleUnits >= minUnits || _minBattleUnits <= 5) {
+			return true;
+		} else {
+			boolean weAreReady = (battleUnits >= minUnits * 0.35) && isAnyAttackFormPending();
+
+			if (battleUnits > MINIMUM_THRESHOLD_ARMY_TO_PUSH) {
+				weAreReady = true;
+			}
+
+			return weAreReady;
+		}
+	}
+
+	// =========================================================
+
+	public static int calculateMinimumUnitsToAttack() {
+		return getMinBattleUnits();
+		// return getMinBattleUnits() + retreatsCounter *
+		// EXTRA_UNITS_PER_RETREAT
+		// + (retreatsCounter >= 2 ? retreatsCounter * 2 : 0);
 	}
 
 	private static void decisionWhenNotAttacking() {

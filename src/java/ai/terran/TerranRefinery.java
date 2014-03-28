@@ -89,8 +89,6 @@ public class TerranRefinery {
 			return null;
 		}
 
-		// return new MapPointInstance(nearestGeyser.getX(),
-		// nearestGeyser.getY());
 		if (nearestGeyser != null) {
 			return new MapPointInstance(nearestGeyser.getX() - 64, nearestGeyser.getY() - 32);
 		} else {

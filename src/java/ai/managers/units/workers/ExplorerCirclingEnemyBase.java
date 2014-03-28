@@ -2,19 +2,21 @@ package ai.managers.units.workers;
 
 import jnibwapi.model.Map;
 import jnibwapi.model.Unit;
+import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 
 public class ExplorerCirclingEnemyBase {
 
-	// private static XVR xvr = XVR.getInstance();
+	private static XVR xvr = XVR.getInstance();
 
 	private static boolean _forbidCirclingBase = false;
 	private static int _circlingEnemyBasePhase = 0;
 	private static Unit _lastExplorer = null;
+	private static boolean _dontAttack = false;
 
-	private static final int CIRCLING_RADIUS = 10;
+	private static final int CIRCLING_RADIUS = 12;
 
 	// =========================================================
 
@@ -41,10 +43,10 @@ public class ExplorerCirclingEnemyBase {
 		}
 
 		// if already near the point, update the circling phase
-		if (explorer.distanceTo(tryGoTo) <= 1.2 || !explorer.isMoving()
+		if (explorer.distanceTo(tryGoTo) <= 2 || !explorer.isMoving() || tryGoTo == null
 				|| _circlingEnemyBasePhase == 0) {
 			_circlingEnemyBasePhase++;
-			if (_circlingEnemyBasePhase > 7) {
+			if (_circlingEnemyBasePhase > 4) {
 				_circlingEnemyBasePhase = 1;
 			}
 		}
@@ -76,8 +78,20 @@ public class ExplorerCirclingEnemyBase {
 
 	private static boolean tryAttackingIfNotWounded() {
 		boolean foundTarget = false;
+		Unit explorer = ExplorerManager.getExplorer();
 
-		if (!ExplorerManager.getExplorer().isWounded()) {
+		// If explorer under attack, don't attack
+		if (explorer.isUnderAttack() || _dontAttack) {
+			_dontAttack = true;
+			return false;
+		}
+
+		// If explorer surrounded by enemy, don't attack
+		if (xvr.countUnitsEnemyInRadius(explorer, 1.5) >= 3) {
+			return false;
+		}
+
+		if (!explorer.isWounded()) {
 			foundTarget = ExplorerManager.tryAttackingEnemyIfPossible();
 			return foundTarget;
 		}
@@ -90,25 +104,43 @@ public class ExplorerCirclingEnemyBase {
 	}
 
 	private static MapPoint defineGoToPointAccordingToPhase(MapPoint centralPoint, int phase) {
-		double SINGLE_COORDINATE = CIRCLING_RADIUS * 1.35;
+		// double SINGLE_COORDINATE = CIRCLING_RADIUS * 1.35;
 
-		if (_circlingEnemyBasePhase == 0) {
+		if (_circlingEnemyBasePhase <= 1) {
 			return centralPoint.getMapPoint().translateSafe(CIRCLING_RADIUS, CIRCLING_RADIUS);
-		} else if (_circlingEnemyBasePhase == 1) {
-			return centralPoint.getMapPoint().translateSafe(0, SINGLE_COORDINATE);
 		} else if (_circlingEnemyBasePhase == 2) {
 			return centralPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS, CIRCLING_RADIUS);
 		} else if (_circlingEnemyBasePhase == 3) {
-			return centralPoint.getMapPoint().translateSafe(-SINGLE_COORDINATE, 0);
-		} else if (_circlingEnemyBasePhase == 4) {
 			return centralPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS, -CIRCLING_RADIUS);
-		} else if (_circlingEnemyBasePhase == 5) {
-			return centralPoint.getMapPoint().translateSafe(0, -SINGLE_COORDINATE);
-		} else if (_circlingEnemyBasePhase == 6) {
+		} else if (_circlingEnemyBasePhase == 4) {
 			return centralPoint.getMapPoint().translateSafe(CIRCLING_RADIUS, -CIRCLING_RADIUS);
-		} else if (_circlingEnemyBasePhase == 7) {
-			return centralPoint.getMapPoint().translateSafe(SINGLE_COORDINATE, 0);
 		}
+
+		// if (_circlingEnemyBasePhase == 0) {
+		// return centralPoint.getMapPoint().translateSafe(CIRCLING_RADIUS,
+		// CIRCLING_RADIUS);
+		// } else if (_circlingEnemyBasePhase == 1) {
+		// return centralPoint.getMapPoint().translateSafe(0,
+		// SINGLE_COORDINATE);
+		// } else if (_circlingEnemyBasePhase == 2) {
+		// return centralPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS,
+		// CIRCLING_RADIUS);
+		// } else if (_circlingEnemyBasePhase == 3) {
+		// return centralPoint.getMapPoint().translateSafe(-SINGLE_COORDINATE,
+		// 0);
+		// } else if (_circlingEnemyBasePhase == 4) {
+		// return centralPoint.getMapPoint().translateSafe(-CIRCLING_RADIUS,
+		// -CIRCLING_RADIUS);
+		// } else if (_circlingEnemyBasePhase == 5) {
+		// return centralPoint.getMapPoint().translateSafe(0,
+		// -SINGLE_COORDINATE);
+		// } else if (_circlingEnemyBasePhase == 6) {
+		// return centralPoint.getMapPoint().translateSafe(CIRCLING_RADIUS,
+		// -CIRCLING_RADIUS);
+		// } else if (_circlingEnemyBasePhase == 7) {
+		// return centralPoint.getMapPoint().translateSafe(SINGLE_COORDINATE,
+		// 0);
+		// }
 
 		return null;
 	}

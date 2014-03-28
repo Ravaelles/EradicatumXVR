@@ -857,6 +857,10 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 				+ ", underAttack=" + underAttack + "]";
 	}
 
+	public String toStringType() {
+		return getType().getName() + " HP:" + hitPoints + ", [x:" + tileX + ", y:" + tileY + "]";
+	}
+
 	@Override
 	public String toString() {
 		return "Unit [type=" + getType() + ", mineralGathered=" + mineralGathered
@@ -1105,6 +1109,10 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public MapPoint getPainterGoTo() {
 		return this.painterGoTo;
+	}
+
+	public boolean isOnCallForHelpMission() {
+		return getCallForHelpMission() != null;
 	}
 
 }

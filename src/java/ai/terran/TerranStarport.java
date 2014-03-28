@@ -92,6 +92,8 @@ public class TerranStarport {
 		}
 	}
 
+	// =========================================================
+
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
 		// boolean arbiterAllowed =
 		// UnitCounter.weHaveBuilding(UnitTypes.Protoss_Arbiter_Tribunal);
@@ -111,7 +113,8 @@ public class TerranStarport {
 		}
 
 		// VALKYRIE
-		if (valkyrieAllowed) {
+		if (valkyrieAllowed
+				&& UnitCounter.getNumberOfUnitsCompleted(UnitTypes.Terran_Valkyrie) <= 3) {
 			return VALKYRIE;
 		}
 

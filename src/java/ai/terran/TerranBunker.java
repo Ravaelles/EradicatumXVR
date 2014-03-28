@@ -23,6 +23,7 @@ public class TerranBunker {
 	private static XVR xvr = XVR.getInstance();
 
 	private static final double MAX_DIST_FROM_CHOKE_POINT_MODIFIER = 1.8;
+	public static int GLOBAL_MAX_BUNKERS = 2;
 	public static int MAX_STACK = 1;
 
 	private static MapPoint _placeToReinforceWithCannon = null;
@@ -31,6 +32,8 @@ public class TerranBunker {
 	// =========================================================
 
 	public static boolean shouldBuild() {
+		int bunkers = UnitCounter.getNumberOfUnits(type);
+
 		if (_skipForTurns > 0) {
 			_skipForTurns--;
 			return false;
@@ -40,11 +43,16 @@ public class TerranBunker {
 			return false;
 		}
 
+		if (bunkers >= GLOBAL_MAX_BUNKERS) {
+			return false;
+		}
+
+		// =========================================================
+
 		if (UnitCounter.weHaveBuilding(TerranBarracks.getBuildingType())
 				|| BuildingManager.countConstructionProgress(TerranBarracks.getBuildingType()) >= 95) {
-			int maxCannonStack = calculateMaxBunkerStack();
+			int maxStack = calculateMaxBunkerStack();
 
-			int bunkers = UnitCounter.getNumberOfUnits(type);
 			int infantryUnits = UnitCounter.getNumberOfInfantryUnits();
 
 			if (bunkers == 0) {
@@ -79,9 +87,8 @@ public class TerranBunker {
 			// return true;
 			// }
 
-			if (bunkers <= maxCannonStack
-					&& TerranSupplyDepot.calculateExistingPylonsStrength() >= 1.35
-					&& calculateExistingBunkersStrength() < maxCannonStack) {
+			if (bunkers <= maxStack && TerranSupplyDepot.calculateExistingPylonsStrength() >= 1.35
+					&& calculateExistingBunkersStrength() < maxStack) {
 				ShouldBuildCache.cacheShouldBuildInfo(type, true);
 				return true;
 			}
