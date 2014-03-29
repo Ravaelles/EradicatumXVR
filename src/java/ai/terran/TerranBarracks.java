@@ -79,42 +79,6 @@ public class TerranBarracks {
 		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
-	// private static boolean isMajorityOfBarracksTrainingUnits() {
-	// ArrayList<Unit> allObjects = xvr.getUnitsOfType(buildingType);
-	// int all = allObjects.size();
-	// int busy = 0;
-	// for (Unit gateway : allObjects) {
-	// if (gateway.isTraining()) {
-	// busy++;
-	// }
-	// }
-	//
-	// double threshold = (Math.min(0.8, 0.7 + all * 0.05));
-	// return all <= 2 || ((double) busy / all) >= threshold;
-	// }
-
-	public static ArrayList<Unit> getAllObjects() {
-		return xvr.getUnitsOfTypeCompleted(buildingType);
-	}
-
-	public static void enemyIsProtoss() {
-	}
-
-	public static void enemyIsTerran() {
-		medicBuildRatio /= 7;
-	}
-
-	public static void enemyIsZerg() {
-	}
-
-	public static void buildIfNecessary() {
-		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
-		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-	}
-
 	public static void act(Unit barracks) {
 
 		// If we have very few tanks, always leave cash for one.
@@ -156,6 +120,44 @@ public class TerranBarracks {
 				xvr.buildUnit(barracks, defineUnitToBuild(freeMinerals, freeGas));
 			}
 		}
+	}
+
+	// =========================================================
+
+	// private static boolean isMajorityOfBarracksTrainingUnits() {
+	// ArrayList<Unit> allObjects = xvr.getUnitsOfType(buildingType);
+	// int all = allObjects.size();
+	// int busy = 0;
+	// for (Unit gateway : allObjects) {
+	// if (gateway.isTraining()) {
+	// busy++;
+	// }
+	// }
+	//
+	// double threshold = (Math.min(0.8, 0.7 + all * 0.05));
+	// return all <= 2 || ((double) busy / all) >= threshold;
+	// }
+
+	public static ArrayList<Unit> getAllObjects() {
+		return xvr.getUnitsOfTypeCompleted(buildingType);
+	}
+
+	public static void enemyIsProtoss() {
+	}
+
+	public static void enemyIsTerran() {
+		medicBuildRatio /= 7;
+	}
+
+	public static void enemyIsZerg() {
+	}
+
+	public static void buildIfNecessary() {
+		if (shouldBuild()) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			Constructing.construct(xvr, buildingType);
+		}
+		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {

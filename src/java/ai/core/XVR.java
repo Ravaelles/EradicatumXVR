@@ -14,6 +14,7 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
+import ai.handling.missions.MissionProtectBase;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.ConstructionManager;
 import ai.managers.economy.TechnologyManager;
@@ -21,6 +22,7 @@ import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
+import ai.managers.units.army.specialforces.SpecialForces;
 import ai.managers.units.buildings.FlyingBuildingManager;
 import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranBarracks;
@@ -182,7 +184,11 @@ public class XVR {
 		// + "     / "
 		// + UnitTypes.Protoss_Refinery.ordinal());
 
-		// Unit unit = Unit.getMyUnitByID(unitID);
+		Unit unit = Unit.getMyUnitByID(unitID);
+		if (unit == null) {
+			return;
+		}
+		UnitType type = unit.getType();
 		// if (unit.getTypeID() == UnitTypes.Protoss_Refinery.ordinal()) {
 		// TerranCommandCenter.sendSCVsToRefinery(unit);
 		// }
@@ -191,6 +197,13 @@ public class XVR {
 		// if (unitType.isBuilding()) {
 		// TerranConstructing.removeIsBeingBuilt(unitType);
 		// }
+
+		if (type.isMarine()) {
+			if (!SpecialForces.hasMainBaseProtector()
+					&& UnitCounter.getNumberOfUnits(TerranBarracks.MARINE) == MissionProtectBase.NTH_MARINE) {
+				SpecialForces.assignMainBaseProtector(unit);
+			}
+		}
 	}
 
 	// =========================================================
@@ -691,7 +704,7 @@ public class XVR {
 		ArrayList<Unit> units = new ArrayList<Unit>();
 		for (Unit unit : bwapi.getEnemyUnits()) {
 			UnitType type = unit.getType();
-			if (type.canAirAttack()) {
+			if (!type.isFlyer() && type.canAirAttack()) {
 				units.add(unit);
 			}
 		}
@@ -776,7 +789,15 @@ public class XVR {
 	}
 
 	public Collection<Unit> getEnemyBuildings() {
-		return MapExploration.getEnemyBuildingsDiscovered();
+		ArrayList<Unit> result = new ArrayList<>();
+		result.addAll(MapExploration.getEnemyBuildingsDiscovered());
+		for (Unit enemyUnit : xvr.getEnemyUnitsVisible()) {
+			if (enemyUnit.getType().isBuilding()) {
+				result.add(enemyUnit);
+			}
+		}
+
+		return result;
 	}
 
 	public int getNumberOfUnitsInRadius(Unit unit, int tileRadius, Collection<Unit> unitsList) {

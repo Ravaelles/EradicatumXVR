@@ -53,13 +53,22 @@ public class Constructing {
 	// ============================
 
 	public static MapPoint findTileForStandardBuilding(UnitTypes typeToBuild) {
+
+		// There is a nasty bug: when we're losing badly Terran Barracks are
+		// slowing down game terribly; try to limit search range.
+		int MAX_RANGE = 70;
+		if (xvr.getTimeSeconds() > 400
+				&& typeToBuild.ordinal() == UnitTypes.Terran_Barracks.ordinal()) {
+			MAX_RANGE = 20;
+		}
+
 		Unit base = xvr.getFirstBase();
 		if (base == null) {
 			return null;
 		}
 
 		MapPoint tile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), typeToBuild,
-				base, 8, 70);
+				base.translate(5, 2), 5, MAX_RANGE);
 
 		return tile;
 	}
@@ -343,12 +352,15 @@ public class Constructing {
 		int spaceBonus = 0;
 		if (type.canHaveAddOn()) {
 			// spaceBonus += 2;
-			center = center.translate(64, 0);
+			center = center.translate(96, 0);
 		}
 
 		// For each building nearby define if it's not too close to this build
 		// tile. If so, reject this build tile.
 		for (Unit unit : buildingsNearby) {
+			if (unit.isLifted()) {
+				continue;
+			}
 
 			// Supply Depots can be really close to each other, but only if
 			// there're few of them
@@ -369,14 +381,15 @@ public class Constructing {
 			if (type.canHaveAddOn()) {
 				// bonus++;
 				dx = 64;
-				if (unitType.isBase()) {
-					bonus += 4;
-				}
+			}
+			if (unitType.isBase()) {
+				dx += 32;
+				bonus += 2;
 			}
 
 			// If this building is too close to our build tile, indicate this
 			// fact.
-			if (type.isBuilding()
+			if (type.isBuilding() && !unit.isLifted()
 					&& unit.translate(dx, 0).distanceTo(center) <= maxDimension + 1 + bonus) {
 				return false;
 			}
@@ -469,52 +482,6 @@ public class Constructing {
 		return false;
 	}
 
-	/** The idea is to build pylon and cannon first, just then build Nexus. */
-	// private static void handleBaseConstruction(UnitTypes building, MapPoint
-	// buildTile) {
-	// boolean baseInterrupted = false;
-	//
-	// // System.out.println("Base build: " + buildTile);
-	//
-	// // ==============================
-	//
-	// // Try to find proper choke to reinforce
-	// // ChokePoint choke =
-	// // MapExploration.getImportantChokePointNear(buildTile);
-	//
-	// // Get point in between choke and base
-	// // MapPointInstance point =
-	// // MapPointInstance.getMiddlePointBetween(buildTile, choke);
-	//
-	// // int bunkersNearby =
-	// // xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 16,
-	// // point, true);
-	//
-	// // ==============================
-	// // Ensure there's a bunker nearby
-	// // if (bunkersNearby == 0) {
-	// // baseInterrupted = true;
-	// // building = TerranBunker.getBuildingType();
-	// // buildTile = TerranBunker.findTileForBunker();
-	// // }
-	//
-	// // ==============================
-	// // We can build the base
-	// if (!baseInterrupted) {
-	// if (buildTile == null
-	// || !Constructing.canBuildAt(buildTile, UnitManager.BASE.getType())) {
-	// System.out.println("TEST cant Build At: " + buildTile);
-	// buildTile = TerranCommandCenter.findTileForNextBase(true);
-	// }
-	// }
-	//
-	// // System.out.println((buildTile != null ? buildTile.toStringLocation()
-	// // : buildTile) + " : "
-	// // + Constructing.canBuildAt(buildTile, UnitManager.BASE.getType()));
-	//
-	// constructBuilding(xvr, building, buildTile);
-	// }
-
 	private static boolean canBuildAt(MapPoint point, UnitType type) {
 		Unit randomWorker = xvr.getRandomWorker();
 		if (randomWorker == null || point == null) {
@@ -524,7 +491,7 @@ public class Constructing {
 		// Buildings that can have an add-on, must have additional space on
 		// their right
 		if (type.canHaveAddOn() && !type.isBase()) {
-			if (!xvr.getBwapi().canBuildHere(randomWorker.getID(), point.getTx() + 3,
+			if (!xvr.getBwapi().canBuildHere(randomWorker.getID(), point.getTx() + 2,
 					point.getTy(), type.getUnitTypes().getID(), false)) {
 				return false;
 			}

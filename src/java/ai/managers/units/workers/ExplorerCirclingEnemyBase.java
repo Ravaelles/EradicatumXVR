@@ -69,6 +69,9 @@ public class ExplorerCirclingEnemyBase {
 
 		// Define enemy base
 		Unit enemyBase = MapExploration.getNearestEnemyBase();
+		if (!enemyBase.isCompleted()) {
+			return false;
+		}
 
 		// Made the actual move
 		circleAroundEnemyBaseWith(ExplorerManager.getExplorer(), enemyBase);

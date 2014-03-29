@@ -7,17 +7,19 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.army.ArmyPlacing;
 import ai.handling.army.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
-import ai.managers.units.army.ArmyUnitBasicBehavior;
 import ai.managers.units.army.AttackCloseTargets;
+import ai.managers.units.army.BunkerManager;
 import ai.managers.units.army.FlyerManager;
 import ai.managers.units.army.RunManager;
+import ai.managers.units.army.specialforces.SpecialForcesManager;
 import ai.managers.units.buildings.BuildingManager;
+import ai.managers.units.coordination.ArmyRendezvousManager;
+import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.managers.units.workers.RepairAndSons;
 
 public class UnitManager {
@@ -115,6 +117,7 @@ public class UnitManager {
 
 		// Make sure unit will get repaired
 		if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
+			unit.setAiOrder("To repair!");
 			return;
 		}
 
@@ -122,7 +125,7 @@ public class UnitManager {
 		ArmyUnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
 
 		// Try to load infantry inside bunkers if possible.
-		if (ArmyUnitBasicBehavior.tryLoadingIntoBunkersIfPossible(unit)) {
+		if (BunkerManager.tryLoadingIntoBunkersIfPossible(unit)) {
 			unit.setAiOrder("Into bunker");
 			return;
 		}
@@ -138,9 +141,18 @@ public class UnitManager {
 			return;
 		}
 
-		// Disallow units to move close to the defensive building like
-		// Photon Cannon
+		// Disallow units to move close to the defensive buildings
 		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+			return;
+		}
+
+		// Run from hidden Lurkers, Dark Templars etc.
+		if (HiddenEnemyUnitsManager.tryAvoidingHiddenUnitsIfNecessary(unit)) {
+			return;
+		}
+
+		// Don't interrupt units being repaired
+		if (RepairAndSons.isUnitBeingRepaired(unit)) {
 			return;
 		}
 
@@ -151,19 +163,15 @@ public class UnitManager {
 		// }
 
 		// ===============================
+		// INIDIVIDUAL MISSIONS, SPECIAL FORCES
+		if (SpecialForcesManager.tryActingSpecialForceIfNeeded(unit)) {
+			return;
+		}
+
+		// ===============================
 		// Act according to STRATEGY, attack strategic targets,
 		// define proper place for a unit.
 		ArmyUnitBasicBehavior.act(unit);
-
-		// ===============================
-		// Run from hidden Lurkers, Dark Templars etc.
-		HiddenEnemyUnitsManager.avoidHiddenUnitsIfNecessary(unit);
-
-		// ===============================
-		// Don't interrupt units being repaired
-		if (unit.isBeingRepaired()) {
-			return;
-		}
 
 		// ===============================
 		// ATTACK CLOSE targets (Tactics phase)
@@ -222,10 +230,11 @@ public class UnitManager {
 			return false;
 		}
 
-		if (unit.distanceTo(ArmyPlacing.getSafePointFor(unit)) > StrategyManager
+		if (unit.distanceTo(ArmyRendezvousManager.getRendezvousPointFor(unit)) > StrategyManager
 				.getAllowedDistanceFromSafePoint()) {
 			// ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
-			UnitActions.attackTo(unit, unit.getX(), unit.getY());
+			// UnitActions.attackTo(unit, unit.getX(), unit.getY());
+			UnitActions.holdPosition(unit);
 			return true;
 		}
 		return false;

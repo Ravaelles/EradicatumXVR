@@ -20,7 +20,7 @@ public class TerranStarport {
 
 	private static final int MIN_VESSELS = 1;
 	// private static final int MINIMUM_BATTLECRUISERS = 2;
-	// private static final int MINIMUM_WRAITHS = 2;
+	private static final int MAX_WRAITHS = 2;
 	// private static final int MINIMUM_VALKYRIES = 3;
 	// private static final int VALKYRIES_PER_OTHER_AIR_UNIT = 2;
 
@@ -119,9 +119,11 @@ public class TerranStarport {
 		}
 
 		// WRAITH
-		// if (UnitCounter.getNumberOfUnits(WRAITH) < MINIMUM_WRAITHS) {
-		return WRAITH;
-		// }
+		if (UnitCounter.getNumberOfUnits(WRAITH) > MAX_WRAITHS) {
+			return WRAITH;
+		}
+
+		return null;
 
 		// // VALKYRIE
 		// if (UnitCounter.getNumberOfUnits(VALKYRIE) < MINIMUM_VALKYRIES

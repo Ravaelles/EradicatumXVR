@@ -37,14 +37,16 @@ public class HiddenEnemyUnitsManager {
 
 	}
 
-	public static void avoidHiddenUnitsIfNecessary(Unit unit) {
+	public static boolean tryAvoidingHiddenUnitsIfNecessary(Unit unit) {
 		Unit hiddenEnemyUnitNearby = MapExploration.getHiddenEnemyUnitNearbyTo(unit);
 		if (hiddenEnemyUnitNearby != null && unit.isDetected()
 				&& !hiddenEnemyUnitNearby.isDetected()
 				&& shouldAvoidThisHiddenEnemyUnit(unit, hiddenEnemyUnitNearby)) {
 			UnitActions.moveAwayFromUnit(unit, hiddenEnemyUnitNearby);
 			unit.setAiOrder("Avoid hidden unit");
+			return true;
 		}
+		return false;
 	}
 
 	private static boolean shouldAvoidThisHiddenEnemyUnit(Unit ourUnit, Unit enemyUnit) {

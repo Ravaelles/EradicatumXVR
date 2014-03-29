@@ -16,6 +16,7 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
+import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.managers.units.workers.WorkerManager;
 import ai.utils.CodeProfiler;
@@ -49,19 +50,28 @@ public class TerranCommandCenter {
 	}
 
 	public static boolean shouldBuild() {
-		if (Constructing.weAreBuilding(buildingType)) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		}
+		// if (Constructing.weAreBuilding(buildingType)) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
 
 		int bases = UnitCounter.getNumberOfUnits(buildingType);
 		// int barracks =
 		// UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType());
-		int barracksCompleted = UnitCounter.getNumberOfUnitsCompleted(TerranBarracks
-				.getBuildingType());
+		// int barracksCompleted =
+		// UnitCounter.getNumberOfUnitsCompleted(TerranBarracks
+		// .getBuildingType());
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
-		if (bases == 1 && battleUnits >= 9
-				&& TerranBunker.getNumberOfUnitsCompleted() == TerranBunker.MAX_STACK) {
+		boolean factoryFirstConditionOkay = xvr.canAfford(384)
+				|| (!TerranFactory.FORCE_FACTORY_BEFORE_SECOND_BASE || TerranFactory
+						.getNumberOfUnits() > 0);
+
+		// =========================================================
+
+		if (bases <= 1
+				&& (battleUnits >= 9 || xvr.canAfford(384))
+				&& (TerranBunker.getNumberOfUnitsCompleted() >= TerranBunker.MAX_STACK || xvr
+						.canAfford(384)) && factoryFirstConditionOkay) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
@@ -70,16 +80,21 @@ public class TerranCommandCenter {
 		}
 
 		if (xvr.getTimeSeconds() >= 390 && bases <= 1
-				&& !Constructing.weAreBuilding(UnitManager.BASE) && battleUnits >= 11) {
+				&& !Constructing.weAreBuilding(UnitManager.BASE)
+				&& battleUnits >= ArmyCreationManager.MINIMUM_MARINES) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		if (bases >= 2 && (battleUnits <= bases * 8 && !xvr.canAfford(600))) {
+		if (bases >= 2 && battleUnits <= bases * 7 && !xvr.canAfford(400)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		if (battleUnits < StrategyManager.getMinBattleUnits() + 2 && !xvr.canAfford(500)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		if (xvr.canAfford(600)) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		// int quickUnitsThreshold = BotStrategyManager.isExpandWithBunkers() ?
@@ -117,12 +132,13 @@ public class TerranCommandCenter {
 		// }
 		// }
 
-		// Initially, we must wait to have at least 3 barracks to build first
-		// base.
+		// // Initially, we must wait to have at least 3 barracks to build first
+		// // base.
 		if (bases == 1) {
-			if (barracksCompleted <= 2 && !xvr.canAfford(500)) {
-				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			}
+			// if (barracksCompleted <= 2 && !xvr.canAfford(500)) {
+			// return ShouldBuildCache.cacheShouldBuildInfo(buildingType,
+			// false);
+			// }
 		}
 
 		// More than one base
@@ -134,7 +150,7 @@ public class TerranCommandCenter {
 			}
 		}
 
-		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static void act() {

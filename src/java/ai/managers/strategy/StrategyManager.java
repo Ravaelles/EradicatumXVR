@@ -5,11 +5,11 @@ import java.util.Collection;
 import jnibwapi.model.Unit;
 import ai.core.Painter;
 import ai.core.XVR;
-import ai.handling.army.ArmyPlacing;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitCounter;
+import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranMedic;
 import ai.terran.TerranSiegeTank;
 
@@ -195,7 +195,7 @@ public class StrategyManager {
 
 	private static void defineNextTarget() {
 		Unit target = TargetHandling.getImportantEnemyUnitTargetIfPossibleFor(
-				ArmyPlacing.getArmyCenterPoint(), true, true);
+				ArmyRendezvousManager.getArmyCenterPoint(), true, true);
 		Collection<Unit> enemyBuildings = xvr.getEnemyBuildings();
 
 		// Remove refineries, geysers etc

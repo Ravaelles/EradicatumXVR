@@ -24,9 +24,9 @@ public class TerranBunker {
 
 	private static final double MAX_DIST_FROM_CHOKE_POINT_MODIFIER = 1.8;
 	public static int GLOBAL_MAX_BUNKERS = 2;
-	public static int MAX_STACK = 1;
+	public static int MAX_STACK = 2;
 
-	private static MapPoint _placeToReinforceWithCannon = null;
+	private static MapPoint _placeToReinforceWithBunker = null;
 	private static int _skipForTurns = 0;
 
 	// =========================================================
@@ -36,15 +36,16 @@ public class TerranBunker {
 
 		if (_skipForTurns > 0) {
 			_skipForTurns--;
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
 		}
 
-		if (xvr.getTimeSeconds() > 200 && UnitCounter.getNumberOfBattleUnits() < 7) {
-			return false;
-		}
+		// if (xvr.getTimeSeconds() > 200 &&
+		// UnitCounter.getNumberOfBattleUnits() < 7) {
+		// return false;
+		// }
 
 		if (bunkers >= GLOBAL_MAX_BUNKERS) {
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
 		}
 
 		// =========================================================
@@ -55,31 +56,22 @@ public class TerranBunker {
 
 			int infantryUnits = UnitCounter.getNumberOfInfantryUnits();
 
-			if (bunkers == 0) {
-				ShouldBuildCache.cacheShouldBuildInfo(type, true);
-				return true;
+			if (bunkers == 0 || (GLOBAL_MAX_BUNKERS >= 2 && bunkers < 2)) {
+				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
 
-			// if (battleUnits <= 5) {
-			// ShouldBuildCache.cacheShouldBuildInfo(type, false);
-			// return false;
-			// }
-
-			if (bunkers < MAX_STACK && infantryUnits >= (bunkers * 4 + 1)) {
-				ShouldBuildCache.cacheShouldBuildInfo(type, true);
-				return true;
+			if (bunkers < MAX_STACK && infantryUnits >= bunkers * 3) {
+				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
 
 			if (bunkers >= TerranCommandCenter.getNumberOfUnits() * MAX_STACK) {
-				ShouldBuildCache.cacheShouldBuildInfo(type, false);
-				return false;
+				return ShouldBuildCache.cacheShouldBuildInfo(type, false);
 			}
 
-			boolean weAreBuilding = Constructing.weAreBuilding(type);
-			if (weAreBuilding) {
-				ShouldBuildCache.cacheShouldBuildInfo(type, false);
-				return false;
-			}
+			// boolean weAreBuilding = Constructing.weAreBuilding(type);
+			// if (weAreBuilding) {
+			// return ShouldBuildCache.cacheShouldBuildInfo(type, false);
+			// }
 
 			// // If main base isn't protected at all, build some bunkers
 			// if (shouldBuildNearMainBase()) {
@@ -89,16 +81,14 @@ public class TerranBunker {
 
 			if (bunkers <= maxStack && TerranSupplyDepot.calculateExistingPylonsStrength() >= 1.35
 					&& calculateExistingBunkersStrength() < maxStack) {
-				ShouldBuildCache.cacheShouldBuildInfo(type, true);
-				return true;
+				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
 
 			// Select one place to reinforce
 			for (MapPoint base : getPlacesToReinforce()) {
 				if (UnitCounter.getNumberOfUnits(UnitManager.BASE) == 1) {
 					if (shouldBuildFor((MapPoint) base)) {
-						ShouldBuildCache.cacheShouldBuildInfo(type, true);
-						return true;
+						return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 					}
 				}
 			}
@@ -112,27 +102,10 @@ public class TerranBunker {
 			// }
 		}
 
-		ShouldBuildCache.cacheShouldBuildInfo(type, false);
-		return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(type, false);
 	}
 
-	// private static boolean shouldBuildNearMainBase() {
-	// if (xvr.getTimeSeconds() < 220) {
-	// return false;
-	// }
-	//
-	// // If main base isn't protected at all, build some cannons
-	// int bunkers = UnitCounter.getNumberOfUnits(type);
-	// int bunkersNearMainBase = xvr.countUnitsOfGivenTypeInRadius(type, 7,
-	// xvr.getFirstBase(),
-	// true);
-	// if (bunkers >= TerranBunker.MAX_STACK
-	// && UnitCounter.getNumberOfUnits(UnitManager.BARRACKS) >= 2
-	// && bunkersNearMainBase == 0) {
-	// return true;
-	// }
-	// return false;
-	// }
+	// =========================================================
 
 	private static double calculateExistingBunkersStrength() {
 		double result = 0;
@@ -179,7 +152,7 @@ public class TerranBunker {
 		// If in the neighborhood of choke point there's too many cannons, don't
 		// build next one.
 		if (shouldBuildFor(chokePoint)) {
-			_placeToReinforceWithCannon = chokePoint;
+			_placeToReinforceWithBunker = chokePoint;
 			return true;
 		} else {
 			return false;
@@ -332,13 +305,13 @@ public class TerranBunker {
 		} else {
 
 			// return findProperBuildTile(_chokePointToReinforce, true);
-			if (_placeToReinforceWithCannon == null) {
-				_placeToReinforceWithCannon = MapExploration
+			if (_placeToReinforceWithBunker == null) {
+				_placeToReinforceWithBunker = MapExploration
 						.getNearestChokePointFor(getInitialPlaceToReinforce());
 			}
 
 			// Try to find normal tile.
-			tileForBunker = findProperBuildTile(_placeToReinforceWithCannon);
+			tileForBunker = findProperBuildTile(_placeToReinforceWithBunker);
 		}
 
 		// }

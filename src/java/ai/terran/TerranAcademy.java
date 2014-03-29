@@ -23,23 +23,26 @@ public class TerranAcademy {
 	public static boolean shouldBuild() {
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 		if (weAreBuilding) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		// int battleUnits = UnitCounter.getNumberOfBattleUnits();
 		int barracks = TerranBarracks.getNumberOfUnitsCompleted();
 		int academies = getNumberOfUnits();
 
-		if (academies == 0 && barracks >= 2 && !weAreBuilding
-				&& UnitCounter.getNumberOfBattleUnits() >= 5) {
-			// UnitCounter.getNumberOfInfantryUnits() >= 4) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+		if (academies == 0) {
+			if (barracks >= 2 && !weAreBuilding && UnitCounter.getNumberOfBattleUnits() >= 5) {
+				// UnitCounter.getNumberOfInfantryUnits() >= 4) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
+
+			if (TerranRefinery.getNumberOfUnitsCompleted() == 1
+					|| TerranFactory.getNumberOfUnits() == 1) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
 		}
 
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static Unit getOneNotBusy() {

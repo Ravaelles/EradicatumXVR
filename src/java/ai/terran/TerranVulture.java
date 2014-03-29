@@ -13,8 +13,8 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.army.ArmyUnitBasicBehavior;
 import ai.managers.units.army.RunManager;
+import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.utils.RUtilities;
 
 public class TerranVulture {
@@ -23,7 +23,7 @@ public class TerranVulture {
 
 	private static UnitTypes unitType = UnitTypes.Terran_Vulture;
 
-	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.3;
+	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.45;
 
 	// =========================================================
 
@@ -44,17 +44,27 @@ public class TerranVulture {
 		}
 
 		if (RunManager.runFromCloseOpponentsIfNecessary(unit, SAFE_DISTANCE_FROM_ENEMY)) {
+			unit.setAiOrder("Run from enemy");
+			return true;
+		}
+
+		// Disallow fighting when overwhelmed.
+		if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
+			unit.setAiOrder("Would lose");
 			return true;
 		}
 
 		// ======== DEFINE NEXT MOVE =============================
 
-		// Get 3 base locations near enemy, or buildings and try to go there.
+		// Get base locations near enemy, or buildings and try to go there.
 		MapPoint pointToHarass = defineNeighborhoodToHarass(unit);
 
 		ArrayList<MapPoint> pointForHarassmentNearEnemy = new ArrayList<>();
+		pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBasesDiscovered().values());
+		pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBuildingsDiscovered());
 		pointForHarassmentNearEnemy.addAll(MapExploration.getBaseLocationsNear(pointToHarass, 30));
-		pointForHarassmentNearEnemy.addAll(MapExploration.getChokePointsNear(pointToHarass, 30));
+		// pointForHarassmentNearEnemy.addAll(MapExploration.getChokePointsNear(pointToHarass,
+		// 30));
 
 		MapPoint goTo = null;
 		if (!pointForHarassmentNearEnemy.isEmpty()) {
@@ -70,6 +80,8 @@ public class TerranVulture {
 							.isConnected(unit, goTo.getX() / 32, goTo.getY() / 32)) {
 			}
 		}
+
+		unit.setAiOrder("Harass the enemy");
 
 		// Attack this randomly chosen base location.
 		UnitActions.attackTo(unit, goTo);
@@ -102,7 +114,8 @@ public class TerranVulture {
 			if (isSafePlaceForOurUnits) {
 				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit)
 						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
-				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)) {
+				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)
+						|| noMinesInRegion(unit)) {
 					placeSpiderMine(unit, unit);
 					return true;
 				}
@@ -110,6 +123,13 @@ public class TerranVulture {
 		}
 		return false;
 	}
+
+	private static boolean noMinesInRegion(Unit unit) {
+		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 6, unit,
+				true) <= 1 || unit.getSpiderMineCount() == 3;
+	}
+
+	// =========================================================
 
 	private static boolean isQuiteNearEnemy(Unit unit) {
 		Unit nearEnemyUnitOrBuilding = xvr.getUnitNearestFromList(unit, xvr.getEnemyUnitsVisible());
@@ -135,8 +155,8 @@ public class TerranVulture {
 	}
 
 	private static boolean minesArentStackedTooMuchNear(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 2.05, unit,
-				true) == 0;
+		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 3, unit,
+				true) <= 1;
 	}
 
 	private static boolean isSafelyFarFromOurUnits(Unit unit) {
@@ -146,11 +166,11 @@ public class TerranVulture {
 
 			double distanceToUnit = nearestUnit.distanceTo(unit);
 			if (nearestUnit.getType().isBunker()) {
-				if (distanceToUnit <= 8) {
+				if (distanceToUnit <= 6) {
 					isSafelyFarFromUnits = false;
 				}
 			} else {
-				if (distanceToUnit <= 13) {
+				if (distanceToUnit <= 7) {
 					isSafelyFarFromUnits = false;
 				}
 			}

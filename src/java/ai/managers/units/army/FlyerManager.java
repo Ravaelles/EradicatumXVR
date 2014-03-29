@@ -5,14 +5,16 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import ai.core.XVR;
-import ai.handling.army.ArmyPlacing;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
+import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranWraith;
 
 public class FlyerManager {
 
 	private static final int MIN_DIST_BETWEEN_FLYERS = 4;
+	private static final int SAFE_MARGIN_FROM_ENEMY_RANGE = 5;
+
 	private static XVR xvr = XVR.getInstance();
 
 	// =========================================================
@@ -31,7 +33,7 @@ public class FlyerManager {
 		// ==============================
 
 		// Define place where to be
-		MapPoint point = ArmyPlacing.getFlyersGatheringPoint();
+		MapPoint point = ArmyRendezvousManager.getFlyersGatheringPoint();
 		UnitActions.attackTo(unit, point);
 
 		// =========================================================
@@ -60,7 +62,9 @@ public class FlyerManager {
 		}
 	}
 
-	private static boolean tryAvoidingAntiAirUnits(Unit unit) {
+	// =========================================================
+
+	public static boolean tryAvoidingAntiAirUnits(Unit unit) {
 		Unit aaUnitNearby = getAAUnitNearby(unit);
 		if (aaUnitNearby != null) {
 			UnitActions.moveAwayFromUnit(unit, aaUnitNearby);
@@ -69,8 +73,6 @@ public class FlyerManager {
 		}
 		return false;
 	}
-
-	// =========================================================
 
 	private static Unit getNearestFlyerToFlyer(Unit unit) {
 		ArrayList<Unit> airUnits = xvr.getUnitsArmyFlyers();
@@ -82,7 +84,8 @@ public class FlyerManager {
 		Unit nearestAntiAirUnit = xvr.getUnitNearestFromList(point, xvr.getEnemyAntiAirUnits());
 		if (nearestAntiAirUnit != null) {
 			int maxEnemyRange = nearestAntiAirUnit.getType().getAirWeapon().getMaxRangeInTiles();
-			if (point.distanceTo(nearestAntiAirUnit) <= maxEnemyRange + 2.2) {
+			if (point.distanceTo(nearestAntiAirUnit) <= maxEnemyRange
+					+ SAFE_MARGIN_FROM_ENEMY_RANGE) {
 				return nearestAntiAirUnit;
 			}
 		}

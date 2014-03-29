@@ -211,7 +211,11 @@ public class TerranSupplyDepot {
 							// Damn, try NOT to build in the middle of narrow
 							// choke point.
 							if (!Constructing.isTooCloseToAnyChokePoint(point)) {
-								return point;
+
+								// Distance to the base must be big enough
+								if (point.distanceTo(xvr.getFirstBase().translate(5, 2)) >= 3) {
+									return point;
+								}
 							}
 						}
 					}

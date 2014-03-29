@@ -114,6 +114,8 @@ public class AttackCloseTargets {
 			enemyToAttack = xvr.getUnitNearestFromList(unit, enemyUnits);
 		}
 
+		enemyToAttack = makeSureItsNotEnemyWorkerAroundTheBase(enemyToAttack);
+
 		// Attack selected target if it's not too far away.
 		if (enemyToAttack != null && enemyToAttack.isDetected()) {
 			// if (isUnitInPositionToAlwaysAttack(unit)) {
@@ -141,12 +143,26 @@ public class AttackCloseTargets {
 				}
 			}
 
+			enemyToAttack = makeSureItsNotEnemyWorkerAroundTheBase(enemyToAttack);
+
 			if (nearestEnemy != null && isStrengthRatioFavorable && nearestEnemy.isDetected()) {
 				UnitActions.attackEnemyUnit(unit, nearestEnemy);
 				return true;
 			}
 		}
 		return false;
+	}
+
+	private static Unit makeSureItsNotEnemyWorkerAroundTheBase(Unit enemy) {
+		if (enemy == null) {
+			return null;
+		}
+
+		if (enemy.getType().isWorker() && enemy.distanceTo(xvr.getFirstBase()) < 16) {
+			return null;
+		}
+
+		return enemy;
 	}
 
 	private static boolean tryFindingEnemyWorker(Unit unit) {

@@ -8,12 +8,15 @@ import ai.core.XVR;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.economy.TechnologyManager;
 
 public class TerranFactory {
 
 	private static UnitTypes TANK_TANK_MODE = UnitTypes.Terran_Siege_Tank_Tank_Mode;
 	public static UnitTypes VULTURE = UnitTypes.Terran_Vulture;
 	public static UnitTypes GOLIATH = UnitTypes.Terran_Goliath;
+
+	public static boolean FORCE_FACTORY_BEFORE_SECOND_BASE = false;
 
 	private static final int MINIMUM_VULTURES = 3;
 	public static final int MINIMUM_TANKS = 2;
@@ -58,42 +61,57 @@ public class TerranFactory {
 		}
 	}
 
+	public static boolean shouldBuild() {
+		int factories = UnitCounter.getNumberOfUnits(buildingType);
+		int battleUnits = UnitCounter.getNumberOfBattleUnits();
+
+		if (factories <= 1 && xvr.canAfford(550)) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		if (battleUnits <= 4) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		if (TerranBunker.GLOBAL_MAX_BUNKERS >= 2 && xvr.getTimeSeconds() < 500) {
+			if (!xvr.canAfford(250) && TerranBunker.getNumberOfUnits() < 2) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			}
+		}
+
+		if (factories >= 1 && !xvr.canAfford(550) && xvr.getTimeSeconds() < 800
+				&& TerranCommandCenter.shouldBuild()) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		if (UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType()) >= 2) {
+			boolean weAreConstructing = Constructing.weAreBuilding(buildingType);
+
+			if (factories == 0 && !weAreConstructing) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
+
+			int machineShops = TerranMachineShop.getNumberOfUnits();
+			if (factories == 1 && machineShops >= 1 && !weAreConstructing
+					&& (battleUnits >= 18 || xvr.canAfford(280, 200))) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
+		}
+
+		// If all buildings are busy, build new one.
+		if (factories >= 2 && xvr.canAfford(300, 100) && areAllBuildingsBusy()) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+	}
+
 	// =========================================================
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			Constructing.construct(xvr, buildingType);
 		}
-	}
-
-	public static boolean shouldBuild() {
-		int factories = UnitCounter.getNumberOfUnits(buildingType);
-
-		if (UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType()) >= 2) {
-			boolean weAreConstructing = Constructing.weAreBuilding(buildingType);
-			int battleUnits = UnitCounter.getNumberOfBattleUnits();
-
-			if (factories == 0 && !weAreConstructing) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-
-			int machineShops = TerranMachineShop.getNumberOfUnits();
-			if (factories == 1 && machineShops >= 1 && !weAreConstructing
-					&& (battleUnits >= 18 || xvr.canAfford(280, 200))) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-		}
-
-		// If all buildings are busy, build new one.
-		if (factories >= 2 && xvr.canAfford(300, 100) && areAllBuildingsBusy()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
-		}
-
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
 	}
 
 	private static boolean areAllBuildingsBusy() {
@@ -122,7 +140,8 @@ public class TerranFactory {
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
 		boolean tanksAllowed = (freeMinerals >= 125 && freeGas >= 50)
-				&& UnitCounter.weHaveBuildingFinished(TerranMachineShop.getBuildingType());
+				&& UnitCounter.weHaveBuildingFinished(TerranMachineShop.getBuildingType())
+				&& TechnologyManager.isSiegeModeResearched();
 		boolean goliathsAllowed = (freeMinerals >= 125 && freeGas >= 50)
 				&& UnitCounter.weHaveBuildingFinished(TerranArmory.getBuildingType());
 

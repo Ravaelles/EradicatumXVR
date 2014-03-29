@@ -1,4 +1,4 @@
-package ai.managers.units.army;
+package ai.managers.units.coordination;
 
 import jnibwapi.model.Unit;
 import ai.handling.units.UnitActions;
@@ -14,9 +14,10 @@ public class ArmyWhenAttackPending {
 
 		// If there is attack target defined, go for it.
 		if (StrategyManager.isSomethingToAttackDefined()) {
-			if (UnitManager.unitIsTooFarFromSafePlaceWhenAttackPending(unit)) {
-				return;
-			}
+			// if (UnitManager.unitIsTooFarFromSafePlaceWhenAttackPending(unit))
+			// {
+			// return;
+			// }
 
 			if (UnitManager.isHasValidTargetToAttack(unit)) {
 				return;

@@ -14,6 +14,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.other.NukeHandling;
 import ai.handling.units.UnitCounter;
+import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
@@ -45,11 +46,11 @@ public class Painter {
 		// paintDebugMessage(xvr, "Circling phase: ",
 		// ExplorerCirclingEnemyBase.get_circlingEnemyBasePhase());
 
-		MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
-		if (nextBase != null) {
-			paintDebugMessage(xvr, "Next base",
-					"X: " + nextBase.getTx() + ", Y: " + nextBase.getTy());
-		}
+		// MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
+		// if (nextBase != null) {
+		// paintDebugMessage(xvr, "Next base",
+		// "X: " + nextBase.getTx() + ", Y: " + nextBase.getTy());
+		// }
 	}
 
 	public static void paintAll(XVR xvr) {
@@ -298,6 +299,31 @@ public class Painter {
 		}
 
 		// =========================================================
+		// Paint next BUILDING position
+		building = Constructing.findTileForStandardBuilding(UnitTypes.Terran_Barracks);
+		if (building != null) {
+
+			// Draw base position as rectangle
+			xvr.getBwapi().drawBox(building.getX(), building.getY(), building.getX() + 4 * 32,
+					building.getY() + 3 * 32, BWColor.GREY, false, false);
+
+			// Draw string
+			xvr.getBwapi().drawText(building.getX() + 3, building.getY() + 3,
+					BWColor.getToStringHex(BWColor.GREY) + "Potential barracks", false);
+
+			// Unit baseBuilder = BuildingManager.getNextBaseBuilder();
+			// String builder = baseBuilder != null ?
+			// (BWColor.getToStringHex(BWColor.WHITE) + "#" + baseBuilder
+			// .getID()) : (BWColor.getToStringHex(BWColor.RED) + "Unassigned");
+			//
+			// // Draw string with builder ID
+			// xvr.getBwapi().drawText(building.getX() + 3, building.getY() +
+			// 15,
+			// BWColor.getToStringHex(BWColor.GREEN) + "Builder ID: " + builder,
+			// false);
+		}
+
+		// =========================================================
 		// Paint next BUNKER position
 		// if (TerranBunker.getNumberOfUnits() == 0) {
 		// building = TerranBunker.findTileForBunker();
@@ -321,8 +347,8 @@ public class Painter {
 		// "Pylon", false);
 		// }
 		//
-		// // Paint GATEWAY position
-		// building = ProtossPylon
+		// Paint GATEWAY position
+		// building = TerranBarracks
 		// .findTileNearPylonForNewBuilding(UnitTypes.Protoss_Gateway);
 		// if (building != null) {
 		// xvr.getBwapi().drawBox(building.getX(), building.getY(),

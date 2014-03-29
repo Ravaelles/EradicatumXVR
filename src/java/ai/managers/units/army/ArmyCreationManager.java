@@ -21,9 +21,9 @@ public class ArmyCreationManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static final int MINIMUM_UNITS = 15;
-	private static final int MINIMUM_MARINES = 7;
-	private static final int MAXIMUM_MARINES = 12;
+	public static final int MINIMUM_UNITS = 15;
+	public static final int MINIMUM_MARINES = 9;
+	public static final int MAXIMUM_MARINES = 10;
 
 	// =========================================================
 
@@ -94,11 +94,11 @@ public class ArmyCreationManager {
 	}
 
 	public static boolean isCriticallyFewInfantry() {
-		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) <= MINIMUM_MARINES;
+		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) < MINIMUM_MARINES;
 	}
 
 	private static boolean isTooMuchInfantry() {
-		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) >= MAXIMUM_MARINES;
+		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) > MAXIMUM_MARINES;
 	}
 
 	public static boolean weShouldBuildBattleUnits() {

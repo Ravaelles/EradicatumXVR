@@ -11,6 +11,7 @@ import ai.terran.TerranArmory;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranControlTower;
 import ai.terran.TerranMachineShop;
+import ai.terran.TerranSiegeTank;
 
 public class TechnologyManager {
 
@@ -19,11 +20,16 @@ public class TechnologyManager {
 	public static final TechTypes CLOAKING_FIELD = TechTypes.Cloaking_Field;
 	public static final TechTypes STIMPACKS = TechTypes.Stim_Packs;
 	public static final UpgradeTypes U238_SHELLS = UpgradeTypes.U_238_Shells;
+	public static final UpgradeTypes ION_THRUSTERS = UpgradeTypes.Ion_Thrusters;
+
+	private static final boolean PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE = true;
 
 	private static XVR xvr = XVR.getInstance();
 
 	// private static HashMap<UpgradeTypes, Boolean> knownTechs = new
 	// HashMap<UpgradeTypes, Boolean>();
+
+	// =========================================================
 
 	public static void act() {
 		UpgradeTypes upgrade;
@@ -39,23 +45,30 @@ public class TechnologyManager {
 		// Technologies that are crucial and we don't need to have second base
 		// in order to upgrade them
 		boolean isPossibleSiegeResearch = isResearchPossible(TANK_SIEGE_MODE);
+		boolean isPossibleSpiderResearch = isResearchPossible(SPIDER_MINES);
+
+		// Spider Mines
+		technology = SPIDER_MINES;
+		boolean spiderMinesResearchBonus = (PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE ? (xvr.canAfford(
+				170, 100)) : false);
+		if (isPossibleSpiderResearch
+				&& (!PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE || !isPossibleSiegeResearch)
+				&& (vultures >= 1 || spiderMinesResearchBonus)) {
+			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
+		}
 
 		// Tank Siege Mode
 		technology = TANK_SIEGE_MODE;
-		if (isPossibleSiegeResearch) {
+		if (isPossibleSiegeResearch
+				&& (PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE && !isPossibleSpiderResearch || TerranSiegeTank
+						.getNumberOfUnits() >= 2)) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 
 		// U-238 Shells
 		upgrade = U238_SHELLS;
-		if (vultures > 2 && marines >= 6) {
+		if (!isPossibleSiegeResearch && vultures > 2 && marines >= 6) {
 			tryToUpgrade(TerranAcademy.getOneNotBusy(), upgrade);
-		}
-
-		// Spider Mines
-		technology = SPIDER_MINES;
-		if (!isPossibleSiegeResearch && vultures >= 3 && isResearchPossible(technology)) {
-			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 
 		// U-238 Shells
@@ -64,11 +77,18 @@ public class TechnologyManager {
 			tryToUpgrade(TerranAcademy.getOneNotBusy(), upgrade);
 		}
 
-		// Stim Packs
-		technology = STIMPACKS;
-		if (!isPossibleSiegeResearch && marines >= 9 && isResearchPossible(technology)) {
-			tryToResearch(TerranAcademy.getOneNotBusy(), technology);
+		// Ion Thrusters (Vulture extra speed)
+		upgrade = ION_THRUSTERS;
+		if (isUpgradePossible(upgrade) && vultures >= 6 && xvr.canAfford(200, 200)) {
+			tryToUpgrade(TerranMachineShop.getOneNotBusy(), upgrade);
 		}
+
+		// // Stim Packs
+		// technology = STIMPACKS;
+		// if (!isPossibleSiegeResearch && marines >= 9 &&
+		// isResearchPossible(technology)) {
+		// tryToResearch(TerranAcademy.getOneNotBusy(), technology);
+		// }
 
 		// ======================================================
 		// LOWER PRIORITY
@@ -96,6 +116,8 @@ public class TechnologyManager {
 			tryToResearch(TerranControlTower.getOneNotBusy(), technology);
 		}
 	}
+
+	// =========================================================
 
 	@SuppressWarnings("unused")
 	private static int getTechLevelOf(UpgradeTypes technology) {

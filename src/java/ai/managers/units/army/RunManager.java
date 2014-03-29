@@ -1,12 +1,14 @@
 package ai.managers.units.army;
 
+import java.util.Collection;
+
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import ai.core.XVR;
-import ai.handling.army.ArmyPlacing;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
+import ai.managers.units.coordination.ArmyRendezvousManager;
 
 public class RunManager {
 
@@ -24,12 +26,20 @@ public class RunManager {
 		UnitType type = unit.getType();
 
 		// take into calculation all nearby enemies
-		for (Unit enemy : xvr.getEnemyUnitsInRadius(12, unit)) {
+		Collection<Unit> enemyUnitsInRadius = xvr.getEnemyUnitsInRadius(12, unit);
+		for (Unit enemy : enemyUnitsInRadius) {
 
 			// If enemy is capable of attacking us (e.g. some air units are
 			// unable to do so)
-			if (enemy.canAttack(unit)) {
+			if (enemy.canAttack(unit) && !enemy.getType().isWorker()) {
 				double distToEnemy = unit.distanceTo(enemy);
+
+				// If close unit is strong and there're many of them, include
+				// enemy range.
+				if (enemy.getHP() >= 50 && enemyUnitsInRadius.size() >= 4) {
+					int enemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles();
+					distToEnemy -= enemyRange;
+				}
 
 				// Define if enemy is real danger or maybe he's too far etc
 				boolean enemyCriticallyClose = distToEnemy > 0.1 && distToEnemy < safeDistance;
@@ -82,7 +92,7 @@ public class RunManager {
 		double distToEnemy = unit.distanceTo(enemy);
 
 		// Define where is the safe place
-		MapPoint safePlace = ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
+		MapPoint safePlace = ArmyRendezvousManager.goToSafePlaceIfNotAlreadyThere(unit);
 
 		// Define if we should run to the safe place or run from the enemy unit
 		boolean safePlaceIsDefinedAndSafe = safePlace != null

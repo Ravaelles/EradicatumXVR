@@ -104,9 +104,18 @@ public class BuildingRepairManager {
 		if (building.getType().isBunker()) {
 			int enemiesNearBunker = xvr.getNumberOfUnitsInRadius(building, 11,
 					xvr.getEnemyArmyUnits());
-			return (int) Math.min(7, Math.max(2, enemiesNearBunker / 2.4));
+			return (int) Math.min(5,
+					Math.max(2, enemiesNearBunker * defineBunkerRepairersPerEnemyRatio()));
 		} else {
 			return 2;
+		}
+	}
+
+	private static double defineBunkerRepairersPerEnemyRatio() {
+		if (XVR.isEnemyProtoss()) {
+			return 1;
+		} else {
+			return 0.6;
 		}
 	}
 

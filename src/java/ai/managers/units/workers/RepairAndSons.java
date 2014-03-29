@@ -33,9 +33,10 @@ public class RepairAndSons {
 				UnitActions.moveTo(unit, repairerForUnit);
 				return true;
 			}
-		} else {
-			System.out.println("TEST no repairer for " + unit.toStringType());
 		}
+		// else {
+		// System.out.println("TEST no repairer for " + unit.toStringType());
+		// }
 		return false;
 	}
 
@@ -98,7 +99,8 @@ public class RepairAndSons {
 					return;
 				}
 			} else {
-				if (currentRepairer.getHP() > 0 && calculateNumberOfRepairersFor(unit) <= 2) {
+				if (currentRepairer != null && currentRepairer.getHP() > 0
+						&& calculateNumberOfRepairersFor(unit) <= 2) {
 					return;
 				}
 			}
@@ -106,7 +108,8 @@ public class RepairAndSons {
 
 		Unit repairer = WorkerManager.findBestRepairerNear(unit);
 		if (repairer == null && xvr.getWorkers().size() > 0) {
-			System.out.println("------------ No repairer found for unit: " + unit.getName());
+			// System.out.println("------------ No repairer found for unit: " +
+			// unit.getName());
 			return;
 		}
 		// System.out.println("### Repairer for unit: " + unit.getName() + " (#"
@@ -139,6 +142,19 @@ public class RepairAndSons {
 	public static void removeTicketFor(Unit previouslyWoundedUnit, Unit repairer) {
 		unitsToRepairers.remove(previouslyWoundedUnit);
 		repairersToUnits.remove(repairer);
+	}
+
+	public static boolean isUnitBeingRepaired(Unit unit) {
+		if (unit.isBeingRepaired()) {
+			return true;
+		}
+
+		Unit repairerForUnit = getRepairerForUnit(unit);
+		if (repairerForUnit != null && repairerForUnit.distanceTo(unit) <= 5) {
+			return true;
+		}
+
+		return false;
 	}
 
 }

@@ -18,6 +18,8 @@ public class TerranScienceVessel {
 
 	}
 
+	// =========================================================
+
 	public static int getNumberOfUnits() {
 		return UnitCounter.getNumberOfUnits(unitType);
 	}

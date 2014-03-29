@@ -1,4 +1,4 @@
-package ai.handling.army;
+package ai.managers.units.coordination;
 
 import java.util.ArrayList;
 
@@ -14,11 +14,19 @@ import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranSiegeTank;
 
-public class ArmyPlacing {
+public class ArmyRendezvousManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	public static MapPoint getSafePointFor(Unit unit) {
+	// =========================================================
+
+	public static void act(Unit unit) {
+		goToSafePlaceIfNotAlreadyThere(unit);
+	}
+
+	// =========================================================
+
+	public static MapPoint getRendezvousPointFor(Unit unit) {
 		MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
 
 		// Initially, go to the second base location
@@ -119,7 +127,7 @@ public class ArmyPlacing {
 		}
 
 		if (safePlace == null) {
-			safePlace = getSafePointFor(unit);
+			safePlace = getRendezvousPointFor(unit);
 			if (safePlace == null) {
 				return null;
 			}

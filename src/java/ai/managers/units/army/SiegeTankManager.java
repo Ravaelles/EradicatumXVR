@@ -15,6 +15,8 @@ import ai.managers.units.UnitManager;
 
 public class SiegeTankManager {
 
+	private static final int MIN_TIME_TO_UNSIEGE = 20;
+
 	private static XVR xvr = XVR.getInstance();
 
 	private static UnitTypes unitType = UnitTypes.Terran_Siege_Tank_Tank_Mode;
@@ -76,6 +78,15 @@ public class SiegeTankManager {
 		if (mustSiege(unit)) {
 			unit.siege();
 		}
+
+		int enemiesVeryClose = xvr.countUnitsEnemyInRadius(unit, 4);
+		int enemiesInSight = xvr.countUnitsEnemyInRadius(unit, 13);
+
+		if (enemiesInSight >= 2 && enemiesVeryClose == 0) {
+			unit.siege();
+		}
+
+		UnitActions.attackTo(unit, TargettingDetails._properPlace);
 	}
 
 	private static boolean mustSiege(Unit unit) {
@@ -99,16 +110,20 @@ public class SiegeTankManager {
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
 		double nearestEnemyDist = nearestEnemy != null ? nearestEnemy.distanceTo(unit) : -1;
 
-		boolean neighborhoodDangerous = nearestEnemyDist >= 0 && nearestEnemyDist <= 2.5
-				&& unit.getStrengthRatio() < 1.8;
+		boolean enemyVeryClose = nearestEnemyDist >= 0 && nearestEnemyDist <= 2.5;
+		int enemiesVeryClose = xvr.countUnitsEnemyInRadius(unit, 4);
+
+		boolean enemyAlmostInSight = nearestEnemyDist >= 0 && nearestEnemyDist <= 14;
+		boolean neighborhoodDangerous = enemyVeryClose && unit.getStrengthRatio() < 1.8;
 		// boolean chancesRatherBad = unit.getStrengthRatio() < 1.1;
-		if (neighborhoodDangerous) {
+		if (neighborhoodDangerous && enemyVeryClose && enemiesVeryClose >= 2) {
+			unit.setAiOrder("Unsiege: Urgent");
 			unit.unsiege();
 			return;
 		}
 
 		// If tank from various reasons shouldn't be here, unsiege.
-		if (!shouldSiege(unit) && !unit.isStartingAttack()) {
+		if (!enemyAlmostInSight && !shouldSiege(unit) && !unit.isStartingAttack()) {
 			infoTankIsConsideringUnsieging(unit);
 		}
 
@@ -122,7 +137,7 @@ public class SiegeTankManager {
 					UnitActions.attackTo(unit, targetForTank);
 				}
 			} else {
-				if (nearestEnemy != null) {
+				if (nearestEnemy != null && !enemyAlmostInSight) {
 					if (nearestEnemyDist >= 0 && (nearestEnemyDist < 2 || nearestEnemyDist <= 7)) {
 						infoTankIsConsideringUnsieging(unit);
 					}
@@ -131,6 +146,7 @@ public class SiegeTankManager {
 		}
 
 		if (isUnsiegingIdeaTimerExpired(unit)) {
+			unit.setAiOrder("Unsiege: OK");
 			if (!mustSiege(unit)) {
 				unit.unsiege();
 			}
@@ -139,7 +155,7 @@ public class SiegeTankManager {
 
 	private static boolean isUnsiegingIdeaTimerExpired(Unit unit) {
 		if (TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
-			if (xvr.getTimeSeconds() - TargettingDetails.unsiegeIdeasMap.get(unit) >= 14) {
+			if (xvr.getTimeSeconds() - TargettingDetails.unsiegeIdeasMap.get(unit) >= MIN_TIME_TO_UNSIEGE) {
 				return true;
 			}
 		}
@@ -148,6 +164,7 @@ public class SiegeTankManager {
 
 	private static void infoTankIsConsideringUnsieging(Unit unit) {
 		if (!TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
+			unit.setAiOrder("Consider unsieging");
 			TargettingDetails.unsiegeIdeasMap.put(unit, xvr.getTimeSeconds());
 		}
 	}
@@ -190,7 +207,7 @@ public class SiegeTankManager {
 
 	private static boolean notTooManySiegedUnitHere(Unit unit) {
 		Unit nearBuilding = xvr.getUnitNearestFromList(unit, xvr.getUnitsBuildings());
-		boolean isNearBuilding = nearBuilding != null && nearBuilding.distanceTo(unit) <= 8;
+		boolean isNearBuilding = nearBuilding != null && nearBuilding.distanceTo(unit) <= 7;
 
 		ChokePoint nearChoke = MapExploration.getNearestChokePointFor(unit);
 		boolean isNearChoke = nearChoke != null && unit.distanceToChokePoint(nearChoke) <= 3;

@@ -11,7 +11,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
-import ai.managers.units.army.ArmyUnitBasicBehavior;
+import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.terran.TerranCommandCenter;
 import ai.utils.RUtilities;
 

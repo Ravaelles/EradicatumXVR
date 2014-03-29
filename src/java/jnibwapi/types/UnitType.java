@@ -664,6 +664,10 @@ public class UnitType {
 		return getID() == UnitTypes.Terran_SCV.ordinal();
 	}
 
+	public boolean isMarine() {
+		return getID() == UnitTypes.Terran_Marine.ordinal();
+	}
+
 	public boolean isSupplyDepot() {
 		return getID() == UnitTypes.Terran_Supply_Depot.ordinal();
 	}

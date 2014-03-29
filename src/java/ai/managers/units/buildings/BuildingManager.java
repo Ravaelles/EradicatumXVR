@@ -24,6 +24,10 @@ public class BuildingManager {
 			return;
 		}
 
+		if (building.equals(FlyingBuildingManager.getFlyingBuilding())) {
+			return;
+		}
+
 		// Remove buildings that have full health
 		BuildingRepairManager.removeHealthyBuildingsFromRepairQueue();
 

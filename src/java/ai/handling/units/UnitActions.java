@@ -7,13 +7,13 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.TechType.TechTypes;
 import jnibwapi.types.UnitType;
 import ai.core.XVR;
-import ai.handling.army.ArmyPlacing;
 import ai.handling.army.StrengthRatio;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.managers.strategy.StrategyManager;
+import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranBunker;
 import ai.utils.RUtilities;
 
@@ -385,7 +385,7 @@ public class UnitActions {
 	}
 
 	public static void moveToSafePlace(Unit unit) {
-		ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
+		ArmyRendezvousManager.goToSafePlaceIfNotAlreadyThere(unit);
 	}
 
 	public static void repairThisUnit(Unit unit) {
@@ -416,7 +416,7 @@ public class UnitActions {
 
 		boolean unitHasMovedItsAss = false;
 
-		MapPoint safePoint = ArmyPlacing.getSafePointFor(unit);
+		MapPoint safePoint = ArmyRendezvousManager.getRendezvousPointFor(unit);
 		double unitToSafePointDist = unit.distanceTo(safePoint);
 		double enemyToSafePointDist = enemy.distanceTo(safePoint);
 

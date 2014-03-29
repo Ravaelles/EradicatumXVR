@@ -37,6 +37,7 @@ public class WorkerManager {
 
 	// ======================
 
+	@SuppressWarnings("unused")
 	private static AutoLoader instance = new AutoLoader();
 
 	private static class AutoLoader {
