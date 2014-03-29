@@ -22,6 +22,10 @@ public class RepairAndSons {
 			return false;
 		}
 
+		if (!isUnitReallyWoundedAndNotAScratch(unit)) {
+			return false;
+		}
+
 		// =========================================================
 		// Issue an ticket to repair this unit
 		RepairAndSons.tryIssuingRepairOrderIfPossible(unit);
@@ -38,6 +42,14 @@ public class RepairAndSons {
 		// System.out.println("TEST no repairer for " + unit.toStringType());
 		// }
 		return false;
+	}
+
+	private static boolean isUnitReallyWoundedAndNotAScratch(Unit unit) {
+		double ratio = 0.4;
+		if (unit.getType().isTank()) {
+			ratio = 0.65;
+		}
+		return unit.getHP() < unit.getMaxHP() * ratio;
 	}
 
 	// =========================================================

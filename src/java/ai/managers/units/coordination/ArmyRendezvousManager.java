@@ -62,6 +62,16 @@ public class ArmyRendezvousManager {
 		}
 	}
 
+	public static Unit getRendezvousTankForFlyers() {
+		return TerranSiegeTank.getFrontTank();
+	}
+
+	private static MapPoint getRendezvousTankForGroundUnits() {
+		return TerranSiegeTank.getFrontTank();
+	}
+
+	// =========================================================
+
 	private static Unit defineRendezvousMedicIfPossible(Unit unit) {
 		for (Unit medic : xvr.getUnitsOfType(UnitTypes.Terran_Medic)) {
 			if (!medic.isWounded() && medic.getEnergy() > 70) {
@@ -122,7 +132,8 @@ public class ArmyRendezvousManager {
 
 		if (unit.shouldFollowTanks()) {
 			if (TerranSiegeTank.getNumberOfUnits() > 1) {
-				safePlace = TerranSiegeTank.getMedianTank();
+				// safePlace = TerranSiegeTank.getMedianTank();
+				safePlace = getRendezvousTankForGroundUnits();
 			}
 		}
 

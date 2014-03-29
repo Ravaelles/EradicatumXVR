@@ -2,6 +2,8 @@ package ai.terran;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
+import java.util.TreeMap;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
@@ -9,20 +11,45 @@ import ai.core.XVR;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
+import ai.utils.RUtilities;
 
 public class TerranSiegeTank {
 
 	private static XVR xvr = XVR.getInstance();
 	private static UnitTypes unitType = UnitTypes.Terran_Siege_Tank_Tank_Mode;
 	private static Unit medianTank = null;
+	private static Unit frontTank = null;
 
 	// =====================================================
+
+	public static void recalculateMedianAndFrontTanks() {
+		defineMedianTank();
+		defineFrontTank();
+	}
+
+	/**
+	 * Define tank that is nearest to enemy. Nearest in terms of longest
+	 * distance to the first base.
+	 */
+	private static void defineFrontTank() {
+		if (getNumberOfUnitsCompleted() == 0) {
+			frontTank = null;
+		} else {
+			Map<Unit, Double> distancesToBase = new TreeMap<>();
+			for (Unit tank : getAllCompletedTanks()) {
+				distancesToBase.put(tank, tank.distanceTo(xvr.getFirstBase()));
+			}
+			distancesToBase = RUtilities.sortByValue(distancesToBase, false);
+
+			frontTank = (Unit) RUtilities.getFirstMapElement(distancesToBase);
+		}
+	}
 
 	/**
 	 * Define tank that subjectively located "in the middle of other tanks".
 	 * This way we can determine where the center of our Panzerdivision is.
 	 */
-	public static void defineMedianTank() {
+	private static void defineMedianTank() {
 		if (getNumberOfUnitsCompleted() == 0) {
 			medianTank = null;
 		} else {
@@ -45,6 +72,10 @@ public class TerranSiegeTank {
 
 	public static Unit getMedianTank() {
 		return medianTank;
+	}
+
+	public static Unit getFrontTank() {
+		return frontTank;
 	}
 
 	// =====================================================

@@ -164,7 +164,7 @@ public class XVR {
 
 			// Define median siege tank i.e. the one in the center of others
 			if (getFrames() % 48 == 0) {
-				TerranSiegeTank.defineMedianTank();
+				TerranSiegeTank.recalculateMedianAndFrontTanks();
 			}
 
 			// Handle flying building, that will enhance shoot range for tanks

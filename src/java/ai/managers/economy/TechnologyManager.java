@@ -19,6 +19,7 @@ public class TechnologyManager {
 	public static final TechTypes SPIDER_MINES = TechTypes.Spider_Mines;
 	public static final TechTypes CLOAKING_FIELD = TechTypes.Cloaking_Field;
 	public static final TechTypes STIMPACKS = TechTypes.Stim_Packs;
+	public static final TechTypes DEFENSIVE_MATRIX = TechTypes.Defensive_Matrix;
 	public static final UpgradeTypes U238_SHELLS = UpgradeTypes.U_238_Shells;
 	public static final UpgradeTypes ION_THRUSTERS = UpgradeTypes.Ion_Thrusters;
 

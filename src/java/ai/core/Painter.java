@@ -305,7 +305,7 @@ public class Painter {
 
 			// Draw base position as rectangle
 			xvr.getBwapi().drawBox(building.getX(), building.getY(), building.getX() + 4 * 32,
-					building.getY() + 3 * 32, BWColor.GREY, false, false);
+					building.getY() + 3 * 32, BWColor.WHITE, false, false);
 
 			// Draw string
 			xvr.getBwapi().drawText(building.getX() + 3, building.getY() + 3,

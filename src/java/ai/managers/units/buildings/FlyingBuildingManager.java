@@ -5,6 +5,7 @@ import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.units.UnitActions;
 import ai.managers.units.army.FlyerManager;
+import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranEngineeringBay;
@@ -55,7 +56,7 @@ public class FlyingBuildingManager {
 	// ========================================
 
 	private static void moveBuildingToProperPlace(Unit flyingBuilding) {
-		Unit medianTank = TerranSiegeTank.getMedianTank();
+		Unit medianTank = ArmyRendezvousManager.getRendezvousTankForFlyers();
 		if (medianTank != null) {
 
 			// Lift building if isn't lifted yet

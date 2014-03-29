@@ -384,7 +384,7 @@ public class Constructing {
 			}
 			if (unitType.isBase()) {
 				dx += 32;
-				bonus += 2;
+				bonus += 4;
 			}
 
 			// If this building is too close to our build tile, indicate this
@@ -567,7 +567,7 @@ public class Constructing {
 				canProceed = builders <= 1;
 			}
 		} else {
-			canProceed = !weAreBuilding(building);
+			canProceed = !weAreBuilding(building) || building.getType().isBase();
 		}
 
 		// If there aren't multiple orders to build one building given, we can

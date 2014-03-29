@@ -65,7 +65,7 @@ public class TerranFactory {
 		int factories = UnitCounter.getNumberOfUnits(buildingType);
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
-		if (factories <= 1 && xvr.canAfford(550)) {
+		if (factories <= 2 && xvr.canAfford(450)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
