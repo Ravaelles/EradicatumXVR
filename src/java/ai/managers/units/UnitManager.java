@@ -7,19 +7,20 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.army.StrengthRatio;
+import ai.handling.strength.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
-import ai.managers.units.army.AttackCloseTargets;
 import ai.managers.units.army.BunkerManager;
 import ai.managers.units.army.FlyerManager;
 import ai.managers.units.army.RunManager;
 import ai.managers.units.army.specialforces.SpecialForcesManager;
+import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
+import ai.managers.units.coordination.AttackCloseTargets;
 import ai.managers.units.workers.RepairAndSons;
 
 public class UnitManager {
@@ -110,14 +111,19 @@ public class UnitManager {
 		// ======================================
 		// TOP PRIORITY ACTIONS, order is important!
 
-		// Avoid activated mines
-		if (ArmyUnitBasicBehavior.tryAvoidingActivatedSpiderMines(unit)) {
+		// Avoid enemy tanks in Siege Mode
+		if (EnemyTanksManager.tryAvoidingEnemyTanks(unit)) {
 			return;
 		}
 
 		// Make sure unit will get repaired
 		if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
 			unit.setAiOrder("To repair!");
+			return;
+		}
+
+		// Disallow units to move close to the defensive buildings
+		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
 			return;
 		}
 
@@ -138,11 +144,6 @@ public class UnitManager {
 
 		// If enemy has got very close near to us, move away
 		if (RunManager.runFromCloseOpponentsIfNecessary(unit)) {
-			return;
-		}
-
-		// Disallow units to move close to the defensive buildings
-		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
 			return;
 		}
 
@@ -297,6 +298,15 @@ public class UnitManager {
 			}
 		}
 		return false;
+	}
+
+	public static void avoidMines() {
+		for (Unit unit : xvr.getUnitsNonBuilding()) {
+			if (!unit.getType().isSpiderMine()) {
+				ArmyUnitBasicBehavior.tryAvoidingActivatedSpiderMines(unit);
+			}
+		}
+
 	}
 
 }

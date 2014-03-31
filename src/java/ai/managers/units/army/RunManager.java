@@ -9,6 +9,7 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
+import ai.managers.units.coordination.AttackCloseTargets;
 
 public class RunManager {
 

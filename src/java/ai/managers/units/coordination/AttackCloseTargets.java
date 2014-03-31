@@ -1,13 +1,14 @@
-package ai.managers.units.army;
+package ai.managers.units.coordination;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.army.StrengthRatio;
 import ai.handling.army.TargetHandling;
+import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
@@ -19,10 +20,30 @@ public class AttackCloseTargets {
 	private static XVR xvr = XVR.getInstance();
 
 	private static final int MAX_DIST_TO_BASE_WHEN_AT_PEACE = 27;
+	private static final int MIN_TANKS_TO_FORWARD = 5;
+	private static final double FORCE_MOVE_TO_ENEMY_TANK_IF_DISTANCE_GREATER_THAN = 0.8;
 
 	// =========================================================
 
 	public static boolean tryAttackingCloseTargets(Unit unit) {
+
+		// Only relatively healthy units can attack
+		if (xvr.getTimeSeconds() < 350 && unit.getType().isTerranInfantry()
+				&& !unit.isHPAtLeastNPercent(70)) {
+			return false;
+		}
+
+		// For tanks, allow to attack only if there're other tanks nearby
+		if (unit.getType().isTank()) {
+			int TANK_DIST = 8;
+			int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
+					UnitTypes.Terran_Siege_Tank_Siege_Mode, TANK_DIST, unit, true)
+					+ xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
+							TANK_DIST, unit, true);
+			if (tanksNear < MIN_TANKS_TO_FORWARD) {
+				return false;
+			}
+		}
 
 		// If unit is far from any base and there's no attack pending, don't
 		// attack
@@ -146,12 +167,40 @@ public class AttackCloseTargets {
 			enemyToAttack = makeSureItsNotEnemyWorkerAroundTheBase(enemyToAttack);
 
 			if (nearestEnemy != null && isStrengthRatioFavorable && nearestEnemy.isDetected()) {
-				UnitActions.attackEnemyUnit(unit, nearestEnemy);
+				attackCloseTarget(unit, nearestEnemy);
 				return true;
 			}
 		}
 		return false;
 	}
+
+	private static void attackCloseTarget(Unit unit, Unit nearestEnemy) {
+		if (unit == null || nearestEnemy == null) {
+			return;
+		}
+
+		// Normal units
+		if (!nearestEnemy.getType().isTank()) {
+			UnitActions.attackEnemyUnit(unit, nearestEnemy);
+		}
+
+		// Attacking tanks is handled differently: first, go to the unit (force
+		// it to unsiege)
+		else {
+
+			// Tank is far, move as close to it as possible
+			if (unit.distanceTo(nearestEnemy) > FORCE_MOVE_TO_ENEMY_TANK_IF_DISTANCE_GREATER_THAN) {
+				UnitActions.moveTo(unit, nearestEnemy);
+			}
+
+			// We're already just in front of the tank, attack it
+			else {
+				UnitActions.attackEnemyUnit(unit, nearestEnemy);
+			}
+		}
+	}
+
+	// =========================================================
 
 	private static Unit makeSureItsNotEnemyWorkerAroundTheBase(Unit enemy) {
 		if (enemy == null) {

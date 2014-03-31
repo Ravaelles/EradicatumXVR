@@ -1115,4 +1115,12 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		return getCallForHelpMission() != null;
 	}
 
+	public boolean isHPAtLeastNPercent(int percent) {
+		return getMaxHP() >= percent * getHP() / 100;
+	}
+
+	public boolean hasAddOn() {
+		return getAddOnID() != -1;
+	}
+
 }

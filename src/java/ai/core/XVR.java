@@ -15,6 +15,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.missions.MissionProtectBase;
+import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.ConstructionManager;
 import ai.managers.economy.TechnologyManager;
@@ -45,7 +46,7 @@ public class XVR {
 	 * There are several methods of type like "getUnitsNear". This value is this
 	 * "near" distance, expressed in game tiles (32 pixels).
 	 */
-	private static final int WHAT_IS_NEAR_DISTANCE = 13;
+	private static final int WHAT_IS_NEAR_DISTANCE = 9;
 
 	private static XVR xvr;
 
@@ -97,6 +98,18 @@ public class XVR {
 			// other methods.
 			if (getFrames() % 4 == 0) {
 				UnitCounter.recalculateUnits();
+			}
+
+			// Every once in a while recalculate our relative strength, compared
+			// with enemy's strength
+			if (getFrames() % 56 == 0) {
+				StrengthComparison.recalculateOurRelativeStrength();
+				StrengthComparison.recalculateSupply();
+			}
+
+			// Check very often for nearby activated mines
+			if (getFrames() % 3 == 0) {
+				UnitManager.avoidMines();
 			}
 
 			// If there are some enemy units invisible
@@ -791,7 +804,7 @@ public class XVR {
 	public Collection<Unit> getEnemyBuildings() {
 		ArrayList<Unit> result = new ArrayList<>();
 		result.addAll(MapExploration.getEnemyBuildingsDiscovered());
-		for (Unit enemyUnit : xvr.getEnemyUnitsVisible()) {
+		for (Unit enemyUnit : xvr.getBwapi().getEnemyUnits()) {
 			if (enemyUnit.getType().isBuilding()) {
 				result.add(enemyUnit);
 			}
@@ -977,10 +990,14 @@ public class XVR {
 		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y),
 				WHAT_IS_NEAR_DISTANCE, getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
-			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
-					&& enemy.canAttackGroundUnits()) {
-				if (getDistanceBetween(enemy, x, y) + 3.6 <= enemy.getType().getGroundWeapon()
-						.getMaxRangeInTiles()) {
+			if (enemy.isCompleted() && enemy.canAttackGroundUnits()) {
+				// if (enemy.isCompleted() && enemy.canAttackGroundUnits()) {
+				// if (getDistanceBetween(enemy, x, y) + 3.6 <=
+				// enemy.getType().getGroundWeapon()
+				// .getMaxRangeInTiles()) {
+				System.out.println(enemy.getID() + ": " + enemy.getName());
+
+				if (getDistanceBetween(enemy, x, y) <= WHAT_IS_NEAR_DISTANCE) {
 					return enemy;
 				}
 			}
@@ -1260,6 +1277,10 @@ public class XVR {
 	public Collection<Unit> getUnitsPossibleToHeal() {
 		return getUnitsOurOfTypes(UnitTypes.Terran_Marine, UnitTypes.Terran_Firebat,
 				UnitTypes.Terran_Medic, UnitTypes.Terran_Ghost, UnitTypes.Terran_SCV);
+	}
+
+	public Unit getEnemyNearestTo(Unit unit, boolean onlyGround, boolean onlyAir) {
+		return xvr.getUnitNearestFromList(unit, getEnemyUnitsVisible(onlyGround, onlyAir));
 	}
 
 }

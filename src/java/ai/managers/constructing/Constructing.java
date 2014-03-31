@@ -56,7 +56,7 @@ public class Constructing {
 
 		// There is a nasty bug: when we're losing badly Terran Barracks are
 		// slowing down game terribly; try to limit search range.
-		int MAX_RANGE = 70;
+		int MAX_RANGE = 80;
 		if (xvr.getTimeSeconds() > 400
 				&& typeToBuild.ordinal() == UnitTypes.Terran_Barracks.ordinal()) {
 			MAX_RANGE = 20;
@@ -269,7 +269,7 @@ public class Constructing {
 									&& (isBase || isEnoughPlaceToOtherBuildings(place, type))
 									&& (isBase || !isOverlappingNextBase(place, type))
 									&& (isBase || !isTooCloseToAnyChokePoint(place)
-											&& (skipCheckingRegion || isInAllowedRegions(place)))) {
+											&& (isBase || skipCheckingRegion || isInAllowedRegions(place)))) {
 
 								// if (type.isPhotonCannon()) {
 								// System.out.println("@@@@@@@ "
@@ -352,7 +352,7 @@ public class Constructing {
 		int spaceBonus = 0;
 		if (type.canHaveAddOn()) {
 			// spaceBonus += 2;
-			center = center.translate(96, 0);
+			center = center.translate(64, 0);
 		}
 
 		// For each building nearby define if it's not too close to this build
@@ -378,7 +378,7 @@ public class Constructing {
 			int dx = 0;
 			int bonus = spaceBonus;
 			UnitType unitType = unit.getType();
-			if (type.canHaveAddOn()) {
+			if (type.canHaveAddOn() && !unit.hasAddOn()) {
 				// bonus++;
 				dx = 64;
 			}

@@ -1,12 +1,15 @@
 =========== KNOWN BUGS ==============
 
+########### IMPROVE VALKYRIES TARGET SELECTION ###############
 Vultures do not avoid defensive buildings like Photon Cannons
 Third base isn't builded
 
 =========== TO CHECK ==========
 
-Marines leave bunkers?
+
 
 =========== IDEAS =============
+
+############## ATTACK TANKS WITH WRAITHS ###############
 
 Mine other bases

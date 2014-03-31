@@ -9,7 +9,6 @@ import ai.handling.units.UnitCounter;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranArmory;
 import ai.terran.TerranCommandCenter;
-import ai.terran.TerranControlTower;
 import ai.terran.TerranMachineShop;
 import ai.terran.TerranSiegeTank;
 
@@ -22,6 +21,7 @@ public class TechnologyManager {
 	public static final TechTypes DEFENSIVE_MATRIX = TechTypes.Defensive_Matrix;
 	public static final UpgradeTypes U238_SHELLS = UpgradeTypes.U_238_Shells;
 	public static final UpgradeTypes ION_THRUSTERS = UpgradeTypes.Ion_Thrusters;
+	public static final UpgradeTypes VEHICLE_PLATING = UpgradeTypes.Terran_Vehicle_Plating;
 
 	private static final boolean PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE = true;
 
@@ -78,12 +78,6 @@ public class TechnologyManager {
 			tryToUpgrade(TerranAcademy.getOneNotBusy(), upgrade);
 		}
 
-		// Ion Thrusters (Vulture extra speed)
-		upgrade = ION_THRUSTERS;
-		if (isUpgradePossible(upgrade) && vultures >= 6 && xvr.canAfford(200, 200)) {
-			tryToUpgrade(TerranMachineShop.getOneNotBusy(), upgrade);
-		}
-
 		// // Stim Packs
 		// technology = STIMPACKS;
 		// if (!isPossibleSiegeResearch && marines >= 9 &&
@@ -94,28 +88,36 @@ public class TechnologyManager {
 		// ======================================================
 		// LOWER PRIORITY
 		// To research technologies below we must have second base built.
-		if (TerranCommandCenter.getNumberOfUnits() <= 1 || !isPossibleSiegeResearch
-				|| !isResearched(SPIDER_MINES)) {
+		if (TerranCommandCenter.getNumberOfUnits() <= 1 || isPossibleSiegeResearch
+				|| isPossibleSpiderResearch) {
 			return;
 		}
 
-		// Ion Thrusters
-		upgrade = UpgradeTypes.Ion_Thrusters;
-		if (vultures >= 4 && isUpgradePossible(upgrade)) {
+		// Ion Thrusters (Vulture extra speed)
+		upgrade = ION_THRUSTERS;
+		if (isUpgradePossible(upgrade) && vultures >= 6 && xvr.canAfford(200, 200)) {
 			tryToUpgrade(TerranMachineShop.getOneNotBusy(), upgrade);
 		}
 
-		// Vehicle Weapons
-		upgrade = UpgradeTypes.Terran_Vehicle_Weapons;
-		if (TerranArmory.getNumberOfUnitsCompleted() > 0 && isUpgradePossible(upgrade)) {
+		// Vehicle Armour
+		upgrade = VEHICLE_PLATING;
+		if (vultures > 4 && TerranArmory.getNumberOfUnitsCompleted() > 0
+				&& isUpgradePossible(upgrade) && xvr.canAfford(250, 150)) {
 			tryToUpgrade(TerranArmory.getOneNotBusy(), upgrade);
 		}
 
-		// Cloaking field
-		technology = CLOAKING_FIELD;
-		if (isResearchPossible(technology)) {
-			tryToResearch(TerranControlTower.getOneNotBusy(), technology);
-		}
+		// Vehicle Weapons
+		// upgrade = UpgradeTypes.Terran_Vehicle_Weapons;
+		// if (TerranArmory.getNumberOfUnitsCompleted() > 0 &&
+		// isUpgradePossible(upgrade)) {
+		// tryToUpgrade(TerranArmory.getOneNotBusy(), upgrade);
+		// }
+
+		// // Cloaking field
+		// technology = CLOAKING_FIELD;
+		// if (isResearchPossible(technology)) {
+		// tryToResearch(TerranControlTower.getOneNotBusy(), technology);
+		// }
 	}
 
 	// =========================================================

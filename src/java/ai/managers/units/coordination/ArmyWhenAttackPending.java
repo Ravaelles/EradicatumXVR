@@ -1,6 +1,7 @@
 package ai.managers.units.coordination;
 
 import jnibwapi.model.Unit;
+import ai.handling.map.MapExploration;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
@@ -13,7 +14,8 @@ public class ArmyWhenAttackPending {
 		// if (isPartOfClusterOfMinXUnits(unit)) {
 
 		// If there is attack target defined, go for it.
-		if (StrategyManager.isSomethingToAttackDefined()) {
+		if (StrategyManager.isSomethingToAttackDefined()
+				&& !MapExploration.getEnemyBuildingsDiscovered().isEmpty()) {
 			// if (UnitManager.unitIsTooFarFromSafePlaceWhenAttackPending(unit))
 			// {
 			// return;

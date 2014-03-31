@@ -7,11 +7,11 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.TechType.TechTypes;
 import jnibwapi.types.UnitType;
 import ai.core.XVR;
-import ai.handling.army.StrengthRatio;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
+import ai.handling.strength.StrengthRatio;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranBunker;
@@ -354,7 +354,7 @@ public class UnitActions {
 		}
 
 		if (goTo != null) {
-			if (xvr.getDistanceBetween(unit, goTo) >= 5.5) {
+			if (xvr.getDistanceBetween(unit, goTo) >= 4.5) {
 				UnitActions.moveTo(unit, goTo);
 				// UnitActions.attackTo(unit, goTo);
 				return true;

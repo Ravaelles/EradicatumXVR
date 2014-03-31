@@ -23,11 +23,16 @@ public class TerranVulture {
 
 	private static UnitTypes unitType = UnitTypes.Terran_Vulture;
 
-	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.45;
+	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.85;
+
+	private static final int MINIMUM_VULTURES_TO_DO_SCOUTING = 5;
+
+	private static Unit explorerVulture = null;
 
 	// =========================================================
 
 	public static boolean act(Unit unit) {
+
 		// int alliedUnitsNearby = xvr.countUnitsInRadius(unit, 10, true);
 		// boolean shouldConsiderRunningAway =
 		// !StrategyManager.isAnyAttackFormPending();
@@ -52,6 +57,11 @@ public class TerranVulture {
 		if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
 			unit.setAiOrder("Would lose");
 			return true;
+		}
+
+		// Scout bases near the enemy
+		if (handleExplorerVulture(unit)) {
+			return false;
 		}
 
 		// ======== DEFINE NEXT MOVE =============================
@@ -101,6 +111,41 @@ public class TerranVulture {
 		return false;
 	}
 
+	private static boolean handleExplorerVulture(Unit unit) {
+
+		// Choose random Vulture to become Vulture Explorer
+		if (explorerVulture == null) {
+			if (UnitCounter.getNumberOfUnits(TerranVulture.getUnitType()) >= MINIMUM_VULTURES_TO_DO_SCOUTING) {
+				explorerVulture = xvr.getUnitsOfType(TerranVulture.getUnitType()).iterator().next();
+			}
+		}
+
+		if (explorerVulture != null && explorerVulture.equals(unit)) {
+			if (unit.isIdle() && !unit.isAttacking() && !unit.isMoving()) {
+				MapPoint point = getRandomBaseLocationNearEnemyMainBase();
+				// System.out.println("BASE FOR VULTURE EXPLORER: " +
+				// point.toStringLocation());
+				if (point != null) {
+					UnitActions.attackTo(explorerVulture, point);
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static MapPoint getRandomBaseLocationNearEnemyMainBase() {
+		if (!MapExploration.getEnemyBasesDiscovered().isEmpty()) {
+			Unit enemyBase = MapExploration.getEnemyBasesDiscovered().values().iterator().next();
+			return (MapPoint) RUtilities.getRandomElement(MapExploration.getBaseLocationsNear(
+					enemyBase, 50));
+
+		}
+
+		return null;
+	}
+
 	// =========================================================
 
 	private static boolean tryPlantingMines(Unit unit) {
@@ -112,10 +157,11 @@ public class TerranVulture {
 			// isSafelyFarFromBuildings(unit);
 
 			if (isSafePlaceForOurUnits) {
+				boolean noMinesInRegion = isNoMinesInRegion(unit);
 				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit)
-						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
+						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit) || noMinesInRegion;
 				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)
-						|| noMinesInRegion(unit)) {
+						|| noMinesInRegion) {
 					placeSpiderMine(unit, unit);
 					return true;
 				}
@@ -124,9 +170,9 @@ public class TerranVulture {
 		return false;
 	}
 
-	private static boolean noMinesInRegion(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 6, unit,
-				true) <= 1 || unit.getSpiderMineCount() == 3;
+	private static boolean isNoMinesInRegion(Unit unit) {
+		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 5, unit,
+				true) == 0 || unit.getSpiderMineCount() == 3;
 	}
 
 	// =========================================================

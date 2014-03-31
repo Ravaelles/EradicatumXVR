@@ -5,12 +5,12 @@ import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.WeaponType;
 import ai.core.XVR;
-import ai.handling.army.StrengthRatio;
+import ai.handling.strength.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.units.UnitManager;
-import ai.managers.units.army.SiegeTankManager;
+import ai.managers.units.army.tanks.SiegeTankManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBunker;
 import ai.terran.TerranMedic;
@@ -92,6 +92,8 @@ public class ArmyUnitBasicBehavior {
 				}
 				return false;
 			} else {
+				System.out.println("AVOID: " + unit.getName() + " / "
+						+ unit.distanceTo(defensiveBuilding));
 				UnitActions.moveAwayFromUnit(unit, defensiveBuilding);
 				// UnitActions.moveToSafePlace(unit);
 				unit.setIsRunningFromEnemyNow();
@@ -135,7 +137,8 @@ public class ArmyUnitBasicBehavior {
 
 		// Move away from activated mine
 		if (activatedMine != null) {
-			UnitActions.moveAwayFromUnit(unit, activatedMine);
+			Unit nearestEnemyToMine = xvr.getEnemyNearestTo(unit, true, false);
+			UnitActions.moveAwayFromUnit(unit, nearestEnemyToMine);
 			unit.setIsRunningFromEnemyNow();
 			unit.setAiOrder("MINE!");
 			return true;
@@ -150,7 +153,8 @@ public class ArmyUnitBasicBehavior {
 		// ratio = 0.4;
 		// }
 
-		if (unit.getHP() <= unit.getMaxHP() * ratio) {
+		if (unit.getHP() <= unit.getMaxHP() * ratio
+				|| (unit.getType().isTerranInfantry() && unit.getHP() < 25)) {
 			// // If there are tanks nearby, DON'T RUN. Rather die first!
 			// if
 			// (xvr.countUnitsEnemyOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,

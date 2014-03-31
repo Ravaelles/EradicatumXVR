@@ -81,6 +81,13 @@ public class TerranBarracks {
 
 	public static void act(Unit barracks) {
 
+		// Disallow making units if there's no bunker early
+		if (TerranBunker.getNumberOfUnits() == 0 && TerranBunker.shouldBuild()
+				&& xvr.getTimeSeconds() < 250 && !xvr.canAfford(142)
+				&& UnitCounter.getNumberOfBattleUnits() >= 1) {
+			return;
+		}
+
 		// If we have very few tanks, always leave cash for one.
 		if (TerranMachineShop.getNumberOfUnitsCompleted() > 0
 				&& TerranSiegeTank.getNumberOfUnits() < TerranFactory.MINIMUM_TANKS

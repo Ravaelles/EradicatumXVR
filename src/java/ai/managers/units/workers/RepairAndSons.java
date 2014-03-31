@@ -55,6 +55,12 @@ public class RepairAndSons {
 	// =========================================================
 
 	public static boolean tryRepairingSomethingIfNeeded(Unit worker) {
+
+		// If we're out of minerals, don't repair
+		if (!xvr.canAfford(10)) {
+			return false;
+		}
+
 		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
 
 		// This worker has assigned unit to repair
@@ -106,14 +112,16 @@ public class RepairAndSons {
 		// Check if repairer is alive
 		if (unitsToRepairers.containsKey(unit)) {
 			Unit currentRepairer = unitsToRepairers.get(unit);
-			if (!unit.getType().isTank()) {
-				if (currentRepairer.getHP() > 0 && currentRepairer.isExists()) {
-					return;
-				}
-			} else {
-				if (currentRepairer != null && currentRepairer.getHP() > 0
-						&& calculateNumberOfRepairersFor(unit) <= 2) {
-					return;
+			if (unit != null && currentRepairer != null) {
+				if (!unit.getType().isTank()) {
+					if (currentRepairer.getHP() > 0 && currentRepairer.isExists()) {
+						return;
+					}
+				} else {
+					if (currentRepairer != null && currentRepairer.getHP() > 0
+							&& calculateNumberOfRepairersFor(unit) <= 2) {
+						return;
+					}
 				}
 			}
 		}

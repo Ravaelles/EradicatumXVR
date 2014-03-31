@@ -1,4 +1,4 @@
-package ai.handling.army;
+package ai.handling.strength;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,8 +31,12 @@ public class StrengthRatio {
 	private static final double ENEMY_RANGE_WEAPON_STRENGTH_BONUS = 1.5;
 	private static final int RANGE_BONUS_IF_ENEMY_DEF_BUILDING_NEAR = 6;
 	private static final int DEFENSIVE_BUILDING_ATTACK_BONUS = 24;
+
 	// private static final int MAX_TILES_FROM_TANK = 7;
 	// private static final double RATIO_PENALTY_FOR_NO_TANK_NEARBY = 1;
+
+	private static final int UNIT_STRENGTH_COMPARISON_ATTACK_FACTOR = 5;
+	private static final int UNIT_STRENGTH_COMPARISON_HP_FACTOR = 1;
 
 	private static boolean changePlanToBuildAntiAirUnits = false;
 
@@ -311,86 +315,25 @@ public class StrengthRatio {
 		return antiAirUnits == 0;
 	}
 
+	private static int _seconds;
+	private static int _defensiveBuildings;
+
 	private static double calculateTotalAttackOf(ArrayList<Unit> units, boolean forEnemy) {
 		int total = 0;
-		int seconds = xvr.getTimeSeconds();
-		int defensiveBuildings = 0;
+		_seconds = xvr.getTimeSeconds();
+		_defensiveBuildings = 0;
 
 		// int vultures = 0;
 		// int dragoons = 0;
 		for (Unit unit : units) {
-			boolean isInfantry = unit.getType().isTerranInfantry();
-			double attackValue = unit.getGroundAttackNormalized();
-			UnitType type = unit.getType();
-			if (type.isWorker()) {
-				continue;
-			}
-
-			if (forEnemy && type.getGroundWeapon().getMaxRangeInTiles() >= 3) {
-				attackValue *= ENEMY_RANGE_WEAPON_STRENGTH_BONUS;
-			}
-
-			// If we calculate attack for our units, decisively lower attack of
-			// units that are retreating
-			if (!forEnemy && isInfantry && unit.isRunningFromEnemy()) {
-				attackValue /= 3;
-			}
-
-			if (forEnemy) {
-				total += attackValue;
-
-				if (type.isVulture()) {
-					// vultures++;
-					total -= attackValue * 1.4;
-				}
-				if (type.isHydralisk()) {
-					total -= attackValue * 0.4;
-				}
-				if (type.isFirebat()) {
-					total += attackValue * 0.4;
-				}
-				if (type.isDragoon()) {
-					// dragoons++;
-					total += attackValue * 0.6;
-				}
-
-				// Handle defensive buildings
-				if (unit.isDefensiveGroundBuilding()) {
-					total += DEFENSIVE_BUILDING_ATTACK_BONUS;
-					if (unit.isCompleted()) {
-						defensiveBuildings++;
-
-						if (seconds >= 550) {
-							if (type.isBunker()) {
-								total += 40;
-							}
-						} else {
-							total -= DEFENSIVE_BUILDING_ATTACK_BONUS;
-						}
-					}
-					if (!TerranBarracks.LIMIT_MARINES && !type.isBunker() && seconds < 550) {
-						total -= DEFENSIVE_BUILDING_ATTACK_BONUS;
-						total -= attackValue * 0.7;
-					} else {
-						total -= DEFENSIVE_BUILDING_ATTACK_BONUS;
-						total -= attackValue;
-					}
-				}
-
-				// Carriers
-				if (unit.getType().isInterceptor()) {
-					total -= attackValue * 0.75;
-				}
-			} else {
-				total += attackValue;
-			}
+			total += calculateAttackValueOf(unit, forEnemy);
 		}
 
-		if (defensiveBuildings >= 2 && _ourUnits.size() < 7 && XVR.isEnemyProtoss()) {
+		if (_defensiveBuildings >= 2 && _ourUnits.size() < 7 && XVR.isEnemyProtoss()) {
 			StrategyManager.waitForMoreUnits();
 			total = 99999;
 		}
-		if (defensiveBuildings > 0 && defensiveBuildings <= 7 && _ourUnits.size() >= 7) {
+		if (_defensiveBuildings > 0 && _defensiveBuildings <= 7 && _ourUnits.size() >= 7) {
 			if (!TerranBarracks.LIMIT_MARINES) {
 				total /= 2;
 			} else {
@@ -400,13 +343,85 @@ public class StrengthRatio {
 
 		if (forEnemy) {
 			if (StrategyManager.getMinBattleUnits() <= StrategyManager.INITIAL_MIN_UNITS
-					&& defensiveBuildings >= 2 && TerranSiegeTank.getNumberOfUnitsCompleted() <= 1) {
+					&& _defensiveBuildings >= 2 && TerranSiegeTank.getNumberOfUnitsCompleted() <= 1) {
 				StrategyManager.waitForMoreUnits();
 				// TerranBarracks.LIMIT_MARINES = true;
 				// Debug.message(xvr, "Dont build zealots mode enabled");
 			}
 
-			_enemyDefensiveBuildings = defensiveBuildings;
+			_enemyDefensiveBuildings = _defensiveBuildings;
+		}
+
+		return total;
+	}
+
+	private static int calculateAttackValueOf(Unit unit, boolean forEnemy) {
+		int total = 0;
+
+		boolean isInfantry = unit.getType().isTerranInfantry();
+		double attackValue = unit.getGroundAttackNormalized();
+		UnitType type = unit.getType();
+		if (type.isWorker()) {
+			return 0;
+		}
+
+		if (forEnemy && type.getGroundWeapon().getMaxRangeInTiles() >= 3) {
+			attackValue *= ENEMY_RANGE_WEAPON_STRENGTH_BONUS;
+		}
+
+		// If we calculate attack for our units, decisively lower attack of
+		// units that are retreating
+		if (!forEnemy && isInfantry && unit.isRunningFromEnemy()) {
+			attackValue /= 3;
+		}
+
+		if (forEnemy) {
+			total += attackValue;
+
+			if (type.isVulture()) {
+				// vultures++;
+				total -= attackValue * 1.4;
+			}
+			if (type.isHydralisk()) {
+				total -= attackValue * 0.4;
+			}
+			if (type.isFirebat()) {
+				total += attackValue * 0.4;
+			}
+			if (type.isDragoon()) {
+				// dragoons++;
+				total += attackValue * 0.6;
+			}
+
+			// Handle defensive buildings
+			if (unit.isDefensiveGroundBuilding()) {
+				total += DEFENSIVE_BUILDING_ATTACK_BONUS;
+				if (unit.isCompleted()) {
+					_defensiveBuildings++;
+
+					if (_seconds >= 550) {
+						if (type.isBunker()) {
+							total += 40;
+						}
+					} else {
+						total -= DEFENSIVE_BUILDING_ATTACK_BONUS;
+					}
+				}
+				if (!TerranBarracks.LIMIT_MARINES && !type.isBunker() && _seconds < 550) {
+					total -= DEFENSIVE_BUILDING_ATTACK_BONUS;
+					total -= attackValue * 0.7;
+				} else {
+					total -= DEFENSIVE_BUILDING_ATTACK_BONUS;
+					total -= attackValue;
+				}
+			}
+
+			// Carriers
+			if (unit.getType().isInterceptor()) {
+				total -= attackValue * 0.75;
+			}
+		} else {
+			total += attackValue;
 		}
 
 		return total;
@@ -415,16 +430,22 @@ public class StrengthRatio {
 	private static double calculateHitPointsOf(ArrayList<Unit> units) {
 		int total = 0;
 		for (Unit unit : units) {
-			UnitType type = unit.getType();
-
-			if (unit.isCompleted() && (!type.isBuilding() || unit.isDefensiveGroundBuilding())) {
-				total += unit.getHP() + unit.getShields();
-				if (type.isMedic()) {
-					total += 60;
-				}
-			}
+			total += calculateHitPointsOf(unit);
 		}
 		return total;
+	}
+
+	private static int calculateHitPointsOf(Unit unit) {
+		UnitType type = unit.getType();
+
+		if (unit.isCompleted() && (!type.isBuilding() || unit.isDefensiveGroundBuilding())) {
+			if (type.isMedic()) {
+				return 60;
+			} else {
+				return unit.getHP() + unit.getShields();
+			}
+		}
+		return 0;
 	}
 
 	private static ArrayList<Unit> getEnemiesNear(Unit ourUnit) {
@@ -463,6 +484,11 @@ public class StrengthRatio {
 		return unitsInRadius;
 		// return xvr.getUnitsInRadius(ourUnit, BATTLE_RADIUS_ALLIES,
 		// xvr.getArmyUnitsIncludingDefensiveBuildings());
+	}
+
+	public static double calculateUnitStrengthAsSingleValue(Unit unit, boolean forEnemy) {
+		return UNIT_STRENGTH_COMPARISON_ATTACK_FACTOR * calculateAttackValueOf(unit, forEnemy)
+				+ UNIT_STRENGTH_COMPARISON_HP_FACTOR * calculateHitPointsOf(unit);
 	}
 
 	// ==================================

@@ -20,6 +20,8 @@ public class TerranMedic {
 		return unitType;
 	}
 
+	// =========================================================
+
 	public static void act(Unit unit) {
 		MapPoint goTo = null;
 		MapPoint unitPlace = getNearestInfantryPreferablyOutsideBunker(unit);
@@ -41,7 +43,7 @@ public class TerranMedic {
 
 		// ==============================
 		// Manually check for units to heal
-		ArrayList<Unit> possibleToHeal = xvr.getUnitsInRadius(unit, 12,
+		ArrayList<Unit> possibleToHeal = xvr.getUnitsInRadius(unit, 50,
 				xvr.getUnitsPossibleToHeal());
 		for (Unit otherUnit : possibleToHeal) {
 			if (otherUnit.isWounded()) {
@@ -50,6 +52,8 @@ public class TerranMedic {
 			}
 		}
 	}
+
+	// =========================================================
 
 	private static MapPoint getNearestInfantryPreferablyOutsideBunker(Unit unit) {
 

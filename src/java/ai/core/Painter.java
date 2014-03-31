@@ -9,10 +9,11 @@ import jnibwapi.types.UnitCommandType.UnitCommandTypes;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.util.BWColor;
-import ai.handling.army.StrengthRatio;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.other.NukeHandling;
+import ai.handling.strength.StrengthComparison;
+import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
@@ -41,7 +42,45 @@ public class Painter {
 	// =========================================================
 
 	private static void paintDebugMessages(XVR xvr) {
-		debugMessageCounter = 1;
+		debugMessageCounter = 0;
+
+		String armyRelativeStrenghString;
+		int relativeStrength = StrengthComparison.getOurRelativeStrength();
+		if (relativeStrength != -1) {
+			armyRelativeStrenghString = RUtilities.assignStringForValue(
+					relativeStrength,
+					130,
+					70,
+					new String[] { BWColor.getToStringHex(BWColor.RED),
+							BWColor.getToStringHex(BWColor.YELLOW),
+							BWColor.getToStringHex(BWColor.GREEN) })
+					+ relativeStrength + "%";
+		} else {
+			armyRelativeStrenghString = BWColor.getToStringHex(BWColor.GREY)
+					+ "Enemy forces unknown";
+		}
+
+		paintDebugMessage(xvr, BWColor.getToStringHex(BWColor.WHITE) + "Our army vs. Enemy army: ",
+				armyRelativeStrenghString);
+
+		// =========================================================
+
+		String supplyString = StrengthComparison.getOurSupply()
+				+ " / "
+				+ (StrengthComparison.getEnemySupply() == 0 ? "Enemy supply unknown"
+						: StrengthComparison.getEnemySupply());
+		String supplyColor = BWColor.getToStringHex(BWColor.GREY);
+		if (StrengthComparison.getEnemySupply() != 0
+				&& StrengthComparison.getOurSupply() > StrengthComparison.getEnemySupply()) {
+			supplyColor = BWColor.getToStringHex(BWColor.GREEN);
+		} else if (StrengthComparison.getOurSupply() < StrengthComparison.getEnemySupply()) {
+			supplyColor = BWColor.getToStringHex(BWColor.RED);
+		}
+
+		paintDebugMessage(xvr, BWColor.getToStringHex(BWColor.WHITE) + "Our & enemy supply used: ",
+				supplyColor + supplyString);
+
+		// =========================================================
 
 		// paintDebugMessage(xvr, "Circling phase: ",
 		// ExplorerCirclingEnemyBase.get_circlingEnemyBasePhase());
@@ -191,7 +230,7 @@ public class Painter {
 			// Strength evaluation
 			// strength = StrengthEvaluator.calculateStrengthRatioFor(unit);
 			strength = unit.getStrengthRatio();
-			if (strength != StrengthRatio.STRENGTH_RATIO_FULLY_SAFE) {
+			if (!type.isBuilding() && strength != StrengthRatio.STRENGTH_RATIO_FULLY_SAFE) {
 				strength -= 1; // make +/- values display
 				text = (strength > 0 ? (BWColor.getToStringHex(BWColor.GREEN) + "+") : (BWColor
 						.getToStringHex(BWColor.RED) + "")) + String.format("%.1f", strength);
@@ -753,8 +792,9 @@ public class Painter {
 
 		message += ": " + valueString;
 
-		xvr.getBwapi().drawText(new Point(320 - message.length() * 3, 12 * debugMessageCounter++),
-				BWColor.getToStringHex(BWColor.RED) + message, true);
+		xvr.getBwapi().drawText(
+				new Point(318 - message.length() * 3, 3 + 10 * debugMessageCounter++), message,
+				true);
 	}
 
 }

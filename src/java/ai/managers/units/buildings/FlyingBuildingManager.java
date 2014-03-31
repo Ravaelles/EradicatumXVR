@@ -26,12 +26,14 @@ public class FlyingBuildingManager {
 		if (shouldHaveFlyingBuilding1()) {
 			defineFlyingBuilding1();
 			act(flyingBuilding1);
+			FlyerManager.tryAvoidingAntiAirUnits(flyingBuilding1);
 		}
 
 		// E-Bay
 		if (shouldHaveFlyingBuilding2()) {
 			defineFlyingBuilding2();
 			act(flyingBuilding2);
+			FlyerManager.tryAvoidingAntiAirUnits(flyingBuilding2);
 		}
 	}
 
@@ -112,8 +114,12 @@ public class FlyingBuildingManager {
 		return TerranEngineeringBay.getNumberOfUnitsCompleted() > 0;
 	}
 
-	public static Unit getFlyingBuilding() {
+	public static Unit getFlyingBuilding1() {
 		return flyingBuilding1;
+	}
+
+	public static Unit getFlyingBuilding2() {
+		return flyingBuilding2;
 	}
 
 }

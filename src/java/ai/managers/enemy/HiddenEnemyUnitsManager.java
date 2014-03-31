@@ -50,7 +50,7 @@ public class HiddenEnemyUnitsManager {
 	}
 
 	private static boolean shouldAvoidThisHiddenEnemyUnit(Unit ourUnit, Unit enemyUnit) {
-		return enemyUnit.canAttack(ourUnit);
+		return enemyUnit.canAttack(ourUnit) && ourUnit.distanceTo(enemyUnit) < 4;
 	}
 
 }

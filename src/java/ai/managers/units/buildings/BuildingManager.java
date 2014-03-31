@@ -24,7 +24,8 @@ public class BuildingManager {
 			return;
 		}
 
-		if (building.equals(FlyingBuildingManager.getFlyingBuilding())) {
+		if (building.equals(FlyingBuildingManager.getFlyingBuilding1())
+				|| building.equals(FlyingBuildingManager.getFlyingBuilding2())) {
 			return;
 		}
 

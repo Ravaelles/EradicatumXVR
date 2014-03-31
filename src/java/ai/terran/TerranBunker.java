@@ -34,7 +34,7 @@ public class TerranBunker {
 	public static boolean shouldBuild() {
 		int bunkers = UnitCounter.getNumberOfUnits(type);
 
-		if (_skipForTurns > 0) {
+		if (_skipForTurns > 0 && xvr.getTimeSeconds() > 400) {
 			_skipForTurns--;
 			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
 		}
@@ -56,7 +56,8 @@ public class TerranBunker {
 
 			int infantryUnits = UnitCounter.getNumberOfInfantryUnits();
 
-			if (bunkers == 0 || (GLOBAL_MAX_BUNKERS >= 2 && bunkers < 2)) {
+			if (bunkers <= 1) {
+				// System.out.println("######## BUNKER! " + bunkers);
 				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
 
@@ -389,6 +390,9 @@ public class TerranBunker {
 			properBuildTile = Constructing.getLegitTileToBuildNear(type, location, 0,
 					maximumDistance);
 		}
+
+		// System.out.println("TILE = " + properBuildTile.toStringLocation());
+
 		return properBuildTile;
 	}
 

@@ -161,7 +161,7 @@ public class BunkerManager {
 		boolean enemyIsNearby = nearestEnemy != null
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
-		if (enemyIsNearby || TerranSiegeTank.getNumberOfUnits() >= 2) {
+		if (enemyIsNearby && xvr.getTimeSeconds() < 300 || unit.isWounded()) {
 			return false;
 		}
 

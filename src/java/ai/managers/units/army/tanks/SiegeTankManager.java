@@ -1,4 +1,4 @@
-package ai.managers.units.army;
+package ai.managers.units.army.tanks;
 
 import java.util.HashMap;
 
@@ -10,8 +10,8 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.TankTargeting;
 import ai.handling.units.UnitActions;
-import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
+import ai.managers.units.coordination.ArmyRendezvousManager;
 
 public class SiegeTankManager {
 
@@ -24,8 +24,8 @@ public class SiegeTankManager {
 	// =========================================================
 
 	static class TargettingDetails {
-		static boolean _isUnitWhereItShouldBe;
-		static MapPoint _properPlace;
+		// static boolean _isUnitWhereItShouldBe;
+		// static MapPoint _properPlace;
 		static Unit _nearestEnemy;
 		static Unit _nearestEnemyBuilding;
 		static double _nearestEnemyDist;
@@ -40,10 +40,11 @@ public class SiegeTankManager {
 	// =========================================================
 
 	public static void act(Unit unit) {
-		TargettingDetails._properPlace = unit.getProperPlaceToBe();
-		updateProperPlaceToBeForTank(unit);
-		TargettingDetails._isUnitWhereItShouldBe = TargettingDetails._properPlace == null
-				|| TargettingDetails._properPlace.distanceTo(unit) <= 3;
+		// TargettingDetails._properPlace = unit.getProperPlaceToBe();
+		// updateProperPlaceToBeForTank(unit);
+		// TargettingDetails._isUnitWhereItShouldBe =
+		// TargettingDetails._properPlace == null
+		// || TargettingDetails._properPlace.distanceTo(unit) <= 3;
 		TargettingDetails._nearestEnemy = xvr.getNearestGroundEnemy(unit);
 		TargettingDetails._nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding(unit);
 		TargettingDetails._nearestEnemyDist = TargettingDetails._nearestEnemy != null ? TargettingDetails._nearestEnemy
@@ -58,17 +59,31 @@ public class SiegeTankManager {
 
 	// =========================================================
 
-	private static void updateProperPlaceToBeForTank(Unit unit) {
-		Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit, xvr.getUnitsArmyNonTanks(), true,
-				false);
-		if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
-			TargettingDetails._properPlace = nearestArmyUnit;
-		}
+	// private static void updateProperPlaceToBeForTank(Unit unit) {
+	// Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit,
+	// xvr.getUnitsArmyNonTanks(), true,
+	// false);
+	// if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
+	// TargettingDetails._properPlace = nearestArmyUnit;
+	// }
+	//
+	// if (StrategyManager.isAnyAttackFormPending()) {
+	// TargettingDetails._properPlace = StrategyManager.getTargetPoint();
+	// }
+	// }
 
-		if (StrategyManager.isAnyAttackFormPending()) {
-			TargettingDetails._properPlace = StrategyManager.getTargetPoint();
-		}
-	}
+	// private static void updateProperPlaceToBeForTank(Unit unit) {
+	// Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit,
+	// xvr.getUnitsArmyNonTanks(), true,
+	// false);
+	// if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
+	// TargettingDetails._properPlace = nearestArmyUnit;
+	// }
+	//
+	// if (StrategyManager.isAnyAttackFormPending()) {
+	// TargettingDetails._properPlace = StrategyManager.getTargetPoint();
+	// }
+	// }
 
 	private static void actWhenInNormalMode(Unit unit) {
 		if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
@@ -86,7 +101,8 @@ public class SiegeTankManager {
 			unit.siege();
 		}
 
-		UnitActions.attackTo(unit, TargettingDetails._properPlace);
+		// UnitActions.attackTo(unit, TargettingDetails._properPlace);
+		UnitActions.attackTo(unit, ArmyRendezvousManager.getArmyMedianPoint());
 	}
 
 	private static boolean mustSiege(Unit unit) {
@@ -123,7 +139,8 @@ public class SiegeTankManager {
 		}
 
 		// If tank from various reasons shouldn't be here, unsiege.
-		if (!enemyAlmostInSight && !shouldSiege(unit) && !unit.isStartingAttack()) {
+		if (!enemyAlmostInSight && !unit.isStartingAttack() && !shouldSiege(unit)
+				&& !mustSiege(unit)) {
 			infoTankIsConsideringUnsieging(unit);
 		}
 
@@ -147,7 +164,7 @@ public class SiegeTankManager {
 
 		if (isUnsiegingIdeaTimerExpired(unit)) {
 			unit.setAiOrder("Unsiege: OK");
-			if (!mustSiege(unit)) {
+			if (!mustSiege(unit) && !shouldSiege(unit)) {
 				unit.unsiege();
 			}
 		}
@@ -175,8 +192,7 @@ public class SiegeTankManager {
 
 		// Check if should siege, based on unit proper place to be (e.g. near
 		// the bunker), but consider the neighborhood, if it's safe etc.
-		if ((TargettingDetails._isUnitWhereItShouldBe && notTooManySiegedInArea(unit))
-				|| isEnemyNearShootRange) {
+		if (isTankWhereItShouldBe(unit) && notTooManySiegedInArea(unit) || isEnemyNearShootRange) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)) {
 				return true;
 			}
@@ -197,6 +213,15 @@ public class SiegeTankManager {
 		}
 
 		return false;
+	}
+
+	private static boolean isTankWhereItShouldBe(Unit unit) {
+		MapPoint rendezvous = ArmyRendezvousManager.getArmyMedianPoint();
+		if (rendezvous != null) {
+			return unit.distanceTo(rendezvous) < 4.7;
+		} else {
+			return true;
+		}
 	}
 
 	private static boolean notTooManySiegedInArea(Unit unit) {

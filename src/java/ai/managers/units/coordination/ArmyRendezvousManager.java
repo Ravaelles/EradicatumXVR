@@ -70,6 +70,10 @@ public class ArmyRendezvousManager {
 		return TerranSiegeTank.getFrontTank();
 	}
 
+	private static MapPoint getRendezvousPointForTanks() {
+		return getArmyMedianPoint();
+	}
+
 	// =========================================================
 
 	private static Unit defineRendezvousMedicIfPossible(Unit unit) {
@@ -172,6 +176,23 @@ public class ArmyRendezvousManager {
 		}
 		return new MapPointInstance((int) ((double) totalX / counter),
 				(int) ((double) totalY / counter));
+	}
+
+	public static MapPoint getArmyMedianPoint() {
+		ArrayList<Integer> xCoordinates = new ArrayList<Integer>();
+		ArrayList<Integer> yCoordinates = new ArrayList<Integer>();
+		java.util.Collections.sort(xCoordinates);
+		java.util.Collections.sort(yCoordinates);
+		for (Unit tank : xvr.getUnitsArmy()) {
+			xCoordinates.add(tank.getTx());
+			yCoordinates.add(tank.getTy());
+		}
+
+		int middleIndex = xCoordinates.size() / 2;
+		MapPointInstance medianPoint = new MapPointInstance(xCoordinates.get(middleIndex),
+				yCoordinates.get(middleIndex));
+
+		return medianPoint;
 	}
 
 	public static MapPoint getFlyersGatheringPoint() {
