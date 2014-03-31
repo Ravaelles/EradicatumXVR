@@ -30,6 +30,7 @@ import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranSiegeTank;
+import ai.terran.TerranVulture;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
 
@@ -46,7 +47,7 @@ public class XVR {
 	 * There are several methods of type like "getUnitsNear". This value is this
 	 * "near" distance, expressed in game tiles (32 pixels).
 	 */
-	private static final int WHAT_IS_NEAR_DISTANCE = 9;
+	private static final int WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING = 10;
 
 	private static XVR xvr;
 
@@ -916,9 +917,8 @@ public class XVR {
 			if (worker.isCompleted()
 					&& !worker.isConstructing()
 					&& !worker.isRepairing()
-					&& !worker.isUnderAttack()
 					&& (getTimeSeconds() <= 100 || (getTimeSeconds() > 100
-							&& !worker.equals(WorkerManager.getProfessionalRepairer()) && !worker
+							&& !WorkerManager.isProfessionalRepairer(worker) && !worker
 								.equals(WorkerManager.getGuyToChaseOthers())))) {
 				freeWorkers.add(worker);
 			}
@@ -943,7 +943,7 @@ public class XVR {
 
 	public Unit getEnemyDetectorNear(int x, int y) {
 		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y),
-				WHAT_IS_NEAR_DISTANCE, bwapi.getEnemyUnits());
+				WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING, bwapi.getEnemyUnits());
 		for (Unit enemy : enemiesNearby) {
 			if (enemy.isCompleted() && enemy.getType().isDetector()) {
 				return enemy;
@@ -967,8 +967,8 @@ public class XVR {
 	}
 
 	public boolean isEnemyDefensiveAirBuildingNear(MapPoint point) {
-		ArrayList<Unit> enemiesNearby = getUnitsInRadius(point, WHAT_IS_NEAR_DISTANCE,
-				getEnemyBuildings());
+		ArrayList<Unit> enemiesNearby = getUnitsInRadius(point,
+				WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING, getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackAirUnits()) {
@@ -982,13 +982,12 @@ public class XVR {
 		return false;
 	}
 
-	public Unit getEnemyDefensiveGroundBuildingNear(MapPoint point) {
-		return getEnemyDefensiveGroundBuildingNear(point.getX(), point.getY());
+	public Unit getEnemyDefensiveGroundBuildingNear(Unit unit) {
+		return getEnemyDefensiveGroundBuildingNear(unit, 14);
 	}
 
-	public Unit getEnemyDefensiveGroundBuildingNear(int x, int y, int tileRadius) {
-		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y),
-				WHAT_IS_NEAR_DISTANCE, getEnemyBuildings());
+	public Unit getEnemyDefensiveGroundBuildingNear(Unit unit, int tileRadius) {
+		ArrayList<Unit> enemiesNearby = getUnitsInRadius(unit, tileRadius, getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
 			if (enemy.isCompleted() && enemy.canAttackGroundUnits()) {
 				// if (enemy.isCompleted() && enemy.canAttackGroundUnits()) {
@@ -997,7 +996,9 @@ public class XVR {
 				// .getMaxRangeInTiles()) {
 				System.out.println(enemy.getID() + ": " + enemy.getName());
 
-				if (getDistanceBetween(enemy, x, y) <= WHAT_IS_NEAR_DISTANCE) {
+				int minDistance = !unit.getType().isVulture() ? WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING
+						: TerranVulture.SAFE_DISTANCE_FROM_ENEMY_DEFENSIVE_BUILDING;
+				if (getDistanceBetween(enemy, unit) <= minDistance) {
 					return enemy;
 				}
 			}
@@ -1005,13 +1006,9 @@ public class XVR {
 		return null;
 	}
 
-	public Unit getEnemyDefensiveGroundBuildingNear(int x, int y) {
-		return getEnemyDefensiveGroundBuildingNear(x, y, WHAT_IS_NEAR_DISTANCE);
-	}
-
 	public Unit getEnemyDefensiveAirBuildingNear(int x, int y) {
 		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y),
-				WHAT_IS_NEAR_DISTANCE, getEnemyBuildings());
+				WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING, getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackAirUnits()) {

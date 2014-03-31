@@ -216,7 +216,7 @@ public class SiegeTankManager {
 	}
 
 	private static boolean isTankWhereItShouldBe(Unit unit) {
-		MapPoint rendezvous = ArmyRendezvousManager.getArmyMedianPoint();
+		MapPoint rendezvous = ArmyRendezvousManager.getRendezvousPointForTanks();
 		if (rendezvous != null) {
 			return unit.distanceTo(rendezvous) < 4.7;
 		} else {

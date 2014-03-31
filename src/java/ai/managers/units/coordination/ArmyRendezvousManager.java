@@ -70,7 +70,7 @@ public class ArmyRendezvousManager {
 		return TerranSiegeTank.getFrontTank();
 	}
 
-	private static MapPoint getRendezvousPointForTanks() {
+	public static MapPoint getRendezvousPointForTanks() {
 		return getArmyMedianPoint();
 	}
 
@@ -183,9 +183,9 @@ public class ArmyRendezvousManager {
 		ArrayList<Integer> yCoordinates = new ArrayList<Integer>();
 		java.util.Collections.sort(xCoordinates);
 		java.util.Collections.sort(yCoordinates);
-		for (Unit tank : xvr.getUnitsArmy()) {
-			xCoordinates.add(tank.getTx());
-			yCoordinates.add(tank.getTy());
+		for (Unit armyUnit : xvr.getUnitsArmy()) {
+			xCoordinates.add(armyUnit.getTx());
+			yCoordinates.add(armyUnit.getTy());
 		}
 
 		int middleIndex = xCoordinates.size() / 2;

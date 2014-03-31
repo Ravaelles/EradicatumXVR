@@ -24,6 +24,8 @@ public class MissionProtectBase {
 		if (unit.distanceTo(protectPoint) > 3) {
 			UnitActions.attackTo(unit, protectPoint);
 			unit.setAiOrder("Protect the base");
+		} else {
+			UnitActions.holdPosition(unit);
 		}
 	}
 

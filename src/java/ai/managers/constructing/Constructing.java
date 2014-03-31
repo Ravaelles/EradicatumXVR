@@ -261,10 +261,10 @@ public class Constructing {
 					if (canBuildAt(place, type)) {
 						// && isBuildTileFullyBuildableFor(builderID, i, j,
 						// buildingTypeID)
-						Unit optimalBuilder = xvr.getOptimalBuilder(place);
-						if (optimalBuilder != null
+						Unit builderUnit = xvr.getRandomWorker();
+						if (builderUnit != null
 								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
-										optimalBuilder.getID(), i, j))) {
+										builderUnit.getID(), i, j))) {
 							if ((isBase || !isTooNearMineralsOrGeyser(type, place))
 									&& (isBase || isEnoughPlaceToOtherBuildings(place, type))
 									&& (isBase || !isOverlappingNextBase(place, type))

@@ -92,11 +92,8 @@ public class ArmyUnitBasicBehavior {
 				}
 				return false;
 			} else {
-				System.out.println("AVOID: " + unit.getName() + " / "
-						+ unit.distanceTo(defensiveBuilding));
 				UnitActions.moveAwayFromUnit(unit, defensiveBuilding);
-				// UnitActions.moveToSafePlace(unit);
-				unit.setIsRunningFromEnemyNow();
+				unit.setIsRunningFromEnemyNow(defensiveBuilding);
 				unit.setAiOrder("Avoid building");
 				return true;
 			}

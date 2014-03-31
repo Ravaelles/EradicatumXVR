@@ -24,6 +24,7 @@ public class TerranVulture {
 	private static UnitTypes unitType = UnitTypes.Terran_Vulture;
 
 	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.85;
+	public static final int SAFE_DISTANCE_FROM_ENEMY_DEFENSIVE_BUILDING = 11;
 
 	private static final int MINIMUM_VULTURES_TO_DO_SCOUTING = 5;
 

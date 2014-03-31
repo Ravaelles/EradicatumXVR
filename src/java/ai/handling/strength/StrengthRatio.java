@@ -86,7 +86,7 @@ public class StrengthRatio {
 
 		// If there's at least one building like cannon, sunken colony, bunker,
 		// then increase range of units search and look again for enemy units.
-		if (xvr.getEnemyDefensiveGroundBuildingNear(unit.getX(), unit.getY(), BATTLE_RADIUS_ENEMIES
+		if (xvr.getEnemyDefensiveGroundBuildingNear(unit, BATTLE_RADIUS_ENEMIES
 				+ RANGE_BONUS_IF_ENEMY_DEF_BUILDING_NEAR) != null) {
 			_rangeBonus += RANGE_BONUS_IF_ENEMY_DEF_BUILDING_NEAR;
 		}

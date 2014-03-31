@@ -94,13 +94,14 @@ public class UnitDamages {
 	}
 
 	public static double getGroundAttackNormalized(UnitType type) {
-		if (!groundAttackValuesPerSec.containsKey(type)) {
-			System.out.println("#############################");
-			System.out.println(type + " type:" + type.getName());
-			System.out.println("#############################");
+		if (groundAttackValuesPerSec.containsKey(type)) {
+			// System.out.println("#############################");
+			// System.out.println(type + " type:" + type.getName());
+			// System.out.println("#############################");
+			return groundAttackValuesPerSec.get(type);
+		} else {
 			return 0;
 		}
-		return groundAttackValuesPerSec.get(type);
 	}
 
 }

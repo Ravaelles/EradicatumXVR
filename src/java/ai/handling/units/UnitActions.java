@@ -262,8 +262,7 @@ public class UnitActions {
 				.isEnemyDefensiveGroundBuildingNear(unit);
 		if (isEnemyBuildingNear) {
 			Unit enemyBuilding = isAirUnit ? xvr.getEnemyDefensiveAirBuildingNear(unit.getX(),
-					unit.getY()) : xvr
-					.getEnemyDefensiveGroundBuildingNear(unit.getX(), unit.getY());
+					unit.getY()) : xvr.getEnemyDefensiveGroundBuildingNear(unit);
 			UnitActions.moveAwayFromUnitIfPossible(unit, enemyBuilding, RUN_DISTANCE);
 			return true;
 		}

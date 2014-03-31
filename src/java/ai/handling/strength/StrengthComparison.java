@@ -42,6 +42,12 @@ public class StrengthComparison {
 			UnitType type = enemy.getType();
 			if (!type.isBuilding() && !type.isSpiderMine() && !type.isLarvaOrEgg()) {
 				enemySupply += type.getSupplyRequired();
+
+				// Probes are counted x2... dunno why. Maybe it's my bug, maybe
+				// it's not.
+				if (type.isWorker()) {
+					enemySupply--;
+				}
 			}
 		}
 

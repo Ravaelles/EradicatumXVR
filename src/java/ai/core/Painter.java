@@ -543,6 +543,16 @@ public class Painter {
 				bwapi.drawLine(u.getX(), u.getY(), enemyX, enemyY, BWColor.YELLOW, false);
 			}
 		}
+
+		// =========================================================
+		// Paint unit connection which represent enemy unit that our unit is
+		// RUNNING from
+		if (u.getLastTimeRunFromEnemyUnit() != null
+				&& xvr.getTimeSeconds() + 2 <= u.getLastTimeRunFromEnemyTime()) {
+			Unit enemyUnit = u.getLastTimeRunFromEnemyUnit();
+			bwapi.drawLine(u.getX(), u.getY(), enemyUnit.getX(), enemyUnit.getY(), BWColor.BROWN,
+					false);
+		}
 	}
 
 	private static void paintBuilding(XVR xvr, JNIBWAPI bwapi, Unit u) {

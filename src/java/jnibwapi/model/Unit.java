@@ -1037,6 +1037,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	private int lastTimeRunFromEnemy = -1;
+	private Unit lastTimeRunFromEnemyUnit = null;
 
 	public boolean isRunningFromEnemy() {
 		return xvr.getTimeSeconds() - lastTimeRunFromEnemy < 2;
@@ -1044,6 +1045,19 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public void setIsRunningFromEnemyNow() {
 		lastTimeRunFromEnemy = xvr.getTimeSeconds();
+	}
+
+	public void setIsRunningFromEnemyNow(Unit isRunningFromThisUnit) {
+		setIsRunningFromEnemyNow();
+		lastTimeRunFromEnemyUnit = isRunningFromThisUnit;
+	}
+
+	public Unit getLastTimeRunFromEnemyUnit() {
+		return lastTimeRunFromEnemyUnit;
+	}
+
+	public int getLastTimeRunFromEnemyTime() {
+		return lastTimeRunFromEnemy;
 	}
 
 	public double getStrengthRatio() {

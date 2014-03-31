@@ -3,6 +3,7 @@ package ai.managers.units.workers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
@@ -24,34 +25,38 @@ import ai.utils.RUtilities;
 public class WorkerManager {
 
 	public static final int WORKER_INDEX_GUY_TO_CHASE_OTHERS = 1;
-	public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
-	public static final ArrayList<Integer> EXTRA_PROFESSIONAL_REPAIRERERS = new ArrayList<>();
+	// public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
+	// public static final ArrayList<Integer> EXTRA_PROFESSIONAL_REPAIRERERS =
+	// new ArrayList<>();
 	public static final int WORKER_INDEX_EXPLORER = 6; // 6
 	public static final int DEFEND_BASE_RADIUS = 23;
 
 	private static XVR xvr = XVR.getInstance();
 
 	private static int _counter;
-	private static Unit professionalRepairer = null;
+	// private static Unit professionalRepairer = null;
+	private static List<Integer> professionalRepairersIndices = new ArrayList<>();
+	private static List<Unit> lastProfessionalRepairers = new ArrayList<>();
 	private static Unit guyToChaseOthers = null;
 
 	// ======================
 
 	@SuppressWarnings("unused")
-	private static AutoLoader instance = new AutoLoader();
+	private static ProfessionalRepairersSettings instance = new ProfessionalRepairersSettings();
 
-	private static class AutoLoader {
+	private static class ProfessionalRepairersSettings {
 
-		private AutoLoader() {
-			EXTRA_PROFESSIONAL_REPAIRERERS.add(20);
-			// EXTRA_PROFESSIONAL_REPAIRERERS.add(21);
-			// EXTRA_PROFESSIONAL_REPAIRERERS.add(22);
+		private ProfessionalRepairersSettings() {
+			professionalRepairersIndices.add(3);
+			professionalRepairersIndices.add(19);
+			professionalRepairersIndices.add(20);
 		}
 	}
 
 	// ======================
 
 	public static void act() {
+		lastProfessionalRepairers.clear();
 		_counter = 0;
 
 		// ==================================
@@ -90,7 +95,7 @@ public class WorkerManager {
 		// return;
 		// }
 
-		if (unit.isIdle() && _counter != WORKER_INDEX_PROFESSIONAL_REPAIRER) {
+		if (unit.isIdle()) {
 			gatherResources(unit, xvr.getFirstBase());
 		}
 
@@ -220,6 +225,11 @@ public class WorkerManager {
 		}
 	}
 
+	/**
+	 * Used in case of early in-game emergency situation like e.g. Probe trying
+	 * to build offensive Photon Cannon at the back of the base. See: AIUR's
+	 * cheese strategy.
+	 */
 	private static void defendBase(Unit worker) {
 		if (TerranCommandCenter.getNumberOfUnits() > 1) {
 			return;
@@ -305,14 +315,16 @@ public class WorkerManager {
 		}
 	}
 
-	private static boolean isProfessionalRepairer(Unit unit) {
-		return _counter == WORKER_INDEX_PROFESSIONAL_REPAIRER
-				|| (EXTRA_PROFESSIONAL_REPAIRERERS.contains(_counter));
+	public static boolean isProfessionalRepairer(Unit unit) {
+		return lastProfessionalRepairers.contains(_counter);
+		// return _counter == WORKER_INDEX_PROFESSIONAL_REPAIRER
+		// || (EXTRA_PROFESSIONAL_REPAIRERERS.contains(_counter));
 	}
 
 	private static void handleProfessionalRepairer(Unit unit) {
 		Unit beHere = null;
-		professionalRepairer = unit;
+		// professionalRepairer = unit;
+		lastProfessionalRepairers.add(unit);
 
 		if (unit.isRepairing() || unit.isConstructing()) {
 			return;
@@ -331,6 +343,8 @@ public class WorkerManager {
 
 		if (unit.distanceTo(beHere) >= 5) {
 			UnitActions.moveTo(unit, beHere);
+		} else {
+			UnitActions.holdPosition(unit);
 		}
 	}
 
@@ -515,9 +529,9 @@ public class WorkerManager {
 		return nearestUnit;
 	}
 
-	public static Unit getProfessionalRepairer() {
-		return professionalRepairer;
-	}
+	// public static Unit getProfessionalRepairer() {
+	// return professionalRepairer;
+	// }
 
 	public static Unit getGuyToChaseOthers() {
 		return guyToChaseOthers;
