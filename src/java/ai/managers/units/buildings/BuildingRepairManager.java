@@ -44,6 +44,8 @@ public class BuildingRepairManager {
 
 			for (int i = 0; i < numberOfRequiredRepairers - currentRepairers; i++) {
 				Unit repairer = WorkerManager.findBestRepairerNear(building);
+				// System.out.println("    repairer: "
+				// + (repairer != null ? repairer.getID() : "null"));
 				repairBuilding(repairer, building);
 			}
 		}

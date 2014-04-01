@@ -451,15 +451,24 @@ public class TerranCommandCenter {
 			return false;
 		}
 
-		// Quick FIRST PYLON
-		// if (BotStrategyManager.isExpandWithCannons()) {
+		// =========================================================
+
+		if (TerranBunker.getNumberOfUnits() < TerranBunker.GLOBAL_MAX_BUNKERS
+				&& TerranBunker.shouldBuild() && !xvr.canAfford(150)) {
+			return false;
+		}
+
+		// =========================================================
+
+		// Quick FIRST DEPOT
+		// if (BotStrategyManager.isExpandWithbunkers()) {
 		if (workers == 9 && (depots == 0 || !weAreBuildingDepot) && !xvr.canAfford(150)) {
 			return false;
 
 		}
 		// }
 
-		// Quick FIRST CANNON
+		// Quick FIRST BUNKER
 		if (BotStrategyManager.isExpandWithBunkers()) {
 			if (depots == 2) {
 				if (!Constructing.weAreBuilding(TerranBunker.getBuildingType())

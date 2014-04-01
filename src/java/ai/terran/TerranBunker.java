@@ -384,7 +384,8 @@ public class TerranBunker {
 		// }
 
 		if (nearBunker != null && nearBunker.distanceTo(location) <= maximumDistance) {
-			properBuildTile = Constructing.getLegitTileToBuildNear(type, nearBunker, 0,
+			MapPoint secondBunkerTile = MapPointInstance.getPointBetween(nearBunker, base, -2);
+			properBuildTile = Constructing.getLegitTileToBuildNear(type, secondBunkerTile, 0,
 					maximumDistance);
 		} else {
 			properBuildTile = Constructing.getLegitTileToBuildNear(type, location, 0,

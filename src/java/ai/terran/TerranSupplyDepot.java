@@ -50,6 +50,11 @@ public class TerranSupplyDepot {
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
 
+		if (TerranBunker.getNumberOfUnits() < TerranBunker.GLOBAL_MAX_BUNKERS
+				&& TerranBunker.shouldBuild() && !xvr.canAfford(200)) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		// ZERG RUSH
 		if (XVR.isEnemyZerg()) {
 			if (barracks == 0) {

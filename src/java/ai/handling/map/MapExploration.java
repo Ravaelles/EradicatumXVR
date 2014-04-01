@@ -299,7 +299,7 @@ public class MapExploration {
 			Unit closestBuilding = null;
 			double closestDistance = 99999;
 
-			for (Unit building : enemyBuildingsDiscovered.values()) {
+			for (Unit building : xvr.getEnemyBuildings()) {
 				if (building.getType().isOnGeyser()
 						&& (building.isInvincible() || building.getPlayerID() == xvr.NEUTRAL
 								.getID())) {

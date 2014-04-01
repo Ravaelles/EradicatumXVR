@@ -9,6 +9,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
+import ai.managers.strategy.StrategyManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -71,7 +72,15 @@ public class ArmyRendezvousManager {
 	}
 
 	public static MapPoint getRendezvousPointForTanks() {
-		return getArmyMedianPoint();
+		if (StrategyManager.isAnyAttackFormPending()) {
+			return getArmyMedianPoint();
+		} else {
+			if (TerranBunker.getNumberOfUnitsCompleted() > 0) {
+				return defineRendezvousBunkerIfPossible();
+			} else {
+				return getArmyMedianPoint();
+			}
+		}
 	}
 
 	// =========================================================
@@ -181,12 +190,12 @@ public class ArmyRendezvousManager {
 	public static MapPoint getArmyMedianPoint() {
 		ArrayList<Integer> xCoordinates = new ArrayList<Integer>();
 		ArrayList<Integer> yCoordinates = new ArrayList<Integer>();
+		for (Unit armyUnit : xvr.getUnitsArmy()) {
+			xCoordinates.add(armyUnit.getX());
+			yCoordinates.add(armyUnit.getY());
+		}
 		java.util.Collections.sort(xCoordinates);
 		java.util.Collections.sort(yCoordinates);
-		for (Unit armyUnit : xvr.getUnitsArmy()) {
-			xCoordinates.add(armyUnit.getTx());
-			yCoordinates.add(armyUnit.getTy());
-		}
 
 		int middleIndex = xCoordinates.size() / 2;
 		MapPointInstance medianPoint = new MapPointInstance(xCoordinates.get(middleIndex),

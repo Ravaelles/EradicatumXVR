@@ -176,7 +176,7 @@ public class BunkerManager {
 			// }
 		}
 
-		return false;
+		return true;
 	}
 
 	public static boolean isBunkerTooFarFromCombat(Unit unit, Unit bunker) {

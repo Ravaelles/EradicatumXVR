@@ -47,9 +47,40 @@ public class WorkerManager {
 	private static class ProfessionalRepairersSettings {
 
 		private ProfessionalRepairersSettings() {
-			professionalRepairersIndices.add(3);
+			professionalRepairersIndices.clear();
+			// professionalRepairersIndices.add(3);
 			professionalRepairersIndices.add(19);
 			professionalRepairersIndices.add(20);
+		}
+	}
+
+	private static void handleProfessionalRepairer(Unit unit) {
+		unit.setAiOrder("Ima Repairer, boetch");
+
+		Unit beHere = null;
+		// professionalRepairer = unit;
+		lastProfessionalRepairers.add(unit);
+
+		if (unit.isRepairing() || unit.isConstructing()) {
+			return;
+		}
+
+		if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
+			MapPoint centerPoint = MapExploration.getNearestEnemyBuilding();
+			if (centerPoint == null) {
+				centerPoint = MapExploration.getMostDistantBaseLocation(unit);
+			}
+			beHere = xvr.getNearestTankTo(centerPoint);
+		} else {
+
+			beHere = xvr.getUnitOfTypeMostFarTo(TerranBunker.getBuildingType(), xvr.getFirstBase(),
+					true);
+		}
+
+		if (unit.distanceTo(beHere) >= 3) {
+			UnitActions.moveTo(unit, beHere);
+		} else {
+			UnitActions.holdPosition(unit);
 		}
 	}
 
@@ -124,7 +155,7 @@ public class WorkerManager {
 			return;
 		}
 
-		if (RunManager.runFromCloseOpponentsIfNecessary(unit)) {
+		if (unit.isWounded() && RunManager.runFromCloseOpponentsIfNecessary(unit)) {
 			unit.setAiOrder("Fuck...");
 			return;
 		}
@@ -316,36 +347,10 @@ public class WorkerManager {
 	}
 
 	public static boolean isProfessionalRepairer(Unit unit) {
-		return lastProfessionalRepairers.contains(_counter);
+		return professionalRepairersIndices.contains(_counter)
+				|| lastProfessionalRepairers.contains(unit);
 		// return _counter == WORKER_INDEX_PROFESSIONAL_REPAIRER
 		// || (EXTRA_PROFESSIONAL_REPAIRERERS.contains(_counter));
-	}
-
-	private static void handleProfessionalRepairer(Unit unit) {
-		Unit beHere = null;
-		// professionalRepairer = unit;
-		lastProfessionalRepairers.add(unit);
-
-		if (unit.isRepairing() || unit.isConstructing()) {
-			return;
-		}
-
-		if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
-			MapPoint centerPoint = MapExploration.getNearestEnemyBuilding();
-			if (centerPoint == null) {
-				centerPoint = MapExploration.getMostDistantBaseLocation(unit);
-			}
-			beHere = xvr.getNearestTankTo(centerPoint);
-		} else {
-			beHere = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
-					TerranCommandCenter.getSecondBaseLocation());
-		}
-
-		if (unit.distanceTo(beHere) >= 5) {
-			UnitActions.moveTo(unit, beHere);
-		} else {
-			UnitActions.holdPosition(unit);
-		}
 	}
 
 	public static void gatherResources(Unit worker, Unit nearestBase) {
@@ -518,7 +523,7 @@ public class WorkerManager {
 		while (nearestUnit == null && counter < 2) {
 			for (Unit otherUnit : xvr.getUnitsOfType(UnitManager.WORKER)) {
 				if (!otherUnit.isCompleted() || otherUnit.isRepairing()
-						|| otherUnit.isConstructing() || !otherUnit.isInterruptable()) {
+						|| otherUnit.isConstructing()) {
 					continue;
 				}
 
@@ -528,14 +533,17 @@ public class WorkerManager {
 				}
 
 				double distance = xvr.getDistanceBetween(otherUnit, unit);
-				if (distance < nearestDistance
-						&& RepairAndSons.getUnitAssignedToRepairBy(otherUnit) == null) {
+				if (distance < nearestDistance) {
+
+					// && RepairAndSons.getUnitAssignedToRepairBy(otherUnit) ==
+					// null
 					nearestDistance = distance;
 					nearestUnit = otherUnit;
 				}
 			}
 
 			counter++;
+			onlyHealthy = false;
 		}
 
 		return nearestUnit;

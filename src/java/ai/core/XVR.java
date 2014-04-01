@@ -408,6 +408,13 @@ public class XVR {
 		return getDistanceBetween(u1.getX(), u1.getY(), point.getX(), point.getX());
 	}
 
+	public double getDistancePathBetween(MapPoint p1, MapPoint p2) {
+		if (p1 == null || p2 == null) {
+			return -1;
+		}
+		return xvr.getMap().getGroundDistance(p1, p2);
+	}
+
 	public double getDistanceBetween(Unit u1, Unit u2) {
 		if (u2 == null) {
 			return -1;
@@ -482,12 +489,31 @@ public class XVR {
 		Unit nearestUnit = null;
 
 		for (Unit otherUnit : getUnitsOfType(type)) {
-			if (allowIncompleted || !otherUnit.isCompleted()) {
+			if (!allowIncompleted && !otherUnit.isCompleted()) {
 				continue;
 			}
 
 			double distance = getDistanceBetween(otherUnit, x, y);
 			if (distance < nearestDistance) {
+				nearestDistance = distance;
+				nearestUnit = otherUnit;
+			}
+		}
+
+		return nearestUnit;
+	}
+
+	public Unit getUnitOfTypeMostFarTo(UnitTypes type, MapPoint point, boolean allowIncompleted) {
+		double nearestDistance = -2;
+		Unit nearestUnit = null;
+
+		for (Unit otherUnit : getUnitsOfType(type)) {
+			if (!allowIncompleted && !otherUnit.isCompleted()) {
+				continue;
+			}
+
+			double distance = getDistancePathBetween(otherUnit, point);
+			if (distance > nearestDistance) {
 				nearestDistance = distance;
 				nearestUnit = otherUnit;
 			}
@@ -594,29 +620,18 @@ public class XVR {
 	public int countUnitsInRadius(int x, int y, int tileRadius, boolean onlyMyUnits) {
 		return getUnitsInRadius(new MapPointInstance(x, y), tileRadius,
 				(onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits())).size();
-		// return countUnitsInRadius(new MapPointInstance(x, y), tileRadius,
-		// (onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits()));
 	}
 
-	// public int countUnitsInRadius(MapPoint point, int tileRadius,
-	// Collection<Unit> units) {
-	// int result = 0;
-	//
-	// for (Unit unit : units) {
-	// if (!unit.getType().isBuilding() && getDistanceBetween(unit, point) <=
-	// tileRadius) {
-	// result++;
-	// }
-	// }
-	//
-	// return result;
-	// }
+	public int countUnitsInRadius(MapPoint point, double tileRadius, Collection<Unit> units) {
+		return getUnitsInRadius(point, tileRadius, units).size();
+	}
 
-	public ArrayList<Unit> getArmyUnitsInRadius(int x, int y, int tileRadius, boolean onlyMyUnits) {
+	public ArrayList<Unit> getArmyUnitsInRadius(MapPoint point, double tileRadius,
+			boolean onlyMyUnits) {
 		ArrayList<Unit> resultList = new ArrayList<Unit>();
 
 		for (Unit unit : (onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits())) {
-			if (unit.getType().isArmy() && getDistanceBetween(unit, x, y) <= tileRadius) {
+			if (unit.getType().isArmy() && getDistanceBetween(unit, point) <= tileRadius) {
 				resultList.add(unit);
 			}
 		}
@@ -973,7 +988,7 @@ public class XVR {
 			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackAirUnits()) {
 				int maxEnemyRange = enemy.getType().getAirWeapon().getMaxRangeInTiles();
-				if (point.distanceTo(enemy) <= maxEnemyRange + 1) {
+				if (point.distanceTo(enemy) <= maxEnemyRange + 2.5) {
 					return true;
 				}
 				return true;
@@ -989,14 +1004,22 @@ public class XVR {
 	public Unit getEnemyDefensiveGroundBuildingNear(Unit unit, int tileRadius) {
 		ArrayList<Unit> enemiesNearby = getUnitsInRadius(unit, tileRadius, getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
-			if (enemy.isCompleted() && enemy.canAttackGroundUnits()) {
+			if (enemy.canAttackGroundUnits()
+					|| (enemy.getType().isBunker() && xvr.getDistanceBetween(xvr.getFirstBase(),
+							enemy) > 20)) {
+
+				// If building isn't yet finished, skip it
+				if (!enemy.isCompleted() && !enemy.isHPAtLeastNPercent(93)) {
+					continue;
+				}
+
 				// if (enemy.isCompleted() && enemy.canAttackGroundUnits()) {
 				// if (getDistanceBetween(enemy, x, y) + 3.6 <=
 				// enemy.getType().getGroundWeapon()
 				// .getMaxRangeInTiles()) {
 				// System.out.println(enemy.getID() + ": " + enemy.getName());
 
-				int minDistance = !unit.getType().isVulture() ? WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING
+				double minDistance = !unit.getType().isVulture() ? WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING
 						: TerranVulture.SAFE_DISTANCE_FROM_ENEMY_DEFENSIVE_BUILDING;
 				if (getDistanceBetween(enemy, unit) <= minDistance) {
 					return enemy;

@@ -106,8 +106,9 @@ public class BuildingManager {
 			}
 
 			if (shouldCancelConstruction && !buildingType.isBunker()) {
-				System.out.println("CANCELLING CONSTRUCTION: " + building.getName() + " at "
-						+ building.toStringLocation());
+				// System.out.println("CANCELLING CONSTRUCTION: " +
+				// building.getName() + " at "
+				// + building.toStringLocation());
 				xvr.getBwapi().cancelConstruction(building.getID());
 			}
 		}

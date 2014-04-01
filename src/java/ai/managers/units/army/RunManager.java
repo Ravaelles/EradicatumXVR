@@ -42,11 +42,18 @@ public class RunManager {
 					distToEnemy -= enemyRange;
 				}
 
+				boolean extraCondition = false;
+				if (type.isVulture() && enemy.getType().isFlyer() && !enemy.getType().isObserver()
+						&& enemy.distanceTo(unit) <= 8) {
+					extraCondition = true;
+				}
+
 				// Define if enemy is real danger or maybe he's too far etc
 				boolean enemyCriticallyClose = distToEnemy > 0.1 && distToEnemy < safeDistance;
 				boolean enemyCanShootAtUs = !enemyCriticallyClose
 						&& !UnitManager.isUnitSafeFromEnemyShootRange(unit, enemy);
-				boolean canConsiderRunningFromEnemy = enemyCriticallyClose || enemyCanShootAtUs;
+				boolean canConsiderRunningFromEnemy = extraCondition || enemyCriticallyClose
+						|| enemyCanShootAtUs;
 
 				// If it makes sense to run from the enemy, inform unit about
 				// this fact.

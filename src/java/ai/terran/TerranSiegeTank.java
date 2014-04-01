@@ -55,12 +55,12 @@ public class TerranSiegeTank {
 		} else {
 			ArrayList<Integer> xCoordinates = new ArrayList<Integer>();
 			ArrayList<Integer> yCoordinates = new ArrayList<Integer>();
+			for (Unit tank : getAllCompletedTanks()) {
+				xCoordinates.add(tank.getX());
+				yCoordinates.add(tank.getY());
+			}
 			java.util.Collections.sort(xCoordinates);
 			java.util.Collections.sort(yCoordinates);
-			for (Unit tank : getAllCompletedTanks()) {
-				xCoordinates.add(tank.getTx());
-				yCoordinates.add(tank.getTy());
-			}
 
 			int middleIndex = xCoordinates.size() / 2;
 			MapPointInstance medianPoint = new MapPointInstance(xCoordinates.get(middleIndex),

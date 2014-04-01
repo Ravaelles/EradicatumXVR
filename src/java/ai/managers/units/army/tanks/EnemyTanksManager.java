@@ -11,6 +11,8 @@ import ai.handling.units.UnitActions;
 public class EnemyTanksManager {
 
 	private static final double SAFE_DISTANCE_FROM_ENEMY_TANK = 12.7;
+	private static final double ALWAYS_MOVE_TO_ENEMY_TANK_IF_CLOSER_THAN = 6;
+	private static final double ALWAYS_ATTACK_ENEMY_TANK_IF_CLOSER_THAN = 1.1;
 	private static final int MAXIMUM_TANKS_TO_ENGAGE_WITH_NORMAL_UNITS = 3;
 
 	private static XVR xvr = XVR.getInstance();
@@ -25,6 +27,18 @@ public class EnemyTanksManager {
 		}
 
 		Collection<Unit> allKnownEnemyTanks = getEnemyTanksThatAreDangerouslyClose(unit);
+
+		for (Unit enemyTank : allKnownEnemyTanks) {
+			double distance = enemyTank.distanceTo(unit);
+			if (distance < ALWAYS_MOVE_TO_ENEMY_TANK_IF_CLOSER_THAN) {
+				if (distance < ALWAYS_ATTACK_ENEMY_TANK_IF_CLOSER_THAN) {
+					UnitActions.attackTo(unit, enemyTank);
+				} else {
+					UnitActions.moveTo(unit, enemyTank);
+				}
+			}
+		}
+
 		if (allKnownEnemyTanks.size() <= MAXIMUM_TANKS_TO_ENGAGE_WITH_NORMAL_UNITS) {
 			return false;
 		}

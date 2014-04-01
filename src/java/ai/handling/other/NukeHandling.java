@@ -1,6 +1,5 @@
 package ai.handling.other;
 
-import java.awt.Point;
 import java.util.ArrayList;
 
 import jnibwapi.model.Unit;
@@ -23,7 +22,7 @@ public class NukeHandling {
 		// ######
 
 		nuclearDetectionPoint = new MapPointInstance(x, y);
-		Point probableGhostLocation = null;
+		MapPoint probableGhostLocation = null;
 
 		// Only ghost can release nuke so get all enemy ghosts known
 		ArrayList<Unit> enemyGhostsKnown = new ArrayList<Unit>();
@@ -46,23 +45,24 @@ public class NukeHandling {
 			System.out.println("## HOPELESS NUKE CASE!");
 		} else {
 			if (motherfucker != null) {
-				probableGhostLocation = new Point(motherfucker.getX(), motherfucker.getY());
+				probableGhostLocation = new MapPointInstance(motherfucker.getX(),
+						motherfucker.getY());
 			} else {
 				Unit someGhost = enemyGhostsKnown.get(0);
 				System.out.println("## TRYING TO GUESS THAT THIS IS: " + someGhost);
-				probableGhostLocation = new Point(someGhost.getX(), someGhost.getY());
+				probableGhostLocation = new MapPointInstance(someGhost.getX(), someGhost.getY());
 			}
 			TerranComsatStation.tryToScanPoint(nuclearDetectionPoint);
 		}
 
 		// Send all units from given radius to fight the bastard!
 		if (probableGhostLocation != null) {
-			ArrayList<Unit> armyUnitsNearby = xvr.getArmyUnitsInRadius(probableGhostLocation.x,
-					probableGhostLocation.y, 40, true);
+			ArrayList<Unit> armyUnitsNearby = xvr.getArmyUnitsInRadius(probableGhostLocation, 40,
+					true);
 			System.out.println("## ATTACKING NUKE PLACE WITH: " + armyUnitsNearby.size()
 					+ " SOLDIERS!");
 			for (Unit unit : armyUnitsNearby) {
-				UnitActions.attackTo(unit, probableGhostLocation.x, probableGhostLocation.y);
+				UnitActions.attackTo(unit, probableGhostLocation);
 			}
 		} else {
 			System.out.println("## GHOST POSITION UNKNOWN");

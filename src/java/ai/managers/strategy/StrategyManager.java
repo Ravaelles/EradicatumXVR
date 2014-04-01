@@ -68,7 +68,7 @@ public class StrategyManager {
 	@SuppressWarnings("unused")
 	private static final int EXTRA_UNITS_PER_RETREAT = 1;
 	private static final int MIN_MEDICS = 3;
-	private static final int MIN_TANKS = 7;
+	private static final int MIN_TANKS = 3;
 
 	private static int _minBattleUnits = INITIAL_MIN_UNITS;
 	private static int _lastTimeWaitCalled = 0;

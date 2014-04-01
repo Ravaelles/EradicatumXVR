@@ -95,6 +95,8 @@ public class Constructing {
 		// Refinery
 		else if (TerranRefinery.getBuildingType().ordinal() == building.ordinal()) {
 			buildTile = TerranRefinery.findTileForRefinery();
+			// System.out.println("       buildTile = " +
+			// buildTile.toStringLocation());
 			disableReportOfNoPlaceFound = true;
 		}
 
@@ -306,7 +308,7 @@ public class Constructing {
 		if (chokeTiles >= 6) {
 			return false;
 		} else {
-			return place.distanceToChokePoint(nearestChoke) <= 4.5;
+			return place.distanceToChokePoint(nearestChoke) <= 3.3;
 		}
 
 		// for (ChokePoint choke : MapExploration.getChokePoints()) {
@@ -322,7 +324,7 @@ public class Constructing {
 		if (!type.isBase()
 				&& UnitCounter.getNumberOfUnits(TerranSupplyDepot.getBuildingType()) >= 1) {
 			return xvr.getDistanceSimple(place, TerranCommandCenter.findTileForNextBase(false)
-					.translate(62, 0)) <= 6;
+					.translate(62, 48)) <= 6;
 		} else {
 			return false;
 		}
@@ -557,17 +559,24 @@ public class Constructing {
 			if (barracks == 1) {
 				canProceed = builders <= 1;
 			}
-		} else if (building.getType().isBunker()) {
-			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			int bunkers = TerranBunker.getNumberOfUnits();
-			if (bunkers != 1) {
-				canProceed = builders == 0;
-			}
-			if (bunkers == 1) {
-				canProceed = builders <= 1;
-			}
+			// } else if (building.getType().isBunker()) {
+			// int builders =
+			// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+			// int bunkers = TerranBunker.getNumberOfUnits();
+			// if (bunkers != 1) {
+			// canProceed = builders == 0;
+			// }
+			// if (bunkers == 1) {
+			// canProceed = builders <= 1;
+			// }
+			// } else if (building.getType().isBase()) {
+			// int builders =
+			// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+			// // int bases = TerranCommandCenter.getNumberOfUnits();
+			// canProceed = builders == 0;
 		} else {
-			canProceed = !weAreBuilding(building) || building.getType().isBase();
+			// || building.getType().isBase()
+			canProceed = !weAreBuilding(building);
 		}
 
 		// If there aren't multiple orders to build one building given, we can

@@ -193,7 +193,8 @@ public class SiegeTankManager {
 		// Check if should siege, based on unit proper place to be (e.g. near
 		// the bunker), but consider the neighborhood, if it's safe etc.
 		if (isTankWhereItShouldBe(unit) && notTooManySiegedInArea(unit) || isEnemyNearShootRange) {
-			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)) {
+			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)
+					&& !isNearMainBase(unit)) {
 				return true;
 			}
 		}
@@ -213,6 +214,10 @@ public class SiegeTankManager {
 		}
 
 		return false;
+	}
+
+	private static boolean isNearMainBase(Unit unit) {
+		return unit.distanceTo(xvr.getFirstBase()) < 14;
 	}
 
 	private static boolean isTankWhereItShouldBe(Unit unit) {

@@ -50,6 +50,10 @@ public class ExplorerManager {
 			return;
 		}
 
+		if (tryAvoidGettingKilled(explorer)) {
+			return;
+		}
+
 		// If explorer is marked to be discovering enemy base, but he's
 		// attacked, then unmark him from his task, thus allowing him to run.
 		if (_isDiscoveringEnemyBase && explorer.isUnderAttack() && explorer.getHP() < 24) {
@@ -110,6 +114,37 @@ public class ExplorerManager {
 
 		// Gather minerals if idle
 		gatherResourcesIfIdle();
+	}
+
+	// =========================================================
+
+	private static boolean tryAvoidGettingKilled(Unit unit) {
+		boolean isInDanger = false;
+
+		// We can get killed if there are at least two enemy units near
+		int nearEnemyUnits = xvr.countUnitsEnemyInRadius(unit, 1.5);
+		// unit.setAiOrder("TEST: " + nearEnemyUnits + " / " +
+		// xvr.getTimeSeconds());
+		if (unit.isWounded() && (nearEnemyUnits >= 2 || nearEnemyUnits == 1)) {
+			unit.setAiOrder("Run from enemies (" + nearEnemyUnits + ")");
+			isInDanger = true;
+		}
+
+		// We can get killed if there's even one enemy army unit near
+		if (!isInDanger && xvr.countUnitsInRadius(unit, 1.7, xvr.getEnemyArmyUnits()) >= 1) {
+			// System.out.println("              DANGER !!!!!!!!!");
+			unit.setAiOrder("Avoid army unit");
+			isInDanger = true;
+		}
+
+		// =========================================================
+
+		if (isInDanger) {
+			UnitActions.moveAwayFromNearestEnemy(unit);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	// =========================================================

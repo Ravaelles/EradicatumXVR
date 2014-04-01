@@ -26,11 +26,13 @@ public class TerranAcademy {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
-		// int battleUnits = UnitCounter.getNumberOfBattleUnits();
-		int barracks = TerranBarracks.getNumberOfUnitsCompleted();
 		int academies = getNumberOfUnits();
 
-		if (academies == 0) {
+		if (academies == 0 && xvr.getTimeSeconds() >= 275) {
+
+			// int battleUnits = UnitCounter.getNumberOfBattleUnits();
+			int barracks = TerranBarracks.getNumberOfUnitsCompleted();
+
 			if (barracks >= 2 && !weAreBuilding && UnitCounter.getNumberOfBattleUnits() >= 5) {
 				// UnitCounter.getNumberOfInfantryUnits() >= 4) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
