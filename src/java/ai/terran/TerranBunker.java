@@ -13,7 +13,6 @@ import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.buildings.BuildingManager;
 
@@ -220,8 +219,10 @@ public class TerranBunker {
 	}
 
 	public static int calculateMaxBunkerStack() {
-		return BotStrategyManager.isExpandWithBunkers() ? MAX_STACK : (UnitCounter
-				.getNumberOfBattleUnits() >= 8 ? 1 : MAX_STACK);
+		return MAX_STACK;
+		// return BotStrategyManager.isExpandWithBunkers() ? MAX_STACK :
+		// (UnitCounter
+		// .getNumberOfBattleUnits() >= 8 ? 1 : MAX_STACK);
 	}
 
 	private static int calculateBunkersNearby(MapPoint mapPoint) {

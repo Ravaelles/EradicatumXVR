@@ -2,10 +2,12 @@ package ai.managers.units.army.tanks;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 
 public class EnemyTanksManager {
@@ -16,6 +18,11 @@ public class EnemyTanksManager {
 	private static final int MAXIMUM_TANKS_TO_ENGAGE_WITH_NORMAL_UNITS = 3;
 
 	private static XVR xvr = XVR.getInstance();
+
+	// =========================================================
+
+	private static HashMap<Integer, Unit> enemyTankDiscovered = new HashMap<>();
+	private static HashMap<Unit, MapPoint> enemyTankPositions = new HashMap<>();
 
 	// =========================================================
 
@@ -70,7 +77,13 @@ public class EnemyTanksManager {
 	}
 
 	private static Collection<Unit> getEnemyTanks() {
-		return xvr.getEnemyUnitsOfType(UnitTypes.Terran_Siege_Tank_Siege_Mode,
-				UnitTypes.Terran_Siege_Tank_Tank_Mode);
+		Collection<Unit> knownTanks = xvr.getEnemyUnitsOfType(
+				UnitTypes.Terran_Siege_Tank_Siege_Mode, UnitTypes.Terran_Siege_Tank_Tank_Mode);
+		// knownTanks.addAll(enemyTankPositions.values());
+		return knownTanks;
+	}
+
+	public static void updateTankPosition(Unit enemyTank) {
+		// enemyTankDiscovered.put(key, value)
 	}
 }

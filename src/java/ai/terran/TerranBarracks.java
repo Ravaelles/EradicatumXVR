@@ -25,6 +25,7 @@ public class TerranBarracks {
 
 	public static int MIN_UNITS_FOR_DIFF_BUILDING = TerranBunker.MAX_STACK * 4;
 	public static int MIN_MEDICS = 2;
+	public static int MAX_BARRACKS = 2;
 
 	public static boolean LIMIT_MARINES = false;
 
@@ -38,7 +39,7 @@ public class TerranBarracks {
 		int barracks = UnitCounter.getNumberOfUnits(buildingType);
 		int bases = UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE);
 
-		boolean enoughBarracks = barracks >= 2;
+		boolean enoughBarracks = barracks >= MAX_BARRACKS;
 		if (enoughBarracks) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}

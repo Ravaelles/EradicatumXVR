@@ -18,6 +18,7 @@ import jnibwapi.model.Region;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import ai.core.XVR;
+import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.terran.TerranCommandCenter;
 import ai.utils.RUtilities;
 
@@ -39,19 +40,31 @@ public class MapExploration {
 
 	public static synchronized void enemyUnitDiscovered(Unit enemyUnit) {
 		UnitType type = enemyUnit.getType();
+
+		// Discovered BASE
 		if (type.isBase()) {
 			TerranCommandCenter.findTileForNextBase(true);
 			synchronized (enemyBasesDiscovered) {
 				enemyBasesDiscovered.put(enemyUnit.getID(), enemyUnit);
 			}
 		}
+
+		// Discovered BUILDING
 		if (type.isBuilding()) {
 			synchronized (enemyBuildingsDiscovered) {
 				enemyBuildingsDiscovered.put(enemyUnit.getID(), enemyUnit);
 			}
-		} else {
+		}
+
+		// Discovered OTHER UNIT
+		else {
 			synchronized (enemyUnitsDiscovered) {
 				enemyUnitsDiscovered.put(enemyUnit.getID(), enemyUnit);
+			}
+
+			// TANK
+			if (type.isTank()) {
+				EnemyTanksManager.updateTankPosition(enemyUnit);
 			}
 		}
 	}

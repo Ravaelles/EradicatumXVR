@@ -29,16 +29,7 @@ public class TerranSupplyDepot {
 	private static final UnitType unitType = UnitTypes.Terran_Supply_Depot.getType();
 	private static XVR xvr = XVR.getInstance();
 
-	public static void buildIfNecessary() {
-		if (xvr.canAfford(100)) {
-
-			// It only makes sense to build Supply Depot if supplies less than
-			// X.
-			if (shouldBuild()) {
-				Constructing.construct(xvr, buildingType);
-			}
-		}
-	}
+	// =========================================================
 
 	public static boolean shouldBuild() {
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
@@ -49,6 +40,10 @@ public class TerranSupplyDepot {
 		int barracks = TerranBarracks.getNumberOfUnits();
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
+
+		if (total > 0 && total < 200 && free <= 3) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
 
 		if (TerranBunker.getNumberOfUnits() < TerranBunker.GLOBAL_MAX_BUNKERS
 				&& TerranBunker.shouldBuild() && !xvr.canAfford(200)) {
@@ -134,6 +129,19 @@ public class TerranSupplyDepot {
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, shouldBuild);
 		return shouldBuild;
+	}
+
+	// =========================================================
+
+	public static void buildIfNecessary() {
+		if (xvr.canAfford(100)) {
+
+			// It only makes sense to build Supply Depot if supplies less than
+			// X.
+			if (shouldBuild()) {
+				Constructing.construct(xvr, buildingType);
+			}
+		}
 	}
 
 	private static Unit getRandomSupplyDepot() {

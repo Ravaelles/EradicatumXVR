@@ -107,7 +107,7 @@ public class FlyingBuildingManager {
 	}
 
 	private static boolean shouldHaveFlyingBuilding1() {
-		return TerranSiegeTank.getNumberOfUnits() >= 2;
+		return TerranSiegeTank.getNumberOfUnits() >= 2 && TerranBarracks.MAX_BARRACKS > 1;
 	}
 
 	private static boolean shouldHaveFlyingBuilding2() {

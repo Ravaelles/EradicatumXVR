@@ -28,8 +28,8 @@ public class WorkerManager {
 	// public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
 	// public static final ArrayList<Integer> EXTRA_PROFESSIONAL_REPAIRERERS =
 	// new ArrayList<>();
-	public static final int WORKER_INDEX_EXPLORER = 6; // 6
-	public static final int DEFEND_BASE_RADIUS = 23;
+	public static int EXPLORER_INDEX = 6; // 6
+	public static int DEFEND_BASE_RADIUS = 23;
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -48,9 +48,11 @@ public class WorkerManager {
 
 		private ProfessionalRepairersSettings() {
 			professionalRepairersIndices.clear();
-			// professionalRepairersIndices.add(3);
 			professionalRepairersIndices.add(19);
-			professionalRepairersIndices.add(20);
+
+			if (!XVR.isEnemyTerran()) {
+				professionalRepairersIndices.add(20);
+			}
 		}
 	}
 
@@ -110,7 +112,7 @@ public class WorkerManager {
 			if (!RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
 
 				// Unit can act as either a simple worker or as an explorer.
-				if (_counter != WORKER_INDEX_EXPLORER) {
+				if (_counter != EXPLORER_INDEX) {
 					WorkerManager.act(worker);
 				} else {
 					ExplorerManager.explore(worker);

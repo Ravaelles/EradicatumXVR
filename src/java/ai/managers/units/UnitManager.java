@@ -36,6 +36,7 @@ public class UnitManager {
 	// ===========================================================
 
 	public static void act() {
+		ArmyRendezvousManager.updateRendezvousPoints();
 
 		// If there's no any base left, we're so fucked up there's no point to
 		// continue.

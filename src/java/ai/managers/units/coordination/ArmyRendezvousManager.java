@@ -18,11 +18,16 @@ import ai.terran.TerranSiegeTank;
 public class ArmyRendezvousManager {
 
 	private static XVR xvr = XVR.getInstance();
+	private static MapPoint _armyMedianPoint = null;
 
 	// =========================================================
 
 	public static void act(Unit unit) {
 		goToSafePlaceIfNotAlreadyThere(unit);
+	}
+
+	public static void updateRendezvousPoints() {
+		_armyMedianPoint = defineArmyMedianPoint();
 	}
 
 	// =========================================================
@@ -93,6 +98,30 @@ public class ArmyRendezvousManager {
 		}
 		return null;
 	}
+
+	private static MapPoint defineArmyMedianPoint() {
+		ArrayList<Unit> unitsArmy = xvr.getUnitsArmy();
+		if (unitsArmy.isEmpty()) {
+			return null;
+		}
+
+		ArrayList<Integer> xCoordinates = new ArrayList<Integer>();
+		ArrayList<Integer> yCoordinates = new ArrayList<Integer>();
+		for (Unit armyUnit : unitsArmy) {
+			xCoordinates.add(armyUnit.getX());
+			yCoordinates.add(armyUnit.getY());
+		}
+		java.util.Collections.sort(xCoordinates);
+		java.util.Collections.sort(yCoordinates);
+
+		int middleIndex = xCoordinates.size() / 2;
+		MapPointInstance medianPoint = new MapPointInstance(xCoordinates.get(middleIndex),
+				yCoordinates.get(middleIndex));
+
+		return xvr.getUnitNearestFromList(medianPoint, xvr.getUnitsArmy());
+	}
+
+	// =========================================================
 
 	private static MapPoint defineRendezvousBarracksIfPossible() {
 		Unit barracks = xvr.getUnitOfTypeNearestTo(TerranBarracks.getBuildingType(),
@@ -188,20 +217,7 @@ public class ArmyRendezvousManager {
 	}
 
 	public static MapPoint getArmyMedianPoint() {
-		ArrayList<Integer> xCoordinates = new ArrayList<Integer>();
-		ArrayList<Integer> yCoordinates = new ArrayList<Integer>();
-		for (Unit armyUnit : xvr.getUnitsArmy()) {
-			xCoordinates.add(armyUnit.getX());
-			yCoordinates.add(armyUnit.getY());
-		}
-		java.util.Collections.sort(xCoordinates);
-		java.util.Collections.sort(yCoordinates);
-
-		int middleIndex = xCoordinates.size() / 2;
-		MapPointInstance medianPoint = new MapPointInstance(xCoordinates.get(middleIndex),
-				yCoordinates.get(middleIndex));
-
-		return medianPoint;
+		return _armyMedianPoint;
 	}
 
 	public static MapPoint getFlyersGatheringPoint() {

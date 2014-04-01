@@ -87,6 +87,10 @@ public class BunkerManager {
 			return false;
 		}
 
+		if (shouldUnitUnloadFromBunker(unit)) {
+			return false;
+		}
+
 		// Define what is the nearest bunker to this unit
 		Unit nearestBunker = xvr.getUnitOfTypeNearestTo(UnitTypes.Terran_Bunker, unit);
 		if (nearestBunker == null) {
@@ -161,7 +165,7 @@ public class BunkerManager {
 		boolean enemyIsNearby = nearestEnemy != null
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
-		if (enemyIsNearby && xvr.getTimeSeconds() < 300 || unit.isWounded()) {
+		if (enemyIsNearby || unit.isWounded() || xvr.getTimeSeconds() < 330) {
 			return false;
 		}
 

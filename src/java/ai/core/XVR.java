@@ -11,6 +11,7 @@ import jnibwapi.model.Player;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
+import ai.handling.enemy.AdaptStrategyToEnemy;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -27,7 +28,6 @@ import ai.managers.units.army.specialforces.SpecialForces;
 import ai.managers.units.buildings.FlyingBuildingManager;
 import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranBarracks;
-import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranSiegeTank;
 import ai.terran.TerranVulture;
@@ -470,6 +470,15 @@ public class XVR {
 		}
 	}
 
+	public Unit getSecondBase() {
+		ArrayList<Unit> bases = getUnitsOfType(UnitManager.BASE.ordinal());
+		if (!bases.isEmpty()) {
+			return bases.get(1);
+		} else {
+			return null;
+		}
+	}
+
 	public Unit getUnitOfTypeNearestTo(UnitTypes type, MapPoint closeTo) {
 		if (closeTo == null) {
 			return null;
@@ -892,8 +901,7 @@ public class XVR {
 		// Protoss
 		if ("Protoss".equals(xvr.ENEMY_RACE)) {
 			enemyProtoss = true;
-			TerranBarracks.enemyIsProtoss();
-			TerranBunker.MAX_STACK++;
+			AdaptStrategyToEnemy.setEnemyIsProtoss();
 
 			// boolean shouldExpandWithCannons =
 			// enemyBotName.contains("alberta");
@@ -905,15 +913,14 @@ public class XVR {
 		// Zerg
 		else if ("Zerg".equals(xvr.ENEMY_RACE)) {
 			enemyZerg = true;
-			TerranBarracks.enemyIsZerg();
-			TerranBunker.MAX_STACK++;
+			AdaptStrategyToEnemy.setEnemyIsZerg();
 		}
 
 		// ============
 		// Terran
 		else if ("Terran".equals(xvr.ENEMY_RACE)) {
 			enemyTerran = true;
-			TerranBarracks.enemyIsTerran();
+			AdaptStrategyToEnemy.setEnemyIsTerran();
 		}
 	}
 

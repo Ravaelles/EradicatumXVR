@@ -12,6 +12,7 @@ import ai.handling.units.TankTargeting;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
+import ai.terran.TerranBunker;
 
 public class SiegeTankManager {
 
@@ -88,10 +89,12 @@ public class SiegeTankManager {
 	private static void actWhenInNormalMode(Unit unit) {
 		if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
 			unit.siege();
+			return;
 		}
 
 		if (mustSiege(unit)) {
 			unit.siege();
+			return;
 		}
 
 		int enemiesVeryClose = xvr.countUnitsEnemyInRadius(unit, 4);
@@ -99,10 +102,10 @@ public class SiegeTankManager {
 
 		if (enemiesInSight >= 2 && enemiesVeryClose == 0) {
 			unit.siege();
+			return;
 		}
 
-		// UnitActions.attackTo(unit, TargettingDetails._properPlace);
-		UnitActions.attackTo(unit, ArmyRendezvousManager.getArmyMedianPoint());
+		UnitActions.attackTo(unit, ArmyRendezvousManager.getRendezvousPointForTanks());
 	}
 
 	private static boolean mustSiege(Unit unit) {
@@ -194,7 +197,7 @@ public class SiegeTankManager {
 		// the bunker), but consider the neighborhood, if it's safe etc.
 		if (isTankWhereItShouldBe(unit) && notTooManySiegedInArea(unit) || isEnemyNearShootRange) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)
-					&& !isNearMainBase(unit)) {
+					&& (!isNearMainBase(unit) || isNearBunker(unit))) {
 				return true;
 			}
 		}
@@ -217,7 +220,12 @@ public class SiegeTankManager {
 	}
 
 	private static boolean isNearMainBase(Unit unit) {
-		return unit.distanceTo(xvr.getFirstBase()) < 14;
+		return unit.distanceTo(xvr.getFirstBase()) > 28;
+	}
+
+	private static boolean isNearBunker(Unit unit) {
+		Unit nearestBunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), unit);
+		return nearestBunker != null && nearestBunker.distanceTo(unit) < 4.4;
 	}
 
 	private static boolean isTankWhereItShouldBe(Unit unit) {

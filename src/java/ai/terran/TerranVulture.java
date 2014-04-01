@@ -71,9 +71,9 @@ public class TerranVulture {
 		MapPoint pointToHarass = defineNeighborhoodToHarass(unit);
 
 		ArrayList<MapPoint> pointForHarassmentNearEnemy = new ArrayList<>();
-		pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBasesDiscovered().values());
-		pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBuildingsDiscovered());
-		pointForHarassmentNearEnemy.addAll(MapExploration.getBaseLocationsNear(pointToHarass, 30));
+		// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBasesDiscovered().values());
+		// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBuildingsDiscovered());
+		pointForHarassmentNearEnemy.addAll(MapExploration.getBaseLocationsNear(pointToHarass, 37));
 		// pointForHarassmentNearEnemy.addAll(MapExploration.getChokePointsNear(pointToHarass,
 		// 30));
 
@@ -158,11 +158,16 @@ public class TerranVulture {
 			// isSafelyFarFromBuildings(unit);
 
 			if (isSafePlaceForOurUnits) {
-				boolean noMinesInRegion = isNoMinesInRegion(unit);
 				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit)
-						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit) || noMinesInRegion;
-				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)
-						|| noMinesInRegion) {
+						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
+				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)) {
+					placeSpiderMine(unit, unit);
+					return true;
+				}
+
+				boolean noMinesInRegion = isNoMinesInRegion(unit);
+				boolean isFarFromMainbase = isFarFromMainbase(unit);
+				if (noMinesInRegion && isFarFromMainbase) {
 					placeSpiderMine(unit, unit);
 					return true;
 				}
@@ -171,12 +176,18 @@ public class TerranVulture {
 		return false;
 	}
 
-	private static boolean isNoMinesInRegion(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 5, unit,
-				true) == 0 || unit.getSpiderMineCount() == 3;
+	// =========================================================
+
+	private static boolean isFarFromMainbase(MapPoint point) {
+		return point.distanceTo(xvr.getFirstBase()) > 26;
 	}
 
-	// =========================================================
+	private static boolean isNoMinesInRegion(Unit unit) {
+		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 2, unit,
+				true) == 0
+				&& xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 8, unit,
+						true) <= 1 || unit.getSpiderMineCount() == 3;
+	}
 
 	private static boolean isQuiteNearEnemy(Unit unit) {
 		Unit nearEnemyUnitOrBuilding = xvr.getUnitNearestFromList(unit, xvr.getEnemyUnitsVisible());

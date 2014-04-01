@@ -13,6 +13,7 @@ import jnibwapi.types.UnitType;
 import ai.handling.map.MapExploration;
 import ai.handling.other.NukeHandling;
 import ai.managers.strategy.StrategyManager;
+import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranComsatStation;
@@ -299,8 +300,14 @@ public class XVRClient implements BWAPIEventListener {
 			return;
 		}
 
-		if (unit.getType().isCarrier() && !TerranBarracks.isPlanAntiAirActive()) {
+		UnitType type = unit.getType();
+		if (type.isCarrier() && !TerranBarracks.isPlanAntiAirActive()) {
 			TerranBarracks.changePlanToAntiAir();
+		}
+
+		// TANK
+		if (type.isTank()) {
+			EnemyTanksManager.updateTankPosition(unit);
 		}
 	}
 

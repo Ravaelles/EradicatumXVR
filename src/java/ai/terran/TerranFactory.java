@@ -9,6 +9,7 @@ import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.economy.TechnologyManager;
+import ai.managers.units.army.ArmyCreationManager;
 
 public class TerranFactory {
 
@@ -69,16 +70,16 @@ public class TerranFactory {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
-		if (factories <= 2 && xvr.canAfford(450)) {
+		if (factories <= 2 && (xvr.canAfford(250) || TerranCommandCenter.getNumberOfUnits() > 1)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		if (battleUnits <= 4) {
+		if (battleUnits <= 4 && battleUnits < ArmyCreationManager.MINIMUM_MARINES) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		if (TerranBunker.GLOBAL_MAX_BUNKERS >= 2 && xvr.getTimeSeconds() < 500) {
-			if (!xvr.canAfford(250) && TerranBunker.getNumberOfUnits() < 2) {
+			if (!xvr.canAfford(250) && TerranBunker.getNumberOfUnits() < TerranBunker.MAX_STACK) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}

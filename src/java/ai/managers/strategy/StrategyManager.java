@@ -19,7 +19,7 @@ public class StrategyManager {
 
 	// private static final int MINIMUM_INITIAL_ARMY_TO_PUSH_ONE_TIME = 5;
 	// private static final int MINIMUM_NON_INITIAL_ARMY_TO_PUSH = 25;
-	private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 41;
+	private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 20;
 	public static final int INITIAL_MIN_UNITS = 1;
 	// private static final int MINIMUM_ARMY_PSI_USED_THRESHOLD = 75;
 
@@ -102,6 +102,11 @@ public class StrategyManager {
 	private static boolean decideIfWeAreReadyToAttack() {
 		int battleUnits = UnitCounter.getNumberOfBattleUnitsCompleted();
 		int minUnits = calculateMinimumUnitsToAttack();
+
+		if (battleUnits > minUnits) {
+			return true;
+		}
+
 		boolean haveEnoughMedics = TerranMedic.getNumberOfUnitsCompleted() >= MIN_MEDICS;
 		boolean haveEnoughTanks = TerranSiegeTank.getNumberOfUnitsCompleted() >= MIN_TANKS;
 

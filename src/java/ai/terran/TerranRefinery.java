@@ -10,12 +10,15 @@ import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
+import ai.managers.units.army.ArmyCreationManager;
 
 public class TerranRefinery {
 
 	private static XVR xvr = XVR.getInstance();
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Refinery;
+
+	// =========================================================
 
 	public static boolean shouldBuild() {
 		int minGateways = BotStrategyManager.isExpandWithBunkers() ? 3 : 4;
@@ -24,8 +27,15 @@ public class TerranRefinery {
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());
 
-		if (refineries == 0 && battleUnits >= 6) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		if (refineries == 0) {
+			boolean isEnoughInfantry = (battleUnits >= 6 || battleUnits >= ArmyCreationManager.MINIMUM_MARINES);
+			boolean isAnotherBaseAndFreeMinerals = TerranCommandCenter.getNumberOfUnits() > 1
+					|| xvr.canAfford(468)
+					|| (TerranBarracks.getNumberOfUnitsCompleted() == 0
+							&& TerranBarracks.getNumberOfUnits() > 0 && xvr.canAfford(134));
+			if (isEnoughInfantry || isAnotherBaseAndFreeMinerals) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
 		}
 
 		if (UnitCounter.getNumberOfUnitsCompleted(TerranEngineeringBay.getBuildingType()) == 0
@@ -60,6 +70,8 @@ public class TerranRefinery {
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		return false;
 	}
+
+	// =========================================================
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {

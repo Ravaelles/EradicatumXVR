@@ -69,7 +69,7 @@ public class TerranCommandCenter {
 		// =========================================================
 
 		if (bases <= 1
-				&& (battleUnits >= 9 || xvr.canAfford(384))
+				&& (battleUnits >= ArmyCreationManager.MINIMUM_MARINES || xvr.canAfford(358))
 				&& (TerranBunker.getNumberOfUnitsCompleted() >= TerranBunker.MAX_STACK || xvr
 						.canAfford(384)) && factoryFirstConditionOkay) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -85,7 +85,7 @@ public class TerranCommandCenter {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		if (bases >= 2 && battleUnits <= bases * 7 && !xvr.canAfford(400)) {
+		if (bases >= 2 && battleUnits <= bases * 7 && !xvr.canAfford(420)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
@@ -492,7 +492,7 @@ public class TerranCommandCenter {
 		}
 
 		if (BotStrategyManager.isExpandWithBunkers()) {
-			if (workers >= MIN_WORKERS && bunkers < 2) {
+			if (workers >= MIN_WORKERS && bunkers < TerranBunker.GLOBAL_MAX_BUNKERS) {
 				return false;
 			}
 		}
@@ -508,7 +508,8 @@ public class TerranCommandCenter {
 		// If we have only one base and already some workers, promote more
 		// gateways
 		int barracks = UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType());
-		if (UnitCounter.getNumberOfUnits(buildingType) == 1 && barracks <= 3) {
+		if (UnitCounter.getNumberOfUnits(buildingType) == 1
+				&& barracks < TerranBarracks.MAX_BARRACKS) {
 			if (existingToOptimalRatio > 0.5 + 0.12 * barracks) {
 				return false;
 			}
