@@ -57,7 +57,7 @@ public class FlyerManager {
 		boolean isAABuildingNearby = xvr.isEnemyDefensiveAirBuildingNear(unit);
 		boolean shouldRunFromHere = isAABuildingNearby || aaUnitNearby != null;
 		if (shouldRunFromHere) {
-			UnitActions.moveAwayFromUnit(unit, aaUnitNearby);
+			UnitActions.moveAwayFrom(unit, aaUnitNearby);
 			return;
 		}
 	}
@@ -67,7 +67,7 @@ public class FlyerManager {
 	public static boolean tryAvoidingAntiAirUnits(Unit unit) {
 		Unit aaUnitNearby = getAAUnitNearby(unit);
 		if (aaUnitNearby != null) {
-			UnitActions.moveAwayFromUnit(unit, aaUnitNearby);
+			UnitActions.moveAwayFrom(unit, aaUnitNearby);
 			unit.setAiOrder("Fly away from AA");
 			return true;
 		}

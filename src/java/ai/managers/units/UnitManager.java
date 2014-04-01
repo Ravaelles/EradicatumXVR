@@ -116,14 +116,14 @@ public class UnitManager {
 			return;
 		}
 
-		// Make sure unit will get repaired
-		if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
-			unit.setAiOrder("To repair!");
+		// Disallow units to move close to the defensive buildings
+		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
 			return;
 		}
 
-		// Disallow units to move close to the defensive buildings
-		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+		// Make sure unit will get repaired
+		if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
+			unit.setAiOrder("To repair!");
 			return;
 		}
 

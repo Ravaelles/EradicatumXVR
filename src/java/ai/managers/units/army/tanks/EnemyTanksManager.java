@@ -30,7 +30,7 @@ public class EnemyTanksManager {
 		}
 
 		for (Unit enemyTank : allKnownEnemyTanks) {
-			UnitActions.moveAwayFromUnit(unit, enemyTank);
+			UnitActions.moveAwayFrom(unit, enemyTank);
 			unit.setAiOrder("Avoid siege tank");
 			return true;
 		}

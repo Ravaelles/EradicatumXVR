@@ -276,7 +276,7 @@ public class WorkerManager {
 					UnitActions.moveTo(worker, safeCannon);
 					return;
 				} else {
-					UnitActions.moveAwayFromUnit(worker, enemyToFight);
+					UnitActions.moveAwayFrom(worker, enemyToFight);
 					return;
 				}
 			}
@@ -512,18 +512,30 @@ public class WorkerManager {
 		double nearestDistance = 999999;
 		Unit nearestUnit = null;
 
-		for (Unit otherUnit : xvr.getUnitsOfType(UnitManager.WORKER)) {
-			if (!otherUnit.isCompleted() || otherUnit.isRepairing() || otherUnit.isConstructing()
-					|| !otherUnit.isInterruptable()) {
-				continue;
+		boolean onlyHealthy = true;
+		int counter = 0;
+
+		while (nearestUnit == null && counter < 2) {
+			for (Unit otherUnit : xvr.getUnitsOfType(UnitManager.WORKER)) {
+				if (!otherUnit.isCompleted() || otherUnit.isRepairing()
+						|| otherUnit.isConstructing() || !otherUnit.isInterruptable()) {
+					continue;
+				}
+
+				// In first cycle, try to find nearest healthy repairer
+				if (onlyHealthy && unit.isWounded()) {
+					continue;
+				}
+
+				double distance = xvr.getDistanceBetween(otherUnit, unit);
+				if (distance < nearestDistance
+						&& RepairAndSons.getUnitAssignedToRepairBy(otherUnit) == null) {
+					nearestDistance = distance;
+					nearestUnit = otherUnit;
+				}
 			}
 
-			double distance = xvr.getDistanceBetween(otherUnit, unit);
-			if (distance < nearestDistance
-					&& RepairAndSons.getUnitAssignedToRepairBy(otherUnit) == null) {
-				nearestDistance = distance;
-				nearestUnit = otherUnit;
-			}
+			counter++;
 		}
 
 		return nearestUnit;

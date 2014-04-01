@@ -61,6 +61,13 @@ public class RepairAndSons {
 			return false;
 		}
 
+		// Disallow wounded workers to repair; this way we can save many lives
+		if (worker.getHP() < 45) {
+			return false;
+		}
+
+		// =========================================================
+
 		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
 
 		// This worker has assigned unit to repair

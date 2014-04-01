@@ -94,8 +94,13 @@ public class UnitActions {
 		double vectorLength = xvr.getDistanceBetween(placeToMoveAwayFrom, unit);
 		double ratio = 32 * howManyTiles / vectorLength;
 
-		MapPoint runTo = new MapPointInstance((int) (unit.getX() - ratio * xDirectionToUnit),
-				(int) (unit.getY() - ratio * yDirectionToUnit));
+		// Add randomness of move if distance is big enough
+		int xRandomness = howManyTiles > 3 ? (2 - RUtilities.rand(0, 4)) : 0;
+		int yRandomness = howManyTiles > 3 ? (2 - RUtilities.rand(0, 4)) : 0;
+
+		MapPoint runTo = new MapPointInstance(
+				(int) (unit.getX() - ratio * xDirectionToUnit + xRandomness), (int) (unit.getY()
+						- ratio * yDirectionToUnit + yRandomness));
 
 		if (runTo.isWalkable() && runTo.isConnectedTo(unit)) {
 			moveTo(unit, runTo);
@@ -405,11 +410,11 @@ public class UnitActions {
 
 	public static void moveAwayFromNearestEnemy(Unit unit) {
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		moveAwayFromUnit(unit, nearestEnemy);
+		moveAwayFrom(unit, nearestEnemy);
 	}
 
-	public static void moveAwayFromUnit(Unit unit, Unit enemy) {
-		if (enemy == null || unit == null) {
+	public static void moveAwayFrom(Unit unit, MapPoint moveAwayFrom) {
+		if (moveAwayFrom == null || unit == null) {
 			return;
 		}
 
@@ -417,7 +422,7 @@ public class UnitActions {
 
 		MapPoint safePoint = ArmyRendezvousManager.getRendezvousPointFor(unit);
 		double unitToSafePointDist = unit.distanceTo(safePoint);
-		double enemyToSafePointDist = enemy.distanceTo(safePoint);
+		double enemyToSafePointDist = moveAwayFrom.distanceTo(safePoint);
 
 		boolean shouldRunFromUnitNotGoToSafePlace = unitToSafePointDist > enemyToSafePointDist
 				|| unitToSafePointDist <= 6;
@@ -426,7 +431,7 @@ public class UnitActions {
 		// behind), try to increase tiles away from current location
 		if (shouldRunFromUnitNotGoToSafePlace) {
 			for (int i = 8; i >= 2; i -= 2) {
-				if (UnitActions.moveAwayFromUnitIfPossible(unit, enemy, i)) {
+				if (UnitActions.moveAwayFromUnitIfPossible(unit, moveAwayFrom, i)) {
 					unitHasMovedItsAss = true;
 					break;
 				}

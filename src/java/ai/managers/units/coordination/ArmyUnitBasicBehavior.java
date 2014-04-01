@@ -92,7 +92,7 @@ public class ArmyUnitBasicBehavior {
 				}
 				return false;
 			} else {
-				UnitActions.moveAwayFromUnit(unit, defensiveBuilding);
+				UnitActions.moveAwayFrom(unit, defensiveBuilding);
 				unit.setIsRunningFromEnemyNow(defensiveBuilding);
 				unit.setAiOrder("Avoid building");
 				return true;
@@ -135,7 +135,7 @@ public class ArmyUnitBasicBehavior {
 		// Move away from activated mine
 		if (activatedMine != null) {
 			Unit nearestEnemyToMine = xvr.getEnemyNearestTo(unit, true, false);
-			UnitActions.moveAwayFromUnit(unit, nearestEnemyToMine);
+			UnitActions.moveAwayFrom(unit, nearestEnemyToMine);
 			unit.setIsRunningFromEnemyNow();
 			unit.setAiOrder("MINE!");
 			return true;

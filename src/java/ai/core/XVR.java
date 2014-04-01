@@ -994,7 +994,7 @@ public class XVR {
 				// if (getDistanceBetween(enemy, x, y) + 3.6 <=
 				// enemy.getType().getGroundWeapon()
 				// .getMaxRangeInTiles()) {
-				System.out.println(enemy.getID() + ": " + enemy.getName());
+				// System.out.println(enemy.getID() + ": " + enemy.getName());
 
 				int minDistance = !unit.getType().isVulture() ? WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING
 						: TerranVulture.SAFE_DISTANCE_FROM_ENEMY_DEFENSIVE_BUILDING;

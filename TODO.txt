@@ -1,7 +1,6 @@
 =========== KNOWN BUGS ==============
 
 ########### IMPROVE VALKYRIES TARGET SELECTION ###############
-Vultures do not avoid defensive buildings like Photon Cannons
 Third base isn't builded
 
 =========== TO CHECK ==========
@@ -9,6 +8,9 @@ Third base isn't builded
 
 
 =========== IDEAS =============
+
+Profesional repairers for bunkers at 230s-350s !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Escape with repairers if wounded < 50
 
 ############## ATTACK TANKS WITH WRAITHS ###############
 

@@ -42,7 +42,7 @@ public class HiddenEnemyUnitsManager {
 		if (hiddenEnemyUnitNearby != null && unit.isDetected()
 				&& !hiddenEnemyUnitNearby.isDetected()
 				&& shouldAvoidThisHiddenEnemyUnit(unit, hiddenEnemyUnitNearby)) {
-			UnitActions.moveAwayFromUnit(unit, hiddenEnemyUnitNearby);
+			UnitActions.moveAwayFrom(unit, hiddenEnemyUnitNearby);
 			unit.setAiOrder("Avoid hidden unit");
 			return true;
 		}

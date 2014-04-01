@@ -63,6 +63,10 @@ public class ExplorerCirclingEnemyBase {
 			return false;
 		}
 
+		if (tryAvoidGettingKilled()) {
+			return true;
+		}
+
 		if (tryAttackingIfNotWounded()) {
 			return true;
 		}
@@ -73,10 +77,22 @@ public class ExplorerCirclingEnemyBase {
 			return false;
 		}
 
+		// =========================================================
+
 		// Made the actual move
 		circleAroundEnemyBaseWith(ExplorerManager.getExplorer(), enemyBase);
 
 		return true;
+	}
+
+	private static boolean tryAvoidGettingKilled() {
+
+		// We can get killed if
+		if (xvr.countUnitsEnemyInRadius(_lastExplorer, 1.5) >= 2) {
+			UnitActions.moveAwayFromNearestEnemy(_lastExplorer);
+		}
+
+		return false;
 	}
 
 	private static boolean tryAttackingIfNotWounded() {

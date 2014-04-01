@@ -116,7 +116,7 @@ public class RunManager {
 			// Run from the enemy unit, in random direction
 			else {
 				unit.setAiOrder("RUN: from enemy");
-				UnitActions.moveAwayFromUnit(unit, enemy);
+				UnitActions.moveAwayFrom(unit, enemy);
 			}
 		}
 	}
