@@ -13,8 +13,8 @@ public class SpecialForces {
 	// =========================================================
 
 	public static void assignMainBaseProtector(Unit unit) {
-		System.out.println("SPECIAL FORCE!");
-		newMision(MissionType.PROTECT_MAIN_BASE, unit);
+		// System.out.println("SPECIAL FORCE!");
+		// newMision(MissionType.PROTECT_MAIN_BASE, unit);
 	}
 
 	private static void newMision(MissionType mission, Unit unit) {

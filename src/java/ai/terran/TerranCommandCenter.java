@@ -8,6 +8,7 @@ import jnibwapi.model.Map;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
@@ -61,6 +62,12 @@ public class TerranCommandCenter {
 		// UnitCounter.getNumberOfUnitsCompleted(TerranBarracks
 		// .getBuildingType());
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
+
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (TerranFactory.getNumberOfUnitsCompleted() < 3) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			}
+		}
 
 		boolean factoryFirstConditionOkay = xvr.canAfford(384)
 				|| (!TerranFactory.FORCE_FACTORY_BEFORE_SECOND_BASE || TerranFactory

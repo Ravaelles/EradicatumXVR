@@ -9,6 +9,7 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import ai.core.Painter;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.strength.StrengthRatio;
@@ -48,12 +49,19 @@ public class WorkerManager {
 
 		private ProfessionalRepairersSettings() {
 			professionalRepairersIndices.clear();
-			professionalRepairersIndices.add(19);
 
-			if (!XVR.isEnemyTerran()) {
-				professionalRepairersIndices.add(20);
+			if (TerranOffensiveBunker.isStrategyActive()) {
+				professionalRepairersIndices.add(16);
+				professionalRepairersIndices.add(17);
+				professionalRepairersIndices.add(18);
+			} else {
+				professionalRepairersIndices.add(19);
+				if (!XVR.isEnemyTerran()) {
+					professionalRepairersIndices.add(20);
+				}
 			}
 		}
+
 	}
 
 	private static void handleProfessionalRepairer(Unit unit) {

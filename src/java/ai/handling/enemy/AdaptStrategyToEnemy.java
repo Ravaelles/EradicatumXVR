@@ -1,6 +1,7 @@
 package ai.handling.enemy;
 
 import ai.managers.units.army.ArmyCreationManager;
+import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 
@@ -39,6 +40,9 @@ public class AdaptStrategyToEnemy {
 		// UNITS
 		ArmyCreationManager.MINIMUM_MARINES = 4;
 		ArmyCreationManager.MAXIMUM_MARINES = 4;
+
+		// EXPLORER
+		WorkerManager.EXPLORER_INDEX--;
 	}
 
 	// =========================================================

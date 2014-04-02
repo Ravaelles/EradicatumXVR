@@ -9,6 +9,7 @@ import jnibwapi.types.UnitCommandType.UnitCommandTypes;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.util.BWColor;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.other.NukeHandling;
@@ -28,7 +29,7 @@ import ai.utils.RUtilities;
 
 public class Painter {
 
-	public static final boolean FULL_DEBUG = true;
+	public static final boolean FULL_DEBUG = false;
 	public static boolean errorOcurred = false;
 	public static String errorOcurredDetails = "";
 
@@ -38,6 +39,9 @@ public class Painter {
 
 	public static int ourDeaths = 0;
 	public static int enemyDeaths = 0;
+
+	private static JNIBWAPI bwapi = null;
+	private static XVR xvr = null;
 
 	// =========================================================
 
@@ -93,7 +97,11 @@ public class Painter {
 	}
 
 	public static void paintAll(XVR xvr) {
+		Painter.xvr = xvr;
+
 		CodeProfiler.startMeasuring("Painting");
+
+		bwapi = XVR.getInstance().getBwapi();
 
 		int oldMainMessageRowCounter = mainMessageRowCounter;
 		mainMessageRowCounter = 0;
@@ -106,6 +114,7 @@ public class Painter {
 
 		if (FULL_DEBUG) {
 			paintTimeConsumption(xvr);
+			paintOffensiveBunker(xvr);
 			paintBuildingsToConstructPosition(xvr);
 		}
 		paintUnitsDetails(xvr);
@@ -164,6 +173,21 @@ public class Painter {
 		mainMessageRowCounter = oldMainMessageRowCounter;
 
 		CodeProfiler.endMeasuring("Painting");
+	}
+
+	private static void paintOffensiveBunker(XVR xvr) {
+		MapPoint offensivePoint = TerranOffensiveBunker.getRendezvousOffensive();
+		if (offensivePoint != null) {
+
+			// Draw base position as rectangle
+			xvr.getBwapi().drawBox(offensivePoint.getX(), offensivePoint.getY(),
+					offensivePoint.getX() + 2 * 32, offensivePoint.getY() + 2 * 32, BWColor.ORANGE,
+					false, false);
+
+			// Draw string "Base"
+			xvr.getBwapi().drawText(offensivePoint.getX() + 3, offensivePoint.getY() + 3,
+					BWColor.getToStringHex(BWColor.ORANGE) + "Offensive point", false);
+		}
 	}
 
 	// =========================================================
@@ -562,12 +586,14 @@ public class Painter {
 			paintConstructionProgress(u);
 		}
 
+		// Paint HEALTH for BUNKERS
+		if (u.getType().isDefensiveBuilding()) {
+			paintBuildingHealth(u);
+		}
+
 		// TRAINING
 		if (u.isTraining()) {
-			String name = (bwapi.getUnitCommandType(u.getLastCommandID()).getName() + "").replace(
-					"Terran_", "");
-			bwapi.drawText(u.getX() - 30, u.getY() + 10, BWColor.getToStringHex(BWColor.GREY)
-					+ "-> " + name, false);
+			paintTraining(u);
 		}
 
 		int enemiesNearby = xvr.countUnitsEnemyInRadius(u, 11);
@@ -593,8 +619,66 @@ public class Painter {
 		}
 	}
 
+	private static void paintTraining(Unit unit) {
+		int labelMaxWidth = 56;
+		int labelHeight = 6;
+		int labelLeft = unit.getX() - labelMaxWidth / 2;
+		int labelTop = unit.getY() + 8;
+
+		int unitBuildTime = unit.getType().getBuildTime() / 30;
+		int timeElapsed = xvr.getTimeSeconds() - unit.getLastTimeTrainStarted();
+		double progress = (double) timeElapsed / unitBuildTime;
+		int labelProgress = (int) (1 + 99 * progress);
+		// String color = RUtilities.assignStringForValue(
+		// progress,
+		// 1.0,
+		// 0.0,
+		// new String[] { BWColor.getToStringHex(BWColor.RED),
+		// BWColor.getToStringHex(BWColor.YELLOW),
+		// BWColor.getToStringHex(BWColor.GREEN) });
+		// stringToDisplay = color + labelProgress + "%";
+
+		// Paint box
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth * labelProgress / 100,
+				labelTop + labelHeight, BWColor.WHITE, true, false);
+
+		// Paint box borders
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight,
+				BWColor.BLACK, false, false);
+
+		String name = (bwapi.getUnitCommandType(unit.getLastCommandID()).getName() + "").replace(
+				"Terran_", "");
+		bwapi.drawText(unit.getX() - 23, unit.getY() + 12, BWColor.getToStringHex(BWColor.GREY)
+				+ name, false);
+	}
+
+	private static void paintBuildingHealth(Unit unit) {
+		int labelMaxWidth = 56;
+		int labelHeight = 6;
+		int labelLeft = unit.getX() - labelMaxWidth / 2;
+		int labelTop = unit.getY() + 13;
+
+		double hpRatio = (double) unit.getHP() / unit.getType().getMaxHitPoints();
+		int hpProgress = (int) (1 + 99 * hpRatio);
+
+		int color = BWColor.GREEN;
+		if (hpRatio < 0.66) {
+			color = BWColor.YELLOW;
+			if (hpRatio < 0.33) {
+				color = BWColor.RED;
+			}
+		}
+
+		// Paint box
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth * hpProgress / 100, labelTop
+				+ labelHeight, color, true, false);
+
+		// Paint box borders
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight,
+				BWColor.BLACK, false, false);
+	}
+
 	private static void paintConstructionProgress(Unit unit) {
-		JNIBWAPI bwapi = XVR.getInstance().getBwapi();
 		String stringToDisplay;
 
 		int labelMaxWidth = 56;

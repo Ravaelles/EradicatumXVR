@@ -271,6 +271,7 @@ public class XVR {
 			return;
 		}
 
+		building.setLastTimeTrainStartedNow();
 		getBwapi().train(building.getID(), type.ordinal());
 	}
 

@@ -3,6 +3,7 @@ package ai.managers.units.workers;
 import jnibwapi.model.Map;
 import jnibwapi.model.Unit;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
@@ -84,6 +85,10 @@ public class ExplorerCirclingEnemyBase {
 	private static boolean tryAttackingIfNotWounded() {
 		boolean foundTarget = false;
 		Unit explorer = ExplorerManager.getExplorer();
+
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			return false;
+		}
 
 		// If explorer under attack, don't attack
 		if (explorer.isUnderAttack() || _dontAttack) {

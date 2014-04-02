@@ -550,8 +550,10 @@ public class Constructing {
 
 		// Disallow multiple building of all buildings, except barracks,
 		// bunkers.
-		if (building.getType().isBarracks()) {
-			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+		int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+		if (building.getType().isFactory()) {
+			canProceed = builders <= 1;
+		} else if (building.getType().isBarracks()) {
 			int barracks = TerranBarracks.getNumberOfUnits();
 			if (barracks != 1) {
 				canProceed = builders == 0;

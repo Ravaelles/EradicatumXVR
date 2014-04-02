@@ -2,10 +2,15 @@ package ai.managers.units.buildings;
 
 import jnibwapi.model.Unit;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
+import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
+import ai.handling.units.UnitCounter;
+import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.army.FlyerManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
+import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranEngineeringBay;
@@ -23,17 +28,15 @@ public class FlyingBuildingManager {
 	public static void act() {
 
 		// Barracks
-		if (shouldHaveFlyingBuilding1()) {
+		if (shouldHaveFlyingBuilding1() || flyingBuilding1 != null) {
 			defineFlyingBuilding1();
 			act(flyingBuilding1);
-			FlyerManager.tryAvoidingAntiAirUnits(flyingBuilding1);
 		}
 
 		// E-Bay
-		if (shouldHaveFlyingBuilding2()) {
+		if (shouldHaveFlyingBuilding2() || flyingBuilding2 != null) {
 			defineFlyingBuilding2();
 			act(flyingBuilding2);
-			FlyerManager.tryAvoidingAntiAirUnits(flyingBuilding2);
 		}
 	}
 
@@ -43,14 +46,25 @@ public class FlyingBuildingManager {
 		}
 
 		if (FlyerManager.tryAvoidingAntiAirUnits(flyingBuilding)) {
+			flyingBuilding.setAiOrder("Avoid AA units");
 			return;
 		}
-		moveBuildingToProperPlace(flyingBuilding);
+
+		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(flyingBuilding)) {
+			flyingBuilding.setAiOrder("Avoid building");
+			return;
+		}
+
+		// Ask for repairers to come, if needed
 		tryRepairingIfNeeded(flyingBuilding);
+
+		// Fly to the proper place
+		moveBuildingToProperPlace(flyingBuilding);
 	}
 
 	private static void tryRepairingIfNeeded(Unit flyingBuilding) {
 		if (flyingBuilding.isWounded()) {
+			flyingBuilding.setAiOrder("Ask for repair");
 			RepairAndSons.issueTicketToRepairIfHasnt(flyingBuilding);
 		}
 	}
@@ -58,8 +72,13 @@ public class FlyingBuildingManager {
 	// ========================================
 
 	private static void moveBuildingToProperPlace(Unit flyingBuilding) {
-		Unit medianTank = ArmyRendezvousManager.getRendezvousTankForFlyers();
-		if (medianTank != null) {
+		MapPoint rendezvousPoint = null;
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			rendezvousPoint = MapExploration.getNearestEnemyBuilding();
+		} else {
+			rendezvousPoint = ArmyRendezvousManager.getRendezvousTankForFlyers();
+		}
+		if (rendezvousPoint != null) {
 
 			// Lift building if isn't lifted yet
 			if (!flyingBuilding.isLifted()) {
@@ -67,7 +86,7 @@ public class FlyingBuildingManager {
 			}
 
 			// If building is close to tank
-			if (medianTank.distanceTo(flyingBuilding) < MAX_ALLOWED_DIST_FROM_TANK) {
+			if (rendezvousPoint.distanceTo(flyingBuilding) < MAX_ALLOWED_DIST_FROM_TANK) {
 				if (MapExploration.getNumberOfKnownEnemyBases() > 0) {
 					Unit enemyBuilding = MapExploration.getNearestEnemyBuilding();
 					UnitActions.moveTo(flyingBuilding, enemyBuilding);
@@ -76,8 +95,10 @@ public class FlyingBuildingManager {
 
 			// Building is far from tank
 			else {
-				UnitActions.moveTo(flyingBuilding, medianTank);
+				UnitActions.moveTo(flyingBuilding, rendezvousPoint);
 			}
+
+			flyingBuilding.setAiOrder("They see me flyin' They hatin'");
 		}
 	}
 
@@ -107,6 +128,10 @@ public class FlyingBuildingManager {
 	}
 
 	private static boolean shouldHaveFlyingBuilding1() {
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			return UnitCounter.getNumberOfInfantryUnits() >= ArmyCreationManager.MINIMUM_MARINES;
+		}
+
 		return TerranSiegeTank.getNumberOfUnits() >= 2 && TerranBarracks.MAX_BARRACKS > 1;
 	}
 

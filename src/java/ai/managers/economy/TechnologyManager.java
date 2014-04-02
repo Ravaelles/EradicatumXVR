@@ -5,6 +5,7 @@ import jnibwapi.types.TechType.TechTypes;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.UpgradeType.UpgradeTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitCounter;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranArmory;
@@ -47,6 +48,7 @@ public class TechnologyManager {
 		// in order to upgrade them
 		boolean isPossibleSiegeResearch = isResearchPossible(TANK_SIEGE_MODE);
 		boolean isPossibleSpiderResearch = isResearchPossible(SPIDER_MINES);
+		boolean forceSiegeResearch = TerranOffensiveBunker.isStrategyActive();
 
 		// Spider Mines
 		technology = SPIDER_MINES;
@@ -55,7 +57,9 @@ public class TechnologyManager {
 		if (isPossibleSpiderResearch
 				&& (!PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE || !isPossibleSiegeResearch)
 				&& (vultures >= 1 || spiderMinesResearchBonus)) {
-			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
+			if (!forceSiegeResearch) {
+				tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
+			}
 		}
 
 		// Tank Siege Mode
@@ -63,6 +67,8 @@ public class TechnologyManager {
 		if (isPossibleSiegeResearch
 				&& (PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE && !isPossibleSpiderResearch || TerranSiegeTank
 						.getNumberOfUnits() >= 2)) {
+			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
+		} else if (forceSiegeResearch && isPossibleSiegeResearch) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 

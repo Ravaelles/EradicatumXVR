@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
@@ -68,6 +69,13 @@ public class TerranFactory {
 
 		if (!xvr.canAfford(0, 10)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (TerranBarracks.getNumberOfUnitsCompleted() > 0 && factories < 3
+					|| xvr.canAfford(300, 200)) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
 		}
 
 		if (factories <= 2 && (xvr.canAfford(250) || TerranCommandCenter.getNumberOfUnits() > 1)) {
@@ -156,6 +164,7 @@ public class TerranFactory {
 		int tanks = TerranSiegeTank.getNumberOfUnits();
 		int goliaths = UnitCounter.getNumberOfUnits(GOLIATH);
 
+		boolean forceTanksOnly = XVR.isEnemyTerran();
 		boolean notEnoughVultures = vultures < MINIMUM_VULTURES;
 		boolean notEnoughTanks = vultures < MINIMUM_TANKS;
 		boolean notEnoughGoliaths = xvr.getTimeSeconds() < 800 ? goliaths < MINIMUM_GOLIATHS_EARLY
@@ -165,7 +174,7 @@ public class TerranFactory {
 		// If very little units, below critical limit
 
 		// TANK
-		if (freeGas >= 150 && tanksAllowed && notEnoughTanks) {
+		if (freeGas >= 150 && tanksAllowed && notEnoughTanks || forceTanksOnly) {
 			return TANK_TANK_MODE;
 		}
 
@@ -175,7 +184,7 @@ public class TerranFactory {
 		}
 
 		// VULTURE
-		if (notEnoughVultures) {
+		if (notEnoughVultures && !forceTanksOnly) {
 			return VULTURE;
 		}
 

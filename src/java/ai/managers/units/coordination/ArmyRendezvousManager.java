@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -33,27 +34,34 @@ public class ArmyRendezvousManager {
 	// =========================================================
 
 	public static MapPoint getRendezvousPointFor(Unit unit) {
-		MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
+		MapPoint runTo;
 
-		// Initially, go to the second base location
-		MapPoint runTo = secondBaseLocation;
+		if (xvr.isEnemyTerran()) {
+			runTo = TerranOffensiveBunker.getRendezvousOffensive();
+		} else {
 
-		// =====================================================
-		// Define bunker where most of the units should head to.
-		runTo = defineRendezvousBunkerIfPossible();
+			MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
 
-		// =====================================================
-		// Try to go to the barracks if no bunker available
-		if (runTo == null) {
-			runTo = defineRendezvousBarracksIfPossible();
-		}
+			// Initially, go to the second base location
+			runTo = secondBaseLocation;
 
-		// =====================================================
-		// If is infantry, try go to nearest medic with energy
-		if (unit.getType().isTerranInfantry() && unit.isWounded()) {
-			Unit medicThatCanHealUs = defineRendezvousMedicIfPossible(unit);
-			if (medicThatCanHealUs != null) {
-				runTo = medicThatCanHealUs;
+			// =====================================================
+			// Define bunker where most of the units should head to.
+			runTo = defineRendezvousBunkerIfPossible();
+
+			// =====================================================
+			// Try to go to the barracks if no bunker available
+			if (runTo == null) {
+				runTo = defineRendezvousBarracksIfPossible();
+			}
+
+			// =====================================================
+			// If is infantry, try go to nearest medic with energy
+			if (unit.getType().isTerranInfantry() && unit.isWounded()) {
+				Unit medicThatCanHealUs = defineRendezvousMedicIfPossible(unit);
+				if (medicThatCanHealUs != null) {
+					runTo = medicThatCanHealUs;
+				}
 			}
 		}
 
@@ -77,6 +85,14 @@ public class ArmyRendezvousManager {
 	}
 
 	public static MapPoint getRendezvousPointForTanks() {
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (TerranSiegeTank.getNumberOfUnitsCompleted() <= 7) {
+				return TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+			} else {
+				return MapExploration.getNearestEnemyBuilding();
+			}
+		}
+
 		if (StrategyManager.isAnyAttackFormPending()) {
 			return getArmyMedianPoint();
 		} else {

@@ -7,6 +7,7 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -294,6 +295,11 @@ public class TerranBunker {
 	public static MapPoint findTileForBunker() {
 		MapPoint tileForBunker = null;
 
+		// Offensive bunker
+		if (TerranOffensiveBunker.isStrategyActive() && getNumberOfUnits() < GLOBAL_MAX_BUNKERS) {
+			return TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+		}
+
 		// Protected main base
 		// if (shouldBuildNearMainBase()) {
 		// tileForCannon = findBuildTileNearMainBase();
@@ -337,7 +343,7 @@ public class TerranBunker {
 		return null;
 	}
 
-	private static MapPoint findTileAtBase(MapPoint base) {
+	public static MapPoint findTileAtBase(MapPoint base) {
 		if (base == null) {
 			return null;
 		}
@@ -424,6 +430,10 @@ public class TerranBunker {
 	// }
 
 	private static MapPoint getInitialPlaceToReinforce() {
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			return TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+		}
+
 		return TerranCommandCenter.getSecondBaseLocation();
 	}
 

@@ -2,11 +2,13 @@ package ai.managers.units.workers;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import jnibwapi.model.BaseLocation;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -224,6 +226,10 @@ public class ExplorerManager {
 	public static boolean tryAttackingEnemyIfPossible() {
 		Unit enemyUnit = null;
 
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			return false;
+		}
+
 		// Disallow heavily wounded explorer to atttack.
 		if (explorer.getHP() < 19) {
 			return false;
@@ -316,7 +322,10 @@ public class ExplorerManager {
 
 			// Filter out visited bases.
 			ArrayList<BaseLocation> possibleBases = new ArrayList<BaseLocation>();
-			possibleBases.addAll(xvr.getBwapi().getMap().getStartLocations());
+			List<BaseLocation> startLocations = xvr.getBwapi().getMap().getStartLocations();
+			for (int i = startLocations.size() - 1; i >= 0; i--) {
+				possibleBases.add(startLocations.get(i));
+			}
 			possibleBases.removeAll(MapExploration.getBaseLocationsDiscovered());
 			possibleBases.remove(MapExploration.getOurBaseLocation());
 

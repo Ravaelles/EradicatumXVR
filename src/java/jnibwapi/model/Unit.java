@@ -33,6 +33,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	private int aiOrderTime = -1;
 	private Region _region = null;
 	private int lastTimeSieged = -1;
+	private int lastTimeTrainStarted = -1;
 	private MapPoint painterGoTo;
 	// ========
 
@@ -1135,6 +1136,14 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public boolean hasAddOn() {
 		return getAddOnID() != -1;
+	}
+
+	public void setLastTimeTrainStartedNow() {
+		lastTimeTrainStarted = xvr.getTimeSeconds();
+	}
+
+	public int getLastTimeTrainStarted() {
+		return lastTimeTrainStarted;
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
@@ -164,6 +165,10 @@ public class BunkerManager {
 				.getGroundWeapon().getMaxRangeInTiles() + 2.5) : 3;
 		boolean enemyIsNearby = nearestEnemy != null
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
+
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			return false;
+		}
 
 		if (enemyIsNearby || unit.isWounded() || xvr.getTimeSeconds() < 330) {
 			return false;

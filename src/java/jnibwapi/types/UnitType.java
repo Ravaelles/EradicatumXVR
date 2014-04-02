@@ -717,4 +717,8 @@ public class UnitType {
 		return _unitTypes;
 	}
 
+	public boolean isDefensiveBuilding() {
+		return isBunker() || isPhotonCannon() || isSunkenColony();
+	}
+
 }
