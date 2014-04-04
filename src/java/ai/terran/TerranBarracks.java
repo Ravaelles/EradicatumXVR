@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
@@ -44,6 +45,12 @@ public class TerranBarracks {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (barracks == 0) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
+		}
+
 		// =========================================================
 		// ANTI-ZERGLING RUSH
 
@@ -81,6 +88,18 @@ public class TerranBarracks {
 	}
 
 	public static void act(Unit barracks) {
+
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (UnitCounter.getNumberOfBattleUnits() < 4) {
+				if (barracks.getTrainingQueueSize() == 0) {
+					xvr.buildUnit(barracks, defineUnitToBuild(50, 0));
+				}
+				return;
+			}
+		}
+
+		// =========================================================
 
 		// Disallow making units if there's no bunker early
 		if (TerranBunker.getNumberOfUnits() == 0 && TerranBunker.shouldBuild()

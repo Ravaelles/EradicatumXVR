@@ -10,7 +10,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import ai.core.XVR;
 import ai.handling.map.MapPoint;
+import ai.handling.map.MapPointInstance;
+import ai.utils.RUtilities;
 
 /**
  * Stores information about a StarCraft map.
@@ -43,7 +46,7 @@ public class Map {
 
 	public Map(int width, int height, String name, String fileName, String hash, int[] heightMap,
 			int[] buildable, int[] walkable) {
-		this.instance = this;
+		Map.instance = this;
 
 		this.width = width;
 		this.height = height;
@@ -389,6 +392,13 @@ public class Map {
 
 		// System.out.println("ERROR: getWalkableTileExceptionSafe");
 		return null;
+	}
+
+	public MapPoint getMapCenter() {
+		MapPoint randomStartLocation = (MapPoint) RUtilities.getRandomElement(getStartLocations());
+		MapPoint ourBase = XVR.getInstance().getFirstBase();
+
+		return MapPointInstance.getTwoThirdPointBetween(ourBase, randomStartLocation);
 	}
 
 }

@@ -13,6 +13,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
+import ai.managers.constructing.WorkerSelection;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.terran.TerranCommandCenter;
 import ai.utils.RUtilities;
@@ -44,6 +45,25 @@ public class ExplorerManager {
 			return;
 		}
 		ExplorerManager.explorer = explorer;
+
+		// =========================================================
+
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (!explorer.isConstructing() && !explorer.isRepairing()) {
+				MapPoint rendezvousOffensive = TerranOffensiveBunker.getRendezvousOffensive();
+				if (rendezvousOffensive != null) {
+					MapPointInstance pointForSCV = MapPointInstance.getMiddlePointBetween(
+							rendezvousOffensive, TerranOffensiveBunker.getSecondEnemyBase());
+
+					UnitActions.moveTo(explorer, pointForSCV);
+					explorer.setAiOrder("To Offens. bunker");
+					return;
+				}
+			}
+		}
+
+		// =========================================================
 
 		if (tryAvoidGettingKilled(explorer)) {
 			return;
@@ -317,26 +337,46 @@ public class ExplorerManager {
 	}
 
 	private static boolean tryDiscoveringEnemyBaseLocation() {
+		ArrayList<BaseLocation> undiscoveredStartLocations = getUndiscoveredStartLocations();
+		// System.out.println("undiscoveredStartLocation size = " +
+		// undiscoveredStartLocations.size());
+
+		// Define if we know where the enemy is, but he haven't meet him yet
+		// e.g. map for two players, we know from the beginning, but we don't
+		// see him. Map for three, scouted one base.
+		if (undiscoveredStartLocations.size() == 1) {
+			// System.out.println("  OKAY ONLY ONE BASE");
+
+			// We know there's only one base left, but we still didn't find it
+			// if (MapExploration.getBaseLocationsDiscovered().isEmpty()) {
+			BaseLocation base = (BaseLocation) RUtilities
+					.getRandomElement(undiscoveredStartLocations);
+			if (base != null) {
+				// System.out.println("     BASE IS: " +
+				// base.toStringLocation());
+				MapExploration.setCalculatedEnemyBaseLocation(base);
+			}
+
+			// // STRATEGY: Offensive Bunker
+			// if (TerranOffensiveBunker.isStrategyActive()) {
+			//
+			// }
+			// }
+		}
+
+		// =========================================================
+
 		boolean hasDiscoveredBaseLocation = !MapExploration.getEnemyBuildingsDiscovered().isEmpty();
 		if (!hasDiscoveredBaseLocation) {
 			BaseLocation goTo = null;
 
-			// Filter out visited bases.
-			ArrayList<BaseLocation> possibleBases = new ArrayList<BaseLocation>();
-			List<BaseLocation> startLocations = xvr.getBwapi().getMap().getStartLocations();
-			for (int i = startLocations.size() - 1; i >= 0; i--) {
-				possibleBases.add(startLocations.get(i));
-			}
-			possibleBases.removeAll(MapExploration.getBaseLocationsDiscovered());
-			possibleBases.remove(MapExploration.getOurBaseLocation());
-
 			// If there is any unvisited base- go there. If no- go to the random
 			// base.
-			if (possibleBases.isEmpty()) {
+			if (undiscoveredStartLocations.isEmpty()) {
 				goTo = (BaseLocation) RUtilities.getRandomListElement(xvr.getBwapi().getMap()
 						.getStartLocations());
 			} else {
-				goTo = (BaseLocation) RUtilities.getRandomListElement(possibleBases);
+				goTo = (BaseLocation) RUtilities.getRandomListElement(undiscoveredStartLocations);
 			}
 
 			if (goTo != null) {
@@ -349,6 +389,17 @@ public class ExplorerManager {
 		return false;
 	}
 
+	private static ArrayList<BaseLocation> getUndiscoveredStartLocations() {
+		ArrayList<BaseLocation> undiscoveredLocations = new ArrayList<BaseLocation>();
+		List<BaseLocation> startLocations = xvr.getBwapi().getMap().getStartLocations();
+		for (int i = startLocations.size() - 1; i >= 0; i--) {
+			undiscoveredLocations.add(startLocations.get(i));
+		}
+		undiscoveredLocations.removeAll(MapExploration.getBaseLocationsDiscovered());
+		undiscoveredLocations.remove(MapExploration.getOurBaseLocation());
+		return undiscoveredLocations;
+	}
+
 	private static Unit _explorerForBackOfBase = null;
 
 	private static boolean tryScoutingNextBaseLocation() {
@@ -358,7 +409,7 @@ public class ExplorerManager {
 			explorer.setAiOrder("Explore back of base");
 			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
 			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
-				_explorerForBackOfBase = xvr.getOptimalBuilder(backOfTheBasePoint);
+				_explorerForBackOfBase = WorkerSelection.getOptimalBuilder(backOfTheBasePoint);
 				if (xvr.getDistanceBetween(_explorerForBackOfBase, backOfTheBasePoint) <= 30) {
 					UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
 				}

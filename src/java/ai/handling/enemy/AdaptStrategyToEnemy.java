@@ -38,11 +38,11 @@ public class AdaptStrategyToEnemy {
 		TerranBarracks.MAX_BARRACKS = 1;
 
 		// UNITS
-		ArmyCreationManager.MINIMUM_MARINES = 4;
-		ArmyCreationManager.MAXIMUM_MARINES = 4;
+		ArmyCreationManager.MINIMUM_MARINES = 5;
+		ArmyCreationManager.MAXIMUM_MARINES = 5;
 
 		// EXPLORER
-		WorkerManager.EXPLORER_INDEX--;
+		WorkerManager.EXPLORER_INDEX = 4;
 	}
 
 	// =========================================================

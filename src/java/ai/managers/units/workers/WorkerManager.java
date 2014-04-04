@@ -54,9 +54,10 @@ public class WorkerManager {
 			professionalRepairersIndices.clear();
 
 			if (TerranOffensiveBunker.isStrategyActive()) {
-				professionalRepairersIndices.add(16);
-				professionalRepairersIndices.add(17);
-				professionalRepairersIndices.add(18);
+				professionalRepairersIndices.add(6);
+				// professionalRepairersIndices.add(16);
+				// professionalRepairersIndices.add(17);
+				// professionalRepairersIndices.add(18);
 			} else {
 				professionalRepairersIndices.add(19);
 				if (!XVR.isEnemyTerran()) {
@@ -123,6 +124,12 @@ public class WorkerManager {
 				return;
 			}
 
+			// It may happen that this unit is supposed to repair other unit. If
+			// so, this would have the highest priority.
+			if (RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
+				return;
+			}
+
 			// Wounded units should avoid being killed (if possible you know...)
 			if (ArmyUnitBasicBehavior.tryRunningIfSeriouslyWounded(worker)) {
 				worker.setAiOrder("Badly wounded");
@@ -149,16 +156,13 @@ public class WorkerManager {
 				guyToChaseOthers = worker;
 			}
 
-			// It may happen that this unit is supposed to repair other unit. If
-			// so, this would have the highest priority.
-			if (!RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
+			// =========================================================
 
-				// Unit can act as either a simple worker or as an explorer.
-				if (_counter != EXPLORER_INDEX) {
-					WorkerManager.act(worker);
-				} else {
-					ExplorerManager.explore(worker);
-				}
+			// Unit can act as either a simple worker or as an explorer.
+			if (_counter != EXPLORER_INDEX) {
+				WorkerManager.act(worker);
+			} else {
+				ExplorerManager.explore(worker);
 			}
 
 			_counter++;

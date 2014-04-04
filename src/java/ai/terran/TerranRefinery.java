@@ -28,8 +28,24 @@ public class TerranRefinery {
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());
 
+		// =========================================================
+
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (TerranBunker.getNumberOfUnits() > 0 && UnitCounter.getNumberOfWorkers() >= 8) {
+				if (UnitCounter.getNumberOfInfantryUnits() >= 4) {
+					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				}
+			} else {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			}
+		}
+
+		// =========================================================
+
 		if (refineries == 0) {
-			if (TerranOffensiveBunker.isStrategyActive() && TerranBarracks.getNumberOfUnits() > 0) {
+			if (TerranOffensiveBunker.isStrategyActive() && TerranBarracks.getNumberOfUnits() > 0
+					&& (UnitCounter.getNumberOfBattleUnits() >= 2 || xvr.canAfford(160))) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 

@@ -106,8 +106,9 @@ public class BuildingRepairManager {
 		if (building.getType().isBunker()) {
 			int enemiesNearBunker = xvr.getNumberOfUnitsInRadius(building, 11,
 					xvr.getEnemyArmyUnits());
-			return (int) Math.min(5,
+			int optimalRepairers = (int) Math.min(5,
 					Math.max(2, enemiesNearBunker * defineBunkerRepairersPerEnemyRatio()));
+			return XVR.isEnemyTerran() ? Math.min(1, optimalRepairers) : optimalRepairers;
 		} else {
 			return 2;
 		}

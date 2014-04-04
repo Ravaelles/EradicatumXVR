@@ -8,12 +8,14 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.constructing.WorkerSelection;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
 import ai.utils.RUtilities;
@@ -40,6 +42,12 @@ public class TerranSupplyDepot {
 		int barracks = TerranBarracks.getNumberOfUnits();
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
+
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (barracks == 0) {
+				return false;
+			}
+		}
 
 		if (total > 10 && total < 200 && free <= 3) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -157,7 +165,7 @@ public class TerranSupplyDepot {
 	}
 
 	public static MapPoint findTileForDepot() {
-		Unit builder = Constructing.getRandomWorker();
+		Unit builder = WorkerSelection.getRandomWorker();
 
 		if (UnitCounter.weHaveSupplyDepot()) {
 			return findTileForNextDepot(builder);
@@ -193,7 +201,7 @@ public class TerranSupplyDepot {
 	}
 
 	private static MapPoint findTileForSupplyDepotNearby(MapPoint point, int minDist, int maxDist) {
-		return findLegitTileForDepot(point, Constructing.getRandomWorker());
+		return findLegitTileForDepot(point, WorkerSelection.getRandomWorker());
 	}
 
 	private static MapPoint findLegitTileForDepot(MapPoint buildNearToHere, Unit builder) {

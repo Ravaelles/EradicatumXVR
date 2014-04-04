@@ -84,6 +84,7 @@ public class RepairAndSons {
 				if (repairThisUnit.getType().isVulture() && repairThisUnit.distanceTo(worker) >= 7) {
 					return false;
 				} else {
+					worker.setAiOrder("Repair " + repairThisUnit.getNameShort());
 					UnitActions.repair(worker, repairThisUnit);
 					return true;
 				}

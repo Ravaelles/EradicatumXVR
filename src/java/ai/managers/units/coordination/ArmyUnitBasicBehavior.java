@@ -5,6 +5,7 @@ import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.WeaponType;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
@@ -145,6 +146,16 @@ public class ArmyUnitBasicBehavior {
 	}
 
 	public static boolean tryRunningIfSeriouslyWounded(Unit unit) {
+
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (xvr.getTimeSeconds() < 240) {
+				return false;
+			}
+		}
+
+		// =========================================================
+
 		double ratio = 0.4;
 		// if (xvr.getTimeSeconds() < 330) {
 		// ratio = 0.4;

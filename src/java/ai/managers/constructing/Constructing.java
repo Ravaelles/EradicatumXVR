@@ -9,6 +9,7 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -112,8 +113,8 @@ public class Constructing {
 			return null;
 		}
 
-		MapPoint tile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), typeToBuild,
-				base.translate(5, 2), 5, MAX_RANGE);
+		MapPoint tile = Constructing.getLegitTileToBuildNear(WorkerSelection.getRandomWorker(),
+				typeToBuild, base.translate(5, 2), 5, MAX_RANGE);
 
 		return tile;
 	}
@@ -130,6 +131,9 @@ public class Constructing {
 		// Bunker
 		else if (TerranBunker.getBuildingType().ordinal() == building.ordinal()) {
 			buildTile = TerranBunker.findTileForBunker();
+			if (TerranOffensiveBunker.isStrategyActive()) {
+				disableReportOfNoPlaceFound = true;
+			}
 		}
 
 		// Missile Turret
@@ -251,7 +255,7 @@ public class Constructing {
 
 	public static MapPoint getLegitTileToBuildNear(UnitTypes type, MapPoint nearTo,
 			int minimumDist, int maximumDist) {
-		Unit worker = xvr.getRandomWorker();
+		Unit worker = WorkerSelection.getRandomWorker();
 		if (worker == null || type == null) {
 			return null;
 		}
@@ -308,7 +312,7 @@ public class Constructing {
 					if (canBuildAt(place, type)) {
 						// && isBuildTileFullyBuildableFor(builderID, i, j,
 						// buildingTypeID)
-						Unit builderUnit = xvr.getRandomWorker();
+						Unit builderUnit = WorkerSelection.getRandomWorker();
 						if (builderUnit != null
 								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
 										builderUnit.getID(), i, j))) {
@@ -530,7 +534,7 @@ public class Constructing {
 	}
 
 	private static boolean canBuildAt(MapPoint point, UnitType type) {
-		Unit randomWorker = xvr.getRandomWorker();
+		Unit randomWorker = WorkerSelection.getRandomWorker();
 		if (randomWorker == null || point == null) {
 			return false;
 		}
@@ -552,7 +556,7 @@ public class Constructing {
 			return false;
 		}
 
-		Unit workerUnit = xvr.getOptimalBuilder(buildTile);
+		Unit workerUnit = WorkerSelection.getOptimalBuilder(buildTile, building);
 		if (workerUnit != null) {
 
 			// if we found a good build position, and we aren't already
@@ -588,10 +592,6 @@ public class Constructing {
 
 	public static boolean weAreBuilding(UnitTypes type) {
 		return ConstructionManager.weAreBuilding(type);
-	}
-
-	public static Unit getRandomWorker() {
-		return xvr.getRandomWorker();
 	}
 
 	public static boolean canBuildHere(Unit builder, UnitType buildingType, int tx, int ty) {

@@ -37,6 +37,9 @@ public class MapExploration {
 	protected static ArrayList<Unit> _hiddenEnemyUnits = new ArrayList<Unit>();
 
 	private static boolean _disabledChokePointsNearMainBase = false;
+	private static BaseLocation calculatedEnemyBaseLocation = null;
+
+	// =========================================================
 
 	public static synchronized void enemyUnitDiscovered(Unit enemyUnit) {
 		UnitType type = enemyUnit.getType();
@@ -710,6 +713,14 @@ public class MapExploration {
 
 	public static void setEnemyUnitsDiscovered(HashMap<Integer, Unit> enemyUnitsDiscovered) {
 		MapExploration.enemyUnitsDiscovered = enemyUnitsDiscovered;
+	}
+
+	public static void setCalculatedEnemyBaseLocation(BaseLocation base) {
+		calculatedEnemyBaseLocation = base;
+	}
+
+	public static BaseLocation getCalculatedEnemyBaseLocation() {
+		return calculatedEnemyBaseLocation;
 	}
 
 }

@@ -1147,9 +1147,12 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public String getNameShort() {
-		String name = getName();
-		return name.replace("Zerg", "").replace("Terran", "").replace("Protss", "")
-				.substring(0, 10);
+		String name = getName().replace("Zerg", "").replace("Terran", "").replace("Protoss", "");
+		if (name.length() >= 15) {
+			return name.substring(0, 15);
+		} else {
+			return name;
+		}
 	}
 
 }

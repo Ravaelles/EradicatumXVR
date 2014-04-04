@@ -14,6 +14,7 @@ import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.constructing.WorkerSelection;
 import ai.managers.units.UnitManager;
 import ai.managers.units.buildings.BuildingManager;
 
@@ -32,7 +33,21 @@ public class TerranBunker {
 	// =========================================================
 
 	public static boolean shouldBuild() {
+		if (TerranBarracks.getNumberOfUnitsCompleted() == 0) {
+			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
+		}
 		int bunkers = UnitCounter.getNumberOfUnits(type);
+
+		// =========================================================
+
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (bunkers == 0) {
+				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
+			}
+		}
+
+		// =========================================================
 
 		if (_skipForTurns > 0 && xvr.getTimeSeconds() > 400) {
 			_skipForTurns--;
@@ -263,7 +278,7 @@ public class TerranBunker {
 		MapPoint initialBuildTile = mapPoint;
 
 		// Define random worker, for technical reasons
-		Unit workerUnit = xvr.getRandomWorker();
+		Unit workerUnit = WorkerSelection.getRandomWorker();
 
 		// ================================
 		// Define minimum and maximum distance from a choke point for a bunker

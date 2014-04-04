@@ -6,6 +6,7 @@ import java.util.Set;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.managers.units.UnitManager;
 import ai.terran.TerranSupplyDepot;
 
 public class UnitCounter {
@@ -135,6 +136,10 @@ public class UnitCounter {
 
 	public static int getNumberOfSupplyDepotsCompleted() {
 		return getNumberOfUnitsCompleted(TerranSupplyDepot.getBuildingType());
+	}
+
+	public static int getNumberOfWorkers() {
+		return getNumberOfUnits(UnitManager.WORKER);
 	}
 
 }

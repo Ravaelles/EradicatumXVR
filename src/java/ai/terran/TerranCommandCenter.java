@@ -14,6 +14,7 @@ import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.managers.constructing.WorkerSelection;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
@@ -189,7 +190,10 @@ public class TerranCommandCenter {
 				.weAreBuilding(TerranSupplyDepot.getBuildingType());
 
 		// =========================================================
-		// ANTI ZERG-RUSH
+		// ==== SPECIFIC STRATEGIES ================================
+		// =========================================================
+
+		// STRATEGY: Anti-Zerg Rush
 		if (XVR.isEnemyZerg()) {
 			if (workers >= 7 && TerranBunker.getNumberOfUnits() == 0
 					&& !Constructing.weAreBuilding(TerranBunker.getBuildingType())) {
@@ -197,6 +201,27 @@ public class TerranCommandCenter {
 			}
 		}
 
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()) {
+
+			// Priority for units training
+			if (workers >= 4 && UnitCounter.getNumberOfBattleUnits() < 2 && !xvr.canAfford(100)) {
+				return false;
+			}
+
+			// Priority for barracks
+			if (TerranBarracks.shouldBuild() && !xvr.canAfford(200)) {
+				return false;
+			}
+
+			// Priority for bunker
+			if (TerranBunker.shouldBuild() && !xvr.canAfford(150)) {
+				return false;
+			}
+		}
+
+		// =========================================================
+		// ==== End of SPECIFIC STRATEGIES =========================
 		// =========================================================
 
 		if (workers >= MAX_WORKERS) {
@@ -468,8 +493,8 @@ public class TerranCommandCenter {
 			MapPoint point = nearestFreeBaseLocation;
 
 			CodeProfiler.startMeasuring("New base");
-			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
-					buildingType, point, 0, 10);
+			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(
+					WorkerSelection.getRandomWorker(), buildingType, point, 0, 10);
 			CodeProfiler.endMeasuring("New base");
 		} else {
 			System.out.println("Error! No place for next base!");

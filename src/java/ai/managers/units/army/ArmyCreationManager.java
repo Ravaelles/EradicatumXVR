@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.economy.TechnologyManager;
@@ -57,12 +58,14 @@ public class ArmyCreationManager {
 			}
 
 			// BARRACKS
-			if (weShouldBuildInfantryUnits) {
+			boolean isEnforcedByStrategy = TerranOffensiveBunker.isStrategyActive()
+					&& UnitCounter.getNumberOfInfantryUnits() < 4;
+			if (weShouldBuildInfantryUnits || isEnforcedByStrategy) {
 				boolean isFewInfantry = isCriticallyFewInfantry();
 				boolean noFactories = TerranFactory.getNumberOfUnitsCompleted() == 0;
 				boolean haveFreeFactorySpots = TerranFactory.getOneNotBusy() != null;
 				boolean shouldBuildInfantry = isFewInfantry || noFactories
-						|| (!haveFreeFactorySpots && isFewInfantry);
+						|| (!haveFreeFactorySpots && isFewInfantry) || isEnforcedByStrategy;
 				if (shouldBuildInfantry) {
 					ArrayList<Unit> barracks = TerranBarracks.getAllObjects();
 					if (!barracks.isEmpty()) {
@@ -79,6 +82,16 @@ public class ArmyCreationManager {
 	// =========================================================
 
 	private static boolean shouldBuildInfantry(ArrayList<Unit> factories) {
+
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()
+				&& (UnitCounter.getNumberOfInfantryUnits() < 1 || xvr.canAfford(142) || TerranBunker
+						.getNumberOfUnits() > 0)) {
+			return true;
+		}
+
+		// =========================================================
+
 		if (!isTooMuchInfantry()) {
 			if (isCriticallyFewInfantry()) {
 				boolean factoriesHaveEnoughPriority = factories.isEmpty()
@@ -102,6 +115,19 @@ public class ArmyCreationManager {
 	}
 
 	public static boolean weShouldBuildBattleUnits() {
+
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (TerranBunker.shouldBuild() && !xvr.canAfford(150)
+					&& UnitCounter.getNumberOfBattleUnits() > 2) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		// =========================================================
+
 		if (xvr.getTimeSeconds() >= 800 && TerranCommandCenter.getNumberOfUnits() <= 1
 				&& !xvr.canAfford(560)) {
 			return false;

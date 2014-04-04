@@ -12,6 +12,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.strength.StrengthRatio;
+import ai.managers.constructing.WorkerSelection;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranBunker;
@@ -397,7 +398,7 @@ public class UnitActions {
 			return;
 		}
 
-		Unit repairer = xvr.getOptimalBuilder(unit);
+		Unit repairer = WorkerSelection.getOptimalBuilder(unit);
 		if (unit == null || repairer == null) {
 			return;
 		}

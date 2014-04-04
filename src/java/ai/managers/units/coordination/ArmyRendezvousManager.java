@@ -36,8 +36,11 @@ public class ArmyRendezvousManager {
 	public static MapPoint getRendezvousPointFor(Unit unit) {
 		MapPoint runTo;
 
-		if (xvr.isEnemyTerran()) {
+		if (XVR.isEnemyTerran()) {
 			runTo = TerranOffensiveBunker.getRendezvousOffensive();
+			if (runTo == null) {
+				runTo = xvr.getMap().getMapCenter();
+			}
 		} else {
 
 			MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
@@ -85,15 +88,30 @@ public class ArmyRendezvousManager {
 	}
 
 	public static MapPoint getRendezvousPointForTanks() {
+
+		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (TerranSiegeTank.getNumberOfUnitsCompleted() <= 7) {
-				return TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
-			} else {
+
+			// If there's still few tanks, protect the bunker, but don't
+			// actually move forward
+			if (TerranSiegeTank.getNumberOfUnitsCompleted() < 2) {
+				// if (TerranBunker.getNumberOfUnits() > 0) {
+				//
+				// }
+				// return
+				// TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+				return TerranOffensiveBunker.getOffensivePoint();
+			}
+
+			// There is enough tanks to start the offensive
+			else {
 				return MapExploration.getNearestEnemyBuilding(TerranOffensiveBunker
 						.getOffensivePoint());
 				// return TerranOffensiveBunker.getOffensivePoint();
 			}
 		}
+
+		// =========================================================
 
 		if (StrategyManager.isAnyAttackFormPending()) {
 			return getArmyMedianPoint();

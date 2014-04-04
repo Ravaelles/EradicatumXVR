@@ -68,6 +68,7 @@ public class XVR {
 	private XVRClient client;
 	private JNIBWAPI bwapi;
 
+	private int oldFrameCounter = -1;
 	private int frameCounter = 0;
 	private int secondCounter = 0;
 
@@ -84,120 +85,129 @@ public class XVR {
 
 	/** This method is called every 30th frame (approx. once a second). */
 	public void act() {
-		try {
+		// try {
 
-			// Slow down after the start
-			if (!_gameSpeedChangeApplied && secondCounter > 60) {
-				bwapi.setGameSpeed(8);
-				_gameSpeedChangeApplied = true;
-			}
-
-			// Update time
-			frameCounter = bwapi.getFrameCount();
-			secondCounter = frameCounter / 30;
-
-			// Calculate numbers of units by type, so this info can be used in
-			// other methods.
-			if (getFrames() % 4 == 0) {
-				UnitCounter.recalculateUnits();
-			}
-
-			// Choose proper targets for Sieged Tanks
-			if (TerranSiegeTank.getNumberOfUnits() > 0 && getFrames() % 3 == 0) {
-				TankTargeting.handleTankTargetting();
-			}
-
-			// Every once in a while recalculate our relative strength, compared
-			// with enemy's strength
-			if (getFrames() % 56 == 0) {
-				StrengthComparison.recalculateOurRelativeStrength();
-				StrengthComparison.recalculateSupply();
-			}
-
-			// Check very often for nearby activated mines
-			if (getFrames() % 3 == 0) {
-				UnitManager.avoidMines();
-			}
-
-			// If there are some enemy units invisible
-			if (getFrames() % 10 == 0) {
-				MapExploration.updateInfoAboutHiddenUnits();
-			}
-
-			// Try to detect hidden enemy units
-			if (getFrames() % 13 == 0) {
-				HiddenEnemyUnitsManager.act();
-			}
-
-			// See if we're strong enough to attack the enemy
-			if (getFrames() % 21 == 0) {
-				CodeProfiler.startMeasuring("Strategy");
-				StrategyManager.evaluateMassiveAttackOptions();
-				CodeProfiler.endMeasuring("Strategy");
-			}
-
-			// Handle technologies
-			if (getFrames() % 23 == 0) {
-				CodeProfiler.startMeasuring("Technology");
-				TechnologyManager.act();
-				CodeProfiler.endMeasuring("Technology");
-			}
-
-			// Now let's mine minerals with your idle workers.
-			if (getFrames() % 11 == 0) {
-				CodeProfiler.startMeasuring("Workers");
-				WorkerManager.act();
-				CodeProfiler.endMeasuring("Workers");
-			}
-
-			// Handle behavior of units and buildings.
-			// Handle units in neighborhood of army units.
-			if (getFrames() % 11 == 0) {
-				CodeProfiler.startMeasuring("Army");
-				UnitManager.act();
-				CodeProfiler.endMeasuring("Army");
-			}
-
-			// Avoid being under psionic storm, disruptive web etc.
-			if (getFrames() % 8 == 0) {
-				UnitManager.avoidSpellEffectsAndMinesIfNecessary();
-			}
-
-			// Handle Base behavior differently, more often.
-			int baseInterval = xvr.getTimeSeconds() < 200 ? 2 : 8;
-			if (getFrames() % baseInterval == 0) {
-				TerranCommandCenter.act();
-			}
-
-			// Handle army building.
-			if (getFrames() % 11 == 0) {
-				CodeProfiler.startMeasuring("Army build");
-				ArmyCreationManager.act();
-				CodeProfiler.endMeasuring("Army build");
-			}
-
-			// Handle constructing new buildings
-			if (getFrames() % 9 == 0) {
-				CodeProfiler.startMeasuring("Construct");
-				ConstructionManager.act();
-				CodeProfiler.endMeasuring("Construct");
-			}
-
-			// Define median siege tank i.e. the one in the center of others
-			if (getFrames() % 48 == 0) {
-				TerranSiegeTank.recalculateMedianAndFrontTanks();
-			}
-
-			// Handle flying building, that will enhance shoot range for tanks
-			if (getFrames() % 35 == 0) {
-				FlyingBuildingManager.act();
-			}
-		} catch (Exception e) {
-			Painter.errorOccured(e.getStackTrace()[0].toString());
-			System.err.println("--------------------------------------");
-			System.err.println("---------- NON CRITICAL ERROR OCCURED: ");
-			e.printStackTrace();
+		// Detect PAUSE
+		if (oldFrameCounter == bwapi.getFrameCount()) {
+			return;
 		}
+
+		// Update time
+		frameCounter = bwapi.getFrameCount();
+		secondCounter = frameCounter / 30;
+		oldFrameCounter = frameCounter;
+
+		// =========================================================
+
+		// Slow down after the start
+		if (!_gameSpeedChangeApplied && secondCounter > 60) {
+			bwapi.setGameSpeed(8);
+			_gameSpeedChangeApplied = true;
+		}
+
+		// Calculate numbers of units by type, so this info can be used in
+		// other methods.
+		if (getFrames() % 4 == 0) {
+			UnitCounter.recalculateUnits();
+		}
+
+		// Choose proper targets for Sieged Tanks
+		if (TerranSiegeTank.getNumberOfUnits() > 0 && getFrames() % 3 == 0) {
+			TankTargeting.handleTankTargetting();
+		}
+
+		// Every once in a while recalculate our relative strength, compared
+		// with enemy's strength
+		if (getFrames() % 56 == 0) {
+			StrengthComparison.recalculateOurRelativeStrength();
+			StrengthComparison.recalculateSupply();
+		}
+
+		// Check very often for nearby activated mines
+		if (getFrames() % 3 == 0) {
+			UnitManager.avoidMines();
+		}
+
+		// If there are some enemy units invisible
+		if (getFrames() % 10 == 0) {
+			MapExploration.updateInfoAboutHiddenUnits();
+		}
+
+		// Try to detect hidden enemy units
+		if (getFrames() % 13 == 0) {
+			HiddenEnemyUnitsManager.act();
+		}
+
+		// See if we're strong enough to attack the enemy
+		if (getFrames() % 21 == 0) {
+			CodeProfiler.startMeasuring("Strategy");
+			StrategyManager.evaluateMassiveAttackOptions();
+			CodeProfiler.endMeasuring("Strategy");
+		}
+
+		// Handle technologies
+		if (getFrames() % 23 == 0) {
+			CodeProfiler.startMeasuring("Technology");
+			TechnologyManager.act();
+			CodeProfiler.endMeasuring("Technology");
+		}
+
+		// Now let's mine minerals with your idle workers.
+		if (getFrames() % 11 == 0) {
+			CodeProfiler.startMeasuring("Workers");
+			WorkerManager.act();
+			CodeProfiler.endMeasuring("Workers");
+		}
+
+		// Handle behavior of units and buildings.
+		// Handle units in neighborhood of army units.
+		if (getFrames() % 11 == 0) {
+			CodeProfiler.startMeasuring("Army");
+			UnitManager.act();
+			CodeProfiler.endMeasuring("Army");
+		}
+
+		// Avoid being under psionic storm, disruptive web etc.
+		if (getFrames() % 8 == 0) {
+			UnitManager.avoidSpellEffectsAndMinesIfNecessary();
+		}
+
+		// Handle Base behavior differently, more often.
+		int baseActInterval = xvr.getTimeSeconds() < 200 ? 2 : 8;
+		if (getFrames() % baseActInterval == 0) {
+			TerranCommandCenter.act();
+		}
+
+		// Handle army building.
+		int armyCreationManagerInterval = xvr.getTimeSeconds() < 260 ? 2 : 11;
+		if (getFrames() % armyCreationManagerInterval == 0) {
+			CodeProfiler.startMeasuring("Army build");
+			ArmyCreationManager.act();
+			CodeProfiler.endMeasuring("Army build");
+		}
+
+		// Handle constructing new buildings
+		if (getFrames() % 9 == 0) {
+			CodeProfiler.startMeasuring("Construct");
+			ConstructionManager.act();
+			CodeProfiler.endMeasuring("Construct");
+		}
+
+		// Define median siege tank i.e. the one in the center of others
+		if (getFrames() % 48 == 0) {
+			TerranSiegeTank.recalculateMedianAndFrontTanks();
+		}
+
+		// Handle flying building, that will enhance shoot range for tanks
+		if (getFrames() % 35 == 0) {
+			FlyingBuildingManager.act();
+		}
+		// } catch (Exception e) {
+		// Painter.errorOccured(e.getStackTrace()[0].toString());
+		// System.err.println("--------------------------------------");
+		// System.err.println("---------- NON CRITICAL ERROR OCCURED: ");
+		// e.printStackTrace();
+		// }
 	}
 
 	public void unitCreated(int unitID) {
@@ -949,32 +959,15 @@ public class XVR {
 		}
 	}
 
-	public Unit getRandomWorker() {
-		for (Unit unit : bwapi.getMyUnits()) {
-			if (unit.getTypeID() == UnitManager.WORKER.ordinal() && !unit.isConstructing()) {
-				return unit;
-			}
-		}
-		return null;
-	}
-
-	public Unit getOptimalBuilder(MapPoint buildTile) {
-		ArrayList<Unit> freeWorkers = new ArrayList<Unit>();
-		for (Unit worker : getWorkers()) {
-			if (worker.isCompleted()
-					&& !worker.isConstructing()
-					&& !worker.isRepairing()
-					&& (getTimeSeconds() <= 100 || (getTimeSeconds() > 100
-							&& !WorkerManager.isProfessionalRepairer(worker) && !worker
-								.equals(WorkerManager.getGuyToChaseOthers())))) {
-				freeWorkers.add(worker);
-			}
-		}
-		// System.out.println("freeWorkers.size() = " + freeWorkers.size());
-
-		// Return the closest builder to the tile
-		return getUnitNearestFromList(buildTile, freeWorkers, true, false);
-	}
+	// public Unit getRandomWorker() {
+	// for (Unit unit : bwapi.getMyUnits()) {
+	// if (unit.getTypeID() == UnitManager.WORKER.ordinal() &&
+	// !unit.isConstructing()) {
+	// return unit;
+	// }
+	// }
+	// return null;
+	// }
 
 	public boolean isEnemyDetectorNear(int x, int y) {
 		return getEnemyDetectorNear(x, y) != null;
@@ -1173,31 +1166,6 @@ public class XVR {
 	public Unit getNearestEnemy(MapPoint point) {
 		return getUnitNearestFromList(point, getEnemyUnitsVisible(), true, true);
 	}
-
-	// private Collection<Unit> getEnemyGroundUnits() {
-	// List<Unit> enemyUnits = bwapi.getEnemyUnits();
-	// for (Iterator<Unit> iterator = enemyUnits.iterator();
-	// iterator.hasNext();) {
-	// Unit unit = (Unit) iterator.next();
-	// if (unit.getType().isFlyer()) {
-	// iterator.remove();
-	// }
-	// }
-	// return enemyUnits;
-	// }
-	//
-	// @SuppressWarnings("unused")
-	// private Collection<Unit> getEnemyAirUnits() {
-	// List<Unit> enemyUnits = bwapi.getEnemyUnits();
-	// for (Iterator<Unit> iterator = enemyUnits.iterator();
-	// iterator.hasNext();) {
-	// Unit unit = (Unit) iterator.next();
-	// if (!unit.getType().isFlyer()) {
-	// iterator.remove();
-	// }
-	// }
-	// return enemyUnits;
-	// }
 
 	public double getNearestEnemyDistance(MapPoint point, boolean includeGroundUnits,
 			boolean includeAirUnits) {
