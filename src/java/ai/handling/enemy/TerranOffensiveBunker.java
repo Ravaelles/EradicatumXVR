@@ -32,9 +32,32 @@ public class TerranOffensiveBunker {
 			secondEnemyBase = EnemyBases.getNearestBaseLocationForEnemy(enemyLocation);
 			// if (secondEnemyBase != null) {
 
+			// =========================================================
+			// THIS WORKS FOR DEFAULT SC TERRAN AI
+
+			// Higher this value, closer to the enemy base bunker will be built
+			int bunkerPositionOffensivenessRatio = 50;
+
+			if (true || xvr.getENEMY().getName().contains("Krystev")) {
+				bunkerPositionOffensivenessRatio = 2;
+			}
+
 			// Build at first base choke point
-			_offensivePoint = MapExploration.getImportantChokePointNear(enemyLocation);
-			_offensivePoint = MapPointInstance.getPointBetween(_offensivePoint, secondEnemyBase, 7);
+			MapPoint firstBaseChokePoint = MapExploration.getImportantChokePointNear(enemyLocation);
+			_offensivePoint = MapPointInstance.getPointBetween(firstBaseChokePoint,
+					enemyWhereabout, bunkerPositionOffensivenessRatio);
+
+			// =========================================================
+			// THIS WORKS FOR DEFAULT SC TERRAN AI
+
+			// // Build at first base choke point
+			// _offensivePoint =
+			// MapExploration.getImportantChokePointNear(enemyLocation);
+			// _offensivePoint =
+			// MapPointInstance.getPointBetween(_offensivePoint,
+			// secondEnemyBase, 7);
+
+			// =========================================================
 
 			// _offensivePoint =
 			// MapExploration.getImportantChokePointNear(secondEnemyBase);
@@ -55,7 +78,7 @@ public class TerranOffensiveBunker {
 		return _offensivePoint;
 	}
 
-	private static MapPoint defineEnemyWhereabout() {
+	public static MapPoint defineEnemyWhereabout() {
 		if (MapExploration.getEnemyBuildingsDiscovered().isEmpty()) {
 			if (MapExploration.getCalculatedEnemyBaseLocation() != null) {
 				return MapExploration.getCalculatedEnemyBaseLocation();

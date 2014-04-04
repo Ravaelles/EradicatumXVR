@@ -931,6 +931,16 @@ public class RUtilities {
 		return null;
 	}
 
+	/**
+	 * Returns the first key from the given map or null if map is empty.
+	 * */
+	public static Object getFirstElement(Collection<?> collection) {
+		for (Object object : collection) {
+			return object;
+		}
+		return null;
+	}
+
 	public static double getMaxElement(Collection<Double> collection) {
 		double max = -9999999;
 		for (double number : collection) {

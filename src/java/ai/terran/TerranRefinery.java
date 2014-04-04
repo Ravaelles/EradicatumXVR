@@ -32,7 +32,8 @@ public class TerranRefinery {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (TerranBunker.getNumberOfUnits() > 0 && UnitCounter.getNumberOfWorkers() >= 8) {
+			if (TerranBunker.getNumberOfUnits() > 0 && UnitCounter.getNumberOfWorkers() >= 8
+					|| xvr.canAfford(300)) {
 				if (UnitCounter.getNumberOfInfantryUnits() >= 4) {
 					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				}

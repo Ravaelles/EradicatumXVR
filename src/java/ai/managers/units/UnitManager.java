@@ -117,6 +117,12 @@ public class UnitManager {
 			return;
 		}
 
+		// Try to load infantry inside bunkers if possible.
+		if (BunkerManager.tryLoadingIntoBunkersIfPossible(unit)) {
+			unit.setAiOrder("Into bunker");
+			return;
+		}
+
 		// Disallow units to move close to the defensive buildings
 		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
 			return;
@@ -130,12 +136,6 @@ public class UnitManager {
 
 		// Use Stimpacks if need.
 		ArmyUnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
-
-		// Try to load infantry inside bunkers if possible.
-		if (BunkerManager.tryLoadingIntoBunkersIfPossible(unit)) {
-			unit.setAiOrder("Into bunker");
-			return;
-		}
 
 		// Wounded units should avoid being killed (if possible you know...)
 		if (ArmyUnitBasicBehavior.tryRunningIfSeriouslyWounded(unit)) {

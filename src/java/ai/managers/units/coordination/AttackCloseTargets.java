@@ -21,6 +21,7 @@ public class AttackCloseTargets {
 
 	private static final int MAX_DIST_TO_BASE_WHEN_AT_PEACE = 27;
 	private static final int MIN_TANKS_TO_FORWARD = 5;
+	private static final int MAX_DIST_FROM_BASE_TOBE_ENEMY_WORKER_AROUND_OUR_BASE = 21;
 	private static final double FORCE_MOVE_TO_ENEMY_TANK_IF_DISTANCE_GREATER_THAN = 0.8;
 
 	// =========================================================
@@ -207,7 +208,8 @@ public class AttackCloseTargets {
 			return null;
 		}
 
-		if (enemy.getType().isWorker() && enemy.distanceTo(xvr.getFirstBase()) < 16) {
+		if (enemy.getType().isWorker()
+				&& enemy.distanceTo(xvr.getFirstBase()) < MAX_DIST_FROM_BASE_TOBE_ENEMY_WORKER_AROUND_OUR_BASE) {
 			return null;
 		}
 

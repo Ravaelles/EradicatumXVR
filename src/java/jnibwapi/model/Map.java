@@ -11,9 +11,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 import ai.core.XVR;
+import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
-import ai.handling.map.MapPointInstance;
-import ai.utils.RUtilities;
 
 /**
  * Stores information about a StarCraft map.
@@ -395,10 +394,13 @@ public class Map {
 	}
 
 	public MapPoint getMapCenter() {
-		MapPoint randomStartLocation = (MapPoint) RUtilities.getRandomElement(getStartLocations());
-		MapPoint ourBase = XVR.getInstance().getFirstBase();
-
-		return MapPointInstance.getTwoThirdPointBetween(ourBase, randomStartLocation);
+		// MapPoint randomStartLocation = (MapPoint)
+		// RUtilities.getRandomElement(getStartLocations());
+		// MapPoint ourBase = XVR.getInstance().getFirstBase();
+		//
+		// return MapPointInstance.getTwoThirdPointBetween(ourBase,
+		// randomStartLocation);
+		return MapExploration.getMostDistantBaseLocation(XVR.getInstance().getFirstBase());
 	}
 
 }

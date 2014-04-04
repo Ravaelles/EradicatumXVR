@@ -17,6 +17,7 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.constructing.WorkerSelection;
 import ai.managers.units.UnitManager;
 import ai.managers.units.buildings.BuildingManager;
+import ai.utils.RUtilities;
 
 public class TerranBunker {
 
@@ -119,6 +120,12 @@ public class TerranBunker {
 		}
 
 		return ShouldBuildCache.cacheShouldBuildInfo(type, false);
+	}
+
+	// =========================================================
+
+	public static Unit getFirstBunker() {
+		return (Unit) RUtilities.getFirstElement(xvr.getUnitsOfType(type));
 	}
 
 	// =========================================================

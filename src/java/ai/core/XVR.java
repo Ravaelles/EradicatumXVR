@@ -1034,7 +1034,7 @@ public class XVR {
 							enemy) > 20)) {
 
 				// If building isn't yet finished, skip it
-				if (!enemy.isCompleted() && !enemy.isHPAtLeastNPercent(93)) {
+				if (!enemy.isCompleted() || !enemy.isHPAtLeastNPercent(94)) {
 					continue;
 				}
 

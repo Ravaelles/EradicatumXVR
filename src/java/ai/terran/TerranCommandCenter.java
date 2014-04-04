@@ -64,11 +64,16 @@ public class TerranCommandCenter {
 		// .getBuildingType());
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
+		// =========================================================
+
+		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
 			if (TerranFactory.getNumberOfUnitsCompleted() < 3 && !xvr.canAfford(400)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}
+
+		// =========================================================
 
 		boolean factoryFirstConditionOkay = xvr.canAfford(384)
 				|| (!TerranFactory.FORCE_FACTORY_BEFORE_SECOND_BASE || TerranFactory
@@ -104,41 +109,6 @@ public class TerranCommandCenter {
 		if (xvr.canAfford(600)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
-
-		// int quickUnitsThreshold = BotStrategyManager.isExpandWithBunkers() ?
-		// 4 : 13;
-		// if (battleUnits >= quickUnitsThreshold && xvr.canAfford(350) ||
-		// xvr.canAfford(500)) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-
-		// FORCE quick expansion if we're rich
-		// if (xvr.canAfford(380)) {
-		// if (barracks >= 2 && battleUnits >= 13 && !XVR.isEnemyTerran()) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		//
-		// int thresholdBattleUnits = TerranBarracks.MIN_UNITS_FOR_DIFF_BUILDING
-		// - 4;
-		// if (battleUnits < thresholdBattleUnits || !xvr.canAfford(350)) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		// return false;
-		// } else {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		// }
-		// if (xvr.canAfford(410)) {
-		// if (battleUnits < 11) {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		// return false;
-		// } else {
-		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		// return true;
-		// }
-		// }
 
 		// // Initially, we must wait to have at least 3 barracks to build first
 		// // base.
@@ -203,6 +173,11 @@ public class TerranCommandCenter {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
+
+			// Priority for everything else e.g. force building Factory early
+			if (workers >= 10 && TerranFactory.getNumberOfUnits() == 0) {
+
+			}
 
 			// Priority for units training
 			if (workers >= 4 && UnitCounter.getNumberOfBattleUnits() < 2 && !xvr.canAfford(100)) {

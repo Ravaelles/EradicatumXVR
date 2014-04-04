@@ -6,7 +6,9 @@ import java.util.Iterator;
 
 import jnibwapi.model.Unit;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitActions;
+import ai.managers.units.workers.RepairAndSons;
 import ai.managers.units.workers.WorkerManager;
 
 public class BuildingRepairManager {
@@ -18,6 +20,18 @@ public class BuildingRepairManager {
 	// =========================================================
 
 	protected static void handleBuildingsNeedingRepair(Unit building) {
+
+		// STRATEGY: Offensive Bunker
+		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (building.getType().isBunker()) {
+				building.setAiOrder("Please repair me");
+				RepairAndSons.issueTicketToRepairIfHasnt(building);
+				return;
+			}
+		}
+
+		// =========================================================
+
 		int currentRepairers = -1;
 		boolean isBuildingDamaged = building.isWounded();
 

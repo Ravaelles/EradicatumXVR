@@ -50,16 +50,8 @@ public class ExplorerManager {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (!explorer.isConstructing() && !explorer.isRepairing()) {
-				MapPoint rendezvousOffensive = TerranOffensiveBunker.getRendezvousOffensive();
-				if (rendezvousOffensive != null) {
-					MapPointInstance pointForSCV = MapPointInstance.getMiddlePointBetween(
-							rendezvousOffensive, TerranOffensiveBunker.getSecondEnemyBase());
-
-					UnitActions.moveTo(explorer, pointForSCV);
-					explorer.setAiOrder("To Offens. bunker");
-					return;
-				}
+			if (tryGoingNearOffensiveBunker()) {
+				return;
 			}
 		}
 
@@ -140,6 +132,24 @@ public class ExplorerManager {
 	}
 
 	// =========================================================
+
+	private static boolean tryGoingNearOffensiveBunker() {
+		final String orderString = "To Offens. bunker";
+
+		if (!explorer.isConstructing() && !explorer.isRepairing()
+				&& !orderString.equals(explorer.getAiOrderString())) {
+			MapPoint rendezvousOffensive = TerranOffensiveBunker.getRendezvousOffensive();
+			if (rendezvousOffensive != null) {
+				MapPointInstance pointForSCV = MapPointInstance.getMiddlePointBetween(
+						rendezvousOffensive, TerranOffensiveBunker.getSecondEnemyBase());
+
+				UnitActions.moveTo(explorer, pointForSCV);
+				explorer.setAiOrder(orderString);
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private static boolean tryAvoidGettingKilled(Unit unit) {
 		boolean isInDanger = false;
@@ -410,7 +420,8 @@ public class ExplorerManager {
 			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
 			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
 				_explorerForBackOfBase = WorkerSelection.getOptimalBuilder(backOfTheBasePoint);
-				if (xvr.getDistanceBetween(_explorerForBackOfBase, backOfTheBasePoint) <= 30) {
+				if (_explorerForBackOfBase != null
+						&& xvr.getDistanceBetween(_explorerForBackOfBase, backOfTheBasePoint) <= 30) {
 					UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
 				}
 			}

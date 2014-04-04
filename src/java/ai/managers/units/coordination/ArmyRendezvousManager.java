@@ -37,10 +37,7 @@ public class ArmyRendezvousManager {
 		MapPoint runTo;
 
 		if (XVR.isEnemyTerran()) {
-			runTo = TerranOffensiveBunker.getRendezvousOffensive();
-			if (runTo == null) {
-				runTo = xvr.getMap().getMapCenter();
-			}
+			runTo = defineRendezvousPointWhenOffensiveBunker(unit);
 		} else {
 
 			MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
@@ -122,6 +119,38 @@ public class ArmyRendezvousManager {
 				return getArmyMedianPoint();
 			}
 		}
+	}
+
+	private static MapPoint defineRendezvousPointWhenOffensiveBunker(Unit unit) {
+		MapPoint runTo = TerranOffensiveBunker.getRendezvousOffensive();
+
+		// There's a bunker existing
+		if (TerranBunker.getNumberOfUnits() > 0) {
+			Unit bunker = TerranBunker.getFirstBunker();
+
+			// If bunker has enough space, go near it in (wise) hope to be
+			// loaded into
+			if (bunker != null && bunker.getNumLoadedUnits() < 4) {
+				runTo = bunker;
+			}
+
+			// If bunker is already full, stand on the second base, protect this
+			// region from building e.g. a bunker
+			else {
+				runTo = TerranOffensiveBunker.getSecondEnemyBase();
+			}
+		}
+
+		// There isn't a bunker yet
+		else {
+			runTo = TerranOffensiveBunker.defineEnemyWhereabout();
+		}
+
+		if (runTo == null) {
+			runTo = xvr.getMap().getMapCenter();
+		}
+
+		return runTo;
 	}
 
 	// =========================================================

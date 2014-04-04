@@ -71,10 +71,16 @@ public class TerranFactory {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
+		// =========================================================
+
+		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
 			if (TerranBarracks.getNumberOfUnitsCompleted() > 0) {
+				if (factories == 0 && xvr.canAfford(200, 100)) {
+					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				}
 
-				if (xvr.canAfford(300, 200)) {
+				if (xvr.canAfford(450, 270)) {
 					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				}
 
@@ -87,6 +93,8 @@ public class TerranFactory {
 
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
+
+		// =========================================================
 
 		if (factories <= 2
 				&& (xvr.canAfford(250, 200) || TerranCommandCenter.getNumberOfUnits() > 1)) {
