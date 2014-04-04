@@ -89,7 +89,9 @@ public class ArmyRendezvousManager {
 			if (TerranSiegeTank.getNumberOfUnitsCompleted() <= 7) {
 				return TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
 			} else {
-				return MapExploration.getNearestEnemyBuilding();
+				return MapExploration.getNearestEnemyBuilding(TerranOffensiveBunker
+						.getOffensivePoint());
+				// return TerranOffensiveBunker.getOffensivePoint();
 			}
 		}
 

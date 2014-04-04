@@ -5,7 +5,6 @@ import jnibwapi.model.Unit;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
-import ai.handling.map.MapPointInstance;
 import ai.terran.TerranBunker;
 
 public class TerranOffensiveBunker {
@@ -24,13 +23,13 @@ public class TerranOffensiveBunker {
 			Unit enemyLocation = MapExploration.getNearestEnemyBuilding();
 			BaseLocation secondEnemyBase = EnemyBases.getNearestBaseLocationForEnemy(enemyLocation);
 			if (secondEnemyBase != null) {
-				// ChokePoint chokePoint =
-				// MapExploration.getImportantChokePointNear(secondEnemyBase);
+				_offensivePoint = MapExploration.getImportantChokePointNear(secondEnemyBase);
 				// if (chokePoint != null) {
 				// MapPoint point =
 
-				_offensivePoint = MapPointInstance.getPointBetween(secondEnemyBase,
-						xvr.getFirstBase(), 6);
+				// _offensivePoint =
+				// MapPointInstance.getPointBetween(secondEnemyBase,
+				// xvr.getFirstBase(), 11);
 
 				// Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
 				// chokePoint, nearestFreeBaseLocation, 0, 10);
@@ -56,6 +55,10 @@ public class TerranOffensiveBunker {
 		} else {
 			return null;
 		}
+	}
+
+	public static MapPoint getOffensivePoint() {
+		return _offensivePoint;
 	}
 
 }

@@ -41,7 +41,7 @@ public class TerranSupplyDepot {
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
 
-		if (total > 0 && total < 200 && free <= 3) {
+		if (total > 10 && total < 200 && free <= 3) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
@@ -134,10 +134,7 @@ public class TerranSupplyDepot {
 	// =========================================================
 
 	public static void buildIfNecessary() {
-		if (xvr.canAfford(100)) {
-
-			// It only makes sense to build Supply Depot if supplies less than
-			// X.
+		if (xvr.canAfford(92)) {
 			if (shouldBuild()) {
 				Constructing.construct(xvr, buildingType);
 			}

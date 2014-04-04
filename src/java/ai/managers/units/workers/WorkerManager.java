@@ -14,9 +14,12 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitActions;
+import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.RunManager;
+import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.buildings.BuildingRepairManager;
+import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranRefinery;
@@ -107,6 +110,37 @@ public class WorkerManager {
 				continue;
 			}
 
+			// =========================================================
+			// Section of methods from UNIT MANAGER
+
+			// Avoid enemy tanks in Siege Mode
+			if (EnemyTanksManager.tryAvoidingEnemyTanks(worker)) {
+				return;
+			}
+
+			// Disallow units to move close to the defensive buildings
+			if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(worker)) {
+				return;
+			}
+
+			// Wounded units should avoid being killed (if possible you know...)
+			if (ArmyUnitBasicBehavior.tryRunningIfSeriouslyWounded(worker)) {
+				worker.setAiOrder("Badly wounded");
+				return;
+			}
+
+			// If enemy has got very close near to us, move away
+			if (RunManager.runFromCloseOpponentsIfNecessary(worker)) {
+				return;
+			}
+
+			// Run from hidden Lurkers, Dark Templars etc.
+			if (HiddenEnemyUnitsManager.tryAvoidingHiddenUnitsIfNecessary(worker)) {
+				return;
+			}
+
+			// =========================================================
+
 			// Check if worker isn't supposed to repair non-existing building
 			// or building that isn't damaged at all.
 			checkStatusOfBuildingsNeedingRepair(worker);
@@ -141,6 +175,10 @@ public class WorkerManager {
 		}
 
 		if (unit.equals(ExplorerManager.getExplorer())) {
+			return;
+		}
+
+		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
 			return;
 		}
 

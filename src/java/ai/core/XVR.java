@@ -17,6 +17,7 @@ import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.missions.MissionProtectBase;
 import ai.handling.strength.StrengthComparison;
+import ai.handling.units.TankTargeting;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.ConstructionManager;
 import ai.managers.economy.TechnologyManager;
@@ -101,6 +102,11 @@ public class XVR {
 				UnitCounter.recalculateUnits();
 			}
 
+			// Choose proper targets for Sieged Tanks
+			if (TerranSiegeTank.getNumberOfUnits() > 0 && getFrames() % 3 == 0) {
+				TankTargeting.handleTankTargetting();
+			}
+
 			// Every once in a while recalculate our relative strength, compared
 			// with enemy's strength
 			if (getFrames() % 56 == 0) {
@@ -157,8 +163,9 @@ public class XVR {
 				UnitManager.avoidSpellEffectsAndMinesIfNecessary();
 			}
 
-			// Handle Nexus behavior differently, more often.
-			if (getFrames() % 8 == 0) {
+			// Handle Base behavior differently, more often.
+			int baseInterval = xvr.getTimeSeconds() < 200 ? 2 : 8;
+			if (getFrames() % baseInterval == 0) {
 				TerranCommandCenter.act();
 			}
 
@@ -587,7 +594,7 @@ public class XVR {
 		return result;
 	}
 
-	public ArrayList<Unit> getUnitsOfGivenTypeInRadius(UnitTypes type, int tileRadius,
+	public ArrayList<Unit> getUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius,
 			MapPoint point, boolean onlyMyUnits) {
 		if (point == null) {
 			return new ArrayList<>();
@@ -596,12 +603,29 @@ public class XVR {
 				onlyMyUnits);
 	}
 
-	public ArrayList<Unit> getUnitsOfGivenTypeInRadius(UnitTypes type, int tileRadius, int x,
+	public ArrayList<Unit> getUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, int x,
 			int y, boolean onlyMyUnits) {
 		HashMap<Unit, Double> unitToDistance = new HashMap<Unit, Double>();
 
 		for (Unit unit : (onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits())) {
 			double distance = getDistanceBetween(unit, x, y);
+			if (type.ordinal() == unit.getTypeID() && distance <= tileRadius) {
+				unitToDistance.put(unit, distance);
+			}
+		}
+
+		// Return listed sorted by distance ascending.
+		ArrayList<Unit> resultList = new ArrayList<Unit>();
+		resultList.addAll(RUtilities.sortByValue(unitToDistance, true).keySet());
+		return resultList;
+	}
+
+	public ArrayList<Unit> getUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius,
+			MapPoint point, Collection<Unit> units) {
+		HashMap<Unit, Double> unitToDistance = new HashMap<Unit, Double>();
+
+		for (Unit unit : units) {
+			double distance = getDistanceBetween(unit, point);
 			if (type.ordinal() == unit.getTypeID() && distance <= tileRadius) {
 				unitToDistance.put(unit, distance);
 			}

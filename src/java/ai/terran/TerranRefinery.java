@@ -3,6 +3,7 @@ package ai.terran;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
@@ -28,6 +29,10 @@ public class TerranRefinery {
 		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());
 
 		if (refineries == 0) {
+			if (TerranOffensiveBunker.isStrategyActive() && TerranBarracks.getNumberOfUnits() > 0) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
+
 			boolean isEnoughInfantry = (battleUnits >= 6 || battleUnits >= ArmyCreationManager.MINIMUM_MARINES);
 			boolean isAnotherBaseAndFreeMinerals = TerranCommandCenter.getNumberOfUnits() > 1
 					|| xvr.canAfford(468)

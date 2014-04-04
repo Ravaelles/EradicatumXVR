@@ -5,6 +5,7 @@ import ai.core.XVR;
 import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
+import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.units.army.ArmyCreationManager;
@@ -65,7 +66,14 @@ public class FlyingBuildingManager {
 	private static void tryRepairingIfNeeded(Unit flyingBuilding) {
 		if (flyingBuilding.isWounded()) {
 			flyingBuilding.setAiOrder("Ask for repair");
-			RepairAndSons.issueTicketToRepairIfHasnt(flyingBuilding);
+			Unit repairer = RepairAndSons.issueTicketToRepairIfHasnt(flyingBuilding);
+			if (repairer != null && !flyingBuilding.isHPAtLeastNPercent(60)) {
+				if (repairer.distanceTo(flyingBuilding) > 2) {
+					UnitActions.moveTo(flyingBuilding, repairer);
+				} else {
+					UnitActions.holdPosition(flyingBuilding);
+				}
+			}
 		}
 	}
 
@@ -73,11 +81,22 @@ public class FlyingBuildingManager {
 
 	private static void moveBuildingToProperPlace(Unit flyingBuilding) {
 		MapPoint rendezvousPoint = null;
+
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			rendezvousPoint = MapExploration.getNearestEnemyBuilding();
+			// rendezvousPoint =
+			// MapExploration.getNearestEnemyBuilding(rendezvousPoint);
+			int tanks = TerranSiegeTank.getNumberOfUnits();
+			if (tanks > 3) {
+				Unit enemyBuilding = MapExploration.getNearestEnemyBuilding(rendezvousPoint);
+				rendezvousPoint = MapPointInstance.getMiddlePointBetween(
+						TerranSiegeTank.getMedianTank(), enemyBuilding);
+			} else {
+				rendezvousPoint = TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+			}
 		} else {
 			rendezvousPoint = ArmyRendezvousManager.getRendezvousTankForFlyers();
 		}
+
 		if (rendezvousPoint != null) {
 
 			// Lift building if isn't lifted yet

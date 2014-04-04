@@ -1,5 +1,6 @@
 package ai.managers.units.army.tanks;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import jnibwapi.model.ChokePoint;
@@ -8,7 +9,6 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
-import ai.handling.units.TankTargeting;
 import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
@@ -116,6 +116,15 @@ public class SiegeTankManager {
 			return true;
 		}
 
+		// If there's enemy Siege Tank in range, siege.
+		Collection<Unit> enemyArmyUnits = xvr.getEnemyArmyUnits();
+		if (!xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 11.1, unit,
+				enemyArmyUnits).isEmpty()
+				|| !xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode, 10.9,
+						unit, enemyArmyUnits).isEmpty()) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -147,24 +156,6 @@ public class SiegeTankManager {
 			infoTankIsConsideringUnsieging(unit);
 		}
 
-		// If tank should be here, try to attack proper target.
-		else {
-			MapPoint targetForTank = TankTargeting.defineTargetForSiegeTank(unit);
-			if (targetForTank != null) {
-				if (targetForTank instanceof Unit && ((Unit) targetForTank).isDetected()) {
-					UnitActions.attackEnemyUnit(unit, (Unit) targetForTank);
-				} else {
-					UnitActions.attackTo(unit, targetForTank);
-				}
-			} else {
-				if (nearestEnemy != null && !enemyAlmostInSight) {
-					if (nearestEnemyDist >= 0 && (nearestEnemyDist < 2 || nearestEnemyDist <= 7)) {
-						infoTankIsConsideringUnsieging(unit);
-					}
-				}
-			}
-		}
-
 		if (isUnsiegingIdeaTimerExpired(unit)) {
 			unit.setAiOrder("Unsiege: OK");
 			if (!mustSiege(unit) && !shouldSiege(unit)) {
@@ -182,7 +173,7 @@ public class SiegeTankManager {
 		return false;
 	}
 
-	private static void infoTankIsConsideringUnsieging(Unit unit) {
+	public static void infoTankIsConsideringUnsieging(Unit unit) {
 		if (!TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
 			unit.setAiOrder("Consider unsieging");
 			TargettingDetails.unsiegeIdeasMap.put(unit, xvr.getTimeSeconds());

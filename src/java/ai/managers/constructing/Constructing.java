@@ -50,6 +50,51 @@ public class Constructing {
 		}
 	}
 
+	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
+		boolean canProceed = false;
+
+		// Disallow multiple building of all buildings, except barracks,
+		// bunkers.
+		int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+		if (building.getType().isFactory()) {
+			canProceed = builders <= 1;
+		} else if (building.getType().isBarracks()) {
+			int barracks = TerranBarracks.getNumberOfUnits();
+			if (barracks != 1) {
+				canProceed = builders == 0;
+			}
+			if (barracks == 1) {
+				canProceed = builders <= TerranBarracks.MAX_BARRACKS - 1;
+			}
+			// } else if (building.getType().isBunker()) {
+			// int builders =
+			// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+			// int bunkers = TerranBunker.getNumberOfUnits();
+			// if (bunkers != 1) {
+			// canProceed = builders == 0;
+			// }
+			// if (bunkers == 1) {
+			// canProceed = builders <= 1;
+			// }
+			// } else if (building.getType().isBase()) {
+			// int builders =
+			// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+			// // int bases = TerranCommandCenter.getNumberOfUnits();
+			// canProceed = builders == 0;
+		} else {
+			// || building.getType().isBase()
+			canProceed = !weAreBuilding(building);
+		}
+
+		// If there aren't multiple orders to build one building given, we can
+		// proceed
+		if (canProceed) {
+			xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
+					building.ordinal());
+			ConstructionManager.addInfoAboutConstruction(building, builder, buildTile);
+		}
+	}
+
 	// ============================
 
 	public static MapPoint findTileForStandardBuilding(UnitTypes typeToBuild) {
@@ -543,51 +588,6 @@ public class Constructing {
 
 	public static boolean weAreBuilding(UnitTypes type) {
 		return ConstructionManager.weAreBuilding(type);
-	}
-
-	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
-		boolean canProceed = false;
-
-		// Disallow multiple building of all buildings, except barracks,
-		// bunkers.
-		int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-		if (building.getType().isFactory()) {
-			canProceed = builders <= 1;
-		} else if (building.getType().isBarracks()) {
-			int barracks = TerranBarracks.getNumberOfUnits();
-			if (barracks != 1) {
-				canProceed = builders == 0;
-			}
-			if (barracks == 1) {
-				canProceed = builders <= 1;
-			}
-			// } else if (building.getType().isBunker()) {
-			// int builders =
-			// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			// int bunkers = TerranBunker.getNumberOfUnits();
-			// if (bunkers != 1) {
-			// canProceed = builders == 0;
-			// }
-			// if (bunkers == 1) {
-			// canProceed = builders <= 1;
-			// }
-			// } else if (building.getType().isBase()) {
-			// int builders =
-			// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			// // int bases = TerranCommandCenter.getNumberOfUnits();
-			// canProceed = builders == 0;
-		} else {
-			// || building.getType().isBase()
-			canProceed = !weAreBuilding(building);
-		}
-
-		// If there aren't multiple orders to build one building given, we can
-		// proceed
-		if (canProceed) {
-			xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
-					building.ordinal());
-			ConstructionManager.addInfoAboutConstruction(building, builder, buildTile);
-		}
 	}
 
 	public static Unit getRandomWorker() {

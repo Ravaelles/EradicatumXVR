@@ -1139,11 +1139,17 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public void setLastTimeTrainStartedNow() {
-		lastTimeTrainStarted = xvr.getTimeSeconds();
+		lastTimeTrainStarted = xvr.getFrames();
 	}
 
 	public int getLastTimeTrainStarted() {
 		return lastTimeTrainStarted;
+	}
+
+	public String getNameShort() {
+		String name = getName();
+		return name.replace("Zerg", "").replace("Terran", "").replace("Protss", "")
+				.substring(0, 10);
 	}
 
 }

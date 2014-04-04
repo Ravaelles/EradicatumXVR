@@ -8,6 +8,8 @@ import ai.handling.units.UnitActions;
 
 public class RepairAndSons {
 
+	private static final int MAX_GOOD_WILL_REPAIRERS = 3;
+
 	private static XVR xvr = XVR.getInstance();
 
 	private static HashMap<Unit, Unit> unitsToRepairers = new HashMap<>();
@@ -93,6 +95,14 @@ public class RepairAndSons {
 			}
 		}
 
+		// No-one asked us specifically to repair, but ensure if there isn't
+		// someone who can re repaired
+		else {
+			// if (tryRepairingSomethingEvenIfNotAsked(worker)) {
+			// return true;
+			// }
+		}
+
 		// // No units assigned to repait, but check if there're some crucial
 		// units
 		// // to repair like e.g. tanks
@@ -100,20 +110,48 @@ public class RepairAndSons {
 		// tryExtraRepairingTank(worker);
 		// }
 
+		repairersToUnits.remove(worker);
+
 		return false;
 	}
 
 	// =========================================================
 
+	private static boolean tryRepairingSomethingEvenIfNotAsked(Unit worker) {
+		for (Unit otherUnit : xvr.getUnitsInRadius(worker, 10, xvr.getBwapi().getMyUnits())) {
+			if (otherUnit.isRepairable() && !otherUnit.isConstructing() && otherUnit.isWounded()
+					&& !otherUnit.getType().isOnGeyser()) {
+
+				// Make sure too many repairers aren't repairing single unit
+				int currentRepairers = 0;
+				for (Unit repairedUnit : repairersToUnits.values()) {
+					if (repairedUnit.equals(otherUnit)) {
+						currentRepairers++;
+					}
+				}
+
+				if (currentRepairers < MAX_GOOD_WILL_REPAIRERS) {
+					repairersToUnits.put(worker, otherUnit);
+					UnitActions.repair(worker, otherUnit);
+				}
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public static void tryIssuingRepairOrderIfPossible(Unit unit) {
 		if (unit.isRepairable() && unit.isWounded()) {
 			issueTicketToRepairIfHasnt(unit);
+		} else {
+			unitsToRepairers.remove(unit);
 		}
 	}
 
-	public static void issueTicketToRepairIfHasnt(Unit unit) {
+	public static Unit issueTicketToRepairIfHasnt(Unit unit) {
 		if (unit == null) {
-			return;
+			return null;
 		}
 
 		// Check if repairer is alive
@@ -122,12 +160,12 @@ public class RepairAndSons {
 			if (unit != null && currentRepairer != null) {
 				if (!unit.getType().isTank()) {
 					if (currentRepairer.getHP() > 0 && currentRepairer.isExists()) {
-						return;
+						return currentRepairer;
 					}
 				} else {
 					if (currentRepairer != null && currentRepairer.getHP() > 0
 							&& calculateNumberOfRepairersFor(unit) <= 2) {
-						return;
+						return currentRepairer;
 					}
 				}
 			}
@@ -137,7 +175,7 @@ public class RepairAndSons {
 		if (repairer == null && xvr.getWorkers().size() > 0) {
 			// System.out.println("------------ No repairer found for unit: " +
 			// unit.getName());
-			return;
+			return null;
 		}
 		// System.out.println("### Repairer for unit: " + unit.getName() + " (#"
 		// + unit.getID()
@@ -146,6 +184,8 @@ public class RepairAndSons {
 		unitsToRepairers.put(unit, repairer);
 		repairersToUnits.put(repairer, unit);
 		unit.setBeingRepaired(true);
+
+		return repairer;
 	}
 
 	public static Unit getUnitAssignedToRepairBy(Unit worker) {

@@ -170,6 +170,8 @@ public class XVRClient implements BWAPIEventListener {
 	}
 
 	public void unitDestroy(int unitID) {
+		EnemyTanksManager.unitDestroyed(unitID);
+
 		boolean wasOurUnit = historyOfOurUnits.contains(unitID);
 		if (wasOurUnit) {
 			Painter.ourDeaths++;

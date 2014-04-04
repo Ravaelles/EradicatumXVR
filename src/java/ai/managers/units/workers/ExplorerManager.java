@@ -45,14 +45,14 @@ public class ExplorerManager {
 		}
 		ExplorerManager.explorer = explorer;
 
+		if (tryAvoidGettingKilled(explorer)) {
+			return;
+		}
+
 		// Disallow units to move close to the defensive building like
 		// Photon Cannon
 		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(explorer)) {
 			explorer.setAiOrder("Avoid building");
-			return;
-		}
-
-		if (tryAvoidGettingKilled(explorer)) {
 			return;
 		}
 
@@ -77,7 +77,8 @@ public class ExplorerManager {
 		boolean shouldBeMoving = explorer.isMoving() && isEnemyClose;
 
 		// Try running around enemy base
-		if (ExplorerCirclingEnemyBase.tryRunningAroundEnemyBaseIfPossible()) {
+		if (!TerranOffensiveBunker.isStrategyActive()
+				&& ExplorerCirclingEnemyBase.tryRunningAroundEnemyBaseIfPossible()) {
 			return;
 		}
 

@@ -48,7 +48,7 @@ public class ConstructionManager {
 
 		// Store info about constructing given building for 3 acts, then
 		// remove all data
-		if (_recentConstructionsCounter++ >= 3) {
+		if (_recentConstructionsCounter++ >= 6) {
 			resetInfoAboutConstructions();
 		}
 
@@ -134,7 +134,7 @@ public class ConstructionManager {
 		ShouldBuildCache.cacheShouldBuildInfo(building, false);
 	}
 
-	public static HashMap<UnitTypes, MapPoint> get_recentConstructionsPlaces() {
+	public static HashMap<UnitTypes, MapPoint> getRecentConstructionsPlaces() {
 		return _recentConstructionsPlaces;
 	}
 

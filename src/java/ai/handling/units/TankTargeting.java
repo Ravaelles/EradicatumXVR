@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapPoint;
+import ai.managers.units.army.tanks.SiegeTankManager;
 import ai.utils.RUtilities;
 
 public class TankTargeting {
@@ -25,9 +27,38 @@ public class TankTargeting {
 
 	private static final int MINIMUM_OPTION_VALUE = 30;
 
-	// =====================================
+	public static void handleTankTargetting() {
+		for (Unit unit : xvr.getUnitsOfType(UnitTypes.Terran_Siege_Tank_Siege_Mode)) {
+			MapPoint targetForTank = defineTargetForSiegeTank(unit);
 
-	public static MapPoint defineTargetForSiegeTank(Unit unit) {
+			// We found target to attack
+			if (targetForTank != null) {
+				if (targetForTank instanceof Unit) {
+					Unit target = (Unit) targetForTank;
+					if (target.isDetected()) {
+						unit.setAiOrder("Attack: " + target.getNameShort());
+						UnitActions.attackEnemyUnit(unit, (Unit) targetForTank);
+					} else {
+						unit.setAiOrder("Attack blind: " + target.getNameShort());
+						UnitActions.attackTo(unit, targetForTank);
+					}
+				}
+			}
+
+			// We haven't found valid target to attack
+			else {
+				Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
+				if (nearestEnemy != null) {
+					double nearestEnemyDist = nearestEnemy.distanceTo(unit);
+					if (nearestEnemyDist >= 0 && (nearestEnemyDist < 2 || nearestEnemyDist <= 7)) {
+						SiegeTankManager.infoTankIsConsideringUnsieging(unit);
+					}
+				}
+			}
+		}
+	}
+
+	private static MapPoint defineTargetForSiegeTank(Unit unit) {
 		Unit target = null;
 
 		target = defineUnitToAttack(unit);
@@ -37,6 +68,8 @@ public class TankTargeting {
 
 		return target;
 	}
+
+	// =========================================================
 
 	private static Unit defineBuildingToAttack(Unit unit) {
 
@@ -62,7 +95,7 @@ public class TankTargeting {
 	private static Unit defineUnitToAttack(Unit unit) {
 
 		// Define list of all units (not buildings) that are in range of a shoot
-		ArrayList<Unit> enemyUnitsInRange = xvr.getUnitsInRadius(unit, 11,
+		ArrayList<Unit> enemyUnitsInRange = xvr.getUnitsInRadius(unit, 11.1,
 				xvr.getEnemyUnitsVisible(true, false));
 		if (enemyUnitsInRange.isEmpty()) {
 			return null;
@@ -75,18 +108,13 @@ public class TankTargeting {
 		// ===================================================
 		// Define building of highest priority (if possible) like Bunker, Photon
 		// Cannon.
-		Unit importantEnemyUnit = TargetHandling.getImportantEnemyUnitTargetIfPossibleFor(unit,
+		Unit importantUnit = TargetHandling.getImportantEnemyUnitTargetIfPossibleFor(unit,
 				enemyUnitsInRange, true, false);
-
-		Unit target = null;
-		if (importantEnemyUnit != null) {
-			target = importantEnemyUnit;
-		} else {
-			// target = xvr.getUnitNearestFromList(unit, enemyUnitsInRange);
-			target = defineOptimalStandardTarget(unit, enemyUnitsInRange);
+		if (importantUnit != null) {
+			return importantUnit;
 		}
 
-		return target;
+		return defineOptimalStandardTarget(unit, enemyUnitsInRange);
 	}
 
 	private static Unit defineOptimalStandardTarget(Unit unit, ArrayList<Unit> enemiesInRange) {
