@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
+import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -36,7 +36,7 @@ public class ArmyRendezvousManager {
 	public static MapPoint getRendezvousPointFor(Unit unit) {
 		MapPoint runTo;
 
-		if (XVR.isEnemyTerran()) {
+		if (TerranOffensiveBunker.isStrategyActive()) {
 			runTo = defineRendezvousPointWhenOffensiveBunker(unit);
 		} else {
 
@@ -131,19 +131,28 @@ public class ArmyRendezvousManager {
 			// If bunker has enough space, go near it in (wise) hope to be
 			// loaded into
 			if (bunker != null && bunker.getNumLoadedUnits() < 4) {
-				runTo = bunker;
+				runTo = MapPointInstance.getPointBetween(bunker,
+						TerranOffensiveBunker.getEnemyWhereabout(), 80);
 			}
 
 			// If bunker is already full, stand on the second base, protect this
 			// region from building e.g. a bunker
 			else {
-				runTo = TerranOffensiveBunker.getSecondEnemyBase();
+				// runTo = TerranOffensiveBunker.getSecondEnemyBase();
+				runTo = defineRendezvousPointWhenOffensiveBunkerFull();
 			}
 		}
 
 		// There isn't a bunker yet
 		else {
-			runTo = TerranOffensiveBunker.defineEnemyWhereabout();
+			// runTo = TerranOffensiveBunker.defineEnemyWhereabout();
+			MapPoint bunker = TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+			if (bunker != null) {
+				runTo = MapPointInstance.getMiddlePointBetween(
+						TerranOffensiveBunker.getSecondEnemyBase(), bunker);
+			} else {
+				runTo = TerranOffensiveBunker.getSecondEnemyBase();
+			}
 		}
 
 		if (runTo == null) {
@@ -151,6 +160,10 @@ public class ArmyRendezvousManager {
 		}
 
 		return runTo;
+	}
+
+	private static MapPoint defineRendezvousPointWhenOffensiveBunkerFull() {
+		return TerranOffensiveBunker.getEnemyWhereabout();
 	}
 
 	// =========================================================
@@ -252,7 +265,11 @@ public class ArmyRendezvousManager {
 		}
 
 		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
-			UnitActions.moveTo(unit, safePlace);
+			if (TerranOffensiveBunker.isStrategyActive()) {
+				UnitActions.attackTo(unit, safePlace);
+			} else {
+				UnitActions.moveTo(unit, safePlace);
+			}
 			return safePlace;
 			// } else {
 			// UnitActions.moveAwayFromNearestEnemy(unit);

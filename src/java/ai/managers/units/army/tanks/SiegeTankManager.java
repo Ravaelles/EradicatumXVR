@@ -144,7 +144,8 @@ public class SiegeTankManager {
 		boolean enemyAlmostInSight = nearestEnemyDist >= 0 && nearestEnemyDist <= 14;
 		boolean neighborhoodDangerous = enemyVeryClose && unit.getStrengthRatio() < 1.8;
 		// boolean chancesRatherBad = unit.getStrengthRatio() < 1.1;
-		if (neighborhoodDangerous && enemyVeryClose && enemiesVeryClose >= 2) {
+		if (neighborhoodDangerous && enemyVeryClose
+				&& (enemiesVeryClose >= 2 || nearestEnemy.getMaxHP() > 50)) {
 			unit.setAiOrder("Unsiege: Urgent");
 			unit.unsiege();
 			return;

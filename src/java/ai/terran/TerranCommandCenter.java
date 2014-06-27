@@ -8,7 +8,6 @@ import jnibwapi.model.Map;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
@@ -21,6 +20,7 @@ import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.managers.units.workers.WorkerManager;
+import ai.strategies.TerranOffensiveBunker;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
 
@@ -57,6 +57,7 @@ public class TerranCommandCenter {
 		// }
 
 		int bases = UnitCounter.getNumberOfUnits(buildingType);
+		int factories = TerranFactory.getNumberOfUnitsCompleted();
 		// int barracks =
 		// UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType());
 		// int barracksCompleted =
@@ -68,7 +69,7 @@ public class TerranCommandCenter {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (TerranFactory.getNumberOfUnitsCompleted() < 3 && !xvr.canAfford(400)) {
+			if ((factories < 3 || TerranSupplyDepot.getNumberOfUnits() == 0) && !xvr.canAfford(500)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}
@@ -82,6 +83,7 @@ public class TerranCommandCenter {
 		// =========================================================
 
 		if (bases <= 1
+				&& factories > 0
 				&& (battleUnits >= ArmyCreationManager.MINIMUM_MARINES || xvr.canAfford(358))
 				&& (TerranBunker.getNumberOfUnitsCompleted() >= TerranBunker.MAX_STACK || xvr
 						.canAfford(384)) && factoryFirstConditionOkay) {
@@ -174,23 +176,29 @@ public class TerranCommandCenter {
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
 
+			// Initially build barracks, not worker
+			if (workers == 4 && TerranBarracks.getNumberOfUnits() > 0) {
+				return true;
+			}
+
 			// Priority for everything else e.g. force building Factory early
 			if (workers >= 10 && TerranFactory.getNumberOfUnits() == 0) {
-
+				return false;
 			}
 
 			// Priority for units training
-			if (workers >= 4 && UnitCounter.getNumberOfBattleUnits() < 2 && !xvr.canAfford(100)) {
+			if (workers >= 4 && UnitCounter.getNumberOfBattleUnits() < 2 && !xvr.canAfford(130)) {
 				return false;
 			}
 
 			// Priority for barracks
-			if (TerranBarracks.shouldBuild() && !xvr.canAfford(200)) {
+			if (TerranBarracks.shouldBuild() && !xvr.canAfford(210)) {
 				return false;
 			}
 
 			// Priority for bunker
-			if (TerranBunker.shouldBuild() && !xvr.canAfford(150)) {
+			if ((TerranBunker.shouldBuild() || TerranBunker.getNumberOfUnits() == 0)
+					&& !xvr.canAfford(150)) {
 				return false;
 			}
 		}

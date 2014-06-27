@@ -1155,4 +1155,18 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		}
 	}
 
+	boolean isExplorer = false;
+
+	public void setIsExplorer() {
+		isExplorer = true;
+	}
+
+	public void setIsNotExplorer() {
+		isExplorer = false;
+	}
+
+	public boolean isExplorer() {
+		return isExplorer;
+	}
+
 }

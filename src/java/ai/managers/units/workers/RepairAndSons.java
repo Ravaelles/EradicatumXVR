@@ -9,6 +9,8 @@ import ai.handling.units.UnitActions;
 public class RepairAndSons {
 
 	private static final int MAX_GOOD_WILL_REPAIRERS = 3;
+	private static final int REPAIR_IF_NOT_ASKED_MAX_DISTANCE_FROM_UNIT = 8;
+	private static final int REPAIR_IF_NOT_ASKED_MIN_DISTANCE_FROM_BASE = 10;
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -68,6 +70,14 @@ public class RepairAndSons {
 			return false;
 		}
 
+		// Only units far from base can repair
+		Unit firstBase = xvr.getFirstBase();
+		if (firstBase != null) {
+			if (firstBase.distanceTo(worker) < REPAIR_IF_NOT_ASKED_MIN_DISTANCE_FROM_BASE) {
+				return false;
+			}
+		}
+
 		// =========================================================
 
 		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
@@ -99,9 +109,9 @@ public class RepairAndSons {
 		// No-one asked us specifically to repair, but ensure if there isn't
 		// someone who can re repaired
 		else {
-			// if (tryRepairingSomethingEvenIfNotAsked(worker)) {
-			// return true;
-			// }
+			if (tryRepairingSomethingEvenIfNotAsked(worker)) {
+				return true;
+			}
 		}
 
 		// // No units assigned to repait, but check if there're some crucial
@@ -119,7 +129,8 @@ public class RepairAndSons {
 	// =========================================================
 
 	private static boolean tryRepairingSomethingEvenIfNotAsked(Unit worker) {
-		for (Unit otherUnit : xvr.getUnitsInRadius(worker, 10, xvr.getBwapi().getMyUnits())) {
+		for (Unit otherUnit : xvr.getUnitsInRadius(worker,
+				REPAIR_IF_NOT_ASKED_MAX_DISTANCE_FROM_UNIT, xvr.getBwapi().getMyUnits())) {
 			if (otherUnit.isRepairable() && !otherUnit.isConstructing() && otherUnit.isWounded()
 					&& !otherUnit.getType().isOnGeyser()) {
 

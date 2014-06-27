@@ -317,6 +317,7 @@ public class MapExploration {
 
 			for (Unit building : xvr.getEnemyBuildings()) {
 				if (building.getType().isOnGeyser()
+						&& !building.isLifted()
 						&& (!building.isExists() || building.isInvincible() || building
 								.getPlayerID() == xvr.NEUTRAL.getID())) {
 					continue;

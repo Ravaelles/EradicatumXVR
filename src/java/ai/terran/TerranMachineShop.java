@@ -3,11 +3,11 @@ package ai.terran;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.AddOn;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.strategies.TerranOffensiveBunker;
 
 public class TerranMachineShop {
 

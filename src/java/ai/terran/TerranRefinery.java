@@ -3,7 +3,6 @@ package ai.terran;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
@@ -12,6 +11,7 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
+import ai.strategies.TerranOffensiveBunker;
 
 public class TerranRefinery {
 
@@ -32,7 +32,12 @@ public class TerranRefinery {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (barracks < TerranBarracks.MAX_BARRACKS || TerranSupplyDepot.getNumberOfUnits() == 0) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			}
+
 			if (TerranBunker.getNumberOfUnits() > 0 && UnitCounter.getNumberOfWorkers() >= 8
+					&& UnitCounter.getNumberOfBattleUnits() > ArmyCreationManager.MINIMUM_MARINES
 					|| xvr.canAfford(300)) {
 				if (UnitCounter.getNumberOfInfantryUnits() >= 4) {
 					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -45,19 +50,20 @@ public class TerranRefinery {
 		// =========================================================
 
 		if (refineries == 0) {
-			if (TerranOffensiveBunker.isStrategyActive() && TerranBarracks.getNumberOfUnits() > 0
-					&& (UnitCounter.getNumberOfBattleUnits() >= 2 || xvr.canAfford(160))) {
+			if (xvr.getSuppliesUsed() >= 13) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 
-			boolean isEnoughInfantry = (battleUnits >= 6 || battleUnits >= ArmyCreationManager.MINIMUM_MARINES);
-			boolean isAnotherBaseAndFreeMinerals = TerranCommandCenter.getNumberOfUnits() > 1
-					|| xvr.canAfford(468)
-					|| (TerranBarracks.getNumberOfUnitsCompleted() == 0
-							&& TerranBarracks.getNumberOfUnits() > 0 && xvr.canAfford(134));
-			if (isEnoughInfantry || isAnotherBaseAndFreeMinerals) {
-				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			}
+			// boolean isEnoughInfantry = (battleUnits >= 6 || battleUnits >=
+			// ArmyCreationManager.MINIMUM_MARINES);
+			// boolean isAnotherBaseAndFreeMinerals =
+			// TerranCommandCenter.getNumberOfUnits() > 1
+			// || xvr.canAfford(468)
+			// || (TerranBarracks.getNumberOfUnitsCompleted() == 0
+			// && TerranBarracks.getNumberOfUnits() > 0 && xvr.canAfford(134));
+			// if (isEnoughInfantry || isAnotherBaseAndFreeMinerals) {
+			// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			// }
 		}
 
 		if (UnitCounter.getNumberOfUnitsCompleted(TerranEngineeringBay.getBuildingType()) == 0

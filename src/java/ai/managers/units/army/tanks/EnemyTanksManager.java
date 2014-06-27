@@ -13,7 +13,7 @@ import ai.handling.units.UnitActions;
 
 public class EnemyTanksManager {
 
-	private static final double SAFE_DISTANCE_FROM_ENEMY_TANK = 13.5;
+	private static final double SAFE_DISTANCE_FROM_ENEMY_TANK = 14.5;
 	private static final double ALWAYS_MOVE_TO_ENEMY_TANK_IF_CLOSER_THAN = 8;
 	private static final double ALWAYS_ATTACK_ENEMY_TANK_IF_CLOSER_THAN = 1.1;
 	private static final int MAXIMUM_TANKS_TO_ENGAGE_WITH_NORMAL_UNITS = 3;
@@ -53,8 +53,9 @@ public class EnemyTanksManager {
 			}
 		}
 
+		int bonus = unit.getType().isVulture() ? 2 : 0;
 		for (MapPoint enemyTank : allKnownEnemyTanks) {
-			if (enemyTank.distanceTo(unit) < SAFE_DISTANCE_FROM_ENEMY_TANK) {
+			if (enemyTank.distanceTo(unit) < SAFE_DISTANCE_FROM_ENEMY_TANK + bonus) {
 				UnitActions.moveAwayFrom(unit, enemyTank);
 				unit.setAiOrder("Avoid siege tank");
 				return true;

@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.specialforces.SpecialForces;
 import ai.managers.units.coordination.ArmyRendezvousManager;
+import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBunker;
 import ai.terran.TerranSiegeTank;
 
@@ -38,8 +38,17 @@ public class BunkerManager {
 
 		boolean isUnitLoaded = unit.isLoaded();
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		double enemyIsNearThreshold = nearestEnemy != null ? Math.max(3.7, nearestEnemy.getType()
+		double enemyIsNearThreshold = nearestEnemy != null ? Math.max(3.2, nearestEnemy.getType()
 				.getGroundWeapon().getMaxRangeInTiles() + 2.5) : 3;
+
+		// Try to attack workers
+		if (nearestEnemy != null && nearestEnemy.isWorker()
+				&& xvr.countUnitsEnemyInRadius(unit, 2) <= 2) {
+			if (xvr.countUnitsEnemyInRadius(unit, 1) == 0) {
+				return false;
+			}
+		}
+
 		boolean enemyIsNearby = nearestEnemy != null
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
@@ -166,9 +175,25 @@ public class BunkerManager {
 		boolean enemyIsNearby = nearestEnemy != null
 				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
+		// =========================================================
+
+		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (nearestEnemy == null) {
+				return true;
+			}
+
+			double enemyDist = nearestEnemy.distanceTo(unit);
+			double enemyRange = nearestEnemy.getType().getGroundWeapon().getMaxRangeInTiles();
+
+			if (enemyDist - enemyRange > 4) {
+				return true;
+			}
+
 			return false;
 		}
+
+		// =========================================================
 
 		if (enemyIsNearby || unit.isWounded() || xvr.getTimeSeconds() < 330) {
 			return false;

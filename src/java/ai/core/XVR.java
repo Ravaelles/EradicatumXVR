@@ -161,7 +161,7 @@ public class XVR {
 
 		// Handle behavior of units and buildings.
 		// Handle units in neighborhood of army units.
-		if (getFrames() % 11 == 0) {
+		if (getFrames() % 6 == 0) {
 			CodeProfiler.startMeasuring("Army");
 			UnitManager.act();
 			CodeProfiler.endMeasuring("Army");

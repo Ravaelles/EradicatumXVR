@@ -6,10 +6,10 @@ import java.util.Iterator;
 
 import jnibwapi.model.Unit;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitActions;
 import ai.managers.units.workers.RepairAndSons;
 import ai.managers.units.workers.WorkerManager;
+import ai.strategies.TerranOffensiveBunker;
 
 public class BuildingRepairManager {
 
@@ -26,7 +26,7 @@ public class BuildingRepairManager {
 			if (building.getType().isBunker()) {
 				building.setAiOrder("Please repair me");
 				RepairAndSons.issueTicketToRepairIfHasnt(building);
-				return;
+				// return;
 			}
 		}
 
@@ -122,7 +122,8 @@ public class BuildingRepairManager {
 					xvr.getEnemyArmyUnits());
 			int optimalRepairers = (int) Math.min(5,
 					Math.max(2, enemiesNearBunker * defineBunkerRepairersPerEnemyRatio()));
-			return XVR.isEnemyTerran() ? Math.min(1, optimalRepairers) : optimalRepairers;
+			return TerranOffensiveBunker.isStrategyActive() ? Math.min(1, optimalRepairers)
+					: optimalRepairers;
 		} else {
 			return 2;
 		}

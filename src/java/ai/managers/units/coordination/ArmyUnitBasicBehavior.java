@@ -5,7 +5,6 @@ import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.WeaponType;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
@@ -13,6 +12,7 @@ import ai.managers.economy.TechnologyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.tanks.SiegeTankManager;
 import ai.managers.units.workers.RepairAndSons;
+import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBunker;
 import ai.terran.TerranMedic;
 import ai.terran.TerranVulture;
@@ -149,9 +149,13 @@ public class ArmyUnitBasicBehavior {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (xvr.getTimeSeconds() < 240) {
+			// if (xvr.getTimeSeconds() < 240 && unit.getHP() > 10) {
+			Unit nearestEnemy = xvr.getNearestEnemy(unit);
+			if (nearestEnemy == null
+					|| (nearestEnemy != null && nearestEnemy.distanceTo(unit) > 2.5)) {
 				return false;
 			}
+			// }
 		}
 
 		// =========================================================

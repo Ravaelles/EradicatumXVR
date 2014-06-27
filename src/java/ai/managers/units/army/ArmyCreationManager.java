@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.units.UnitManager;
+import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -85,7 +85,7 @@ public class ArmyCreationManager {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()
-				&& (UnitCounter.getNumberOfInfantryUnits() < 1 || xvr.canAfford(142) || TerranBunker
+				&& (UnitCounter.getNumberOfInfantryUnits() < 1 || xvr.canAfford(150) || TerranBunker
 						.getNumberOfUnits() > 0)) {
 			return true;
 		}

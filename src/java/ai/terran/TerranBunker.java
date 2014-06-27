@@ -7,7 +7,6 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -17,6 +16,7 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.constructing.WorkerSelection;
 import ai.managers.units.UnitManager;
 import ai.managers.units.buildings.BuildingManager;
+import ai.strategies.TerranOffensiveBunker;
 import ai.utils.RUtilities;
 
 public class TerranBunker {
@@ -43,7 +43,13 @@ public class TerranBunker {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
+			if (GLOBAL_MAX_BUNKERS == 0) {
+				return ShouldBuildCache.cacheShouldBuildInfo(type, false);
+			}
+
 			if (bunkers == 0) {
+				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
+			} else if (UnitCounter.getNumberOfBattleUnits() > 5) {
 				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
 		}
@@ -318,8 +324,13 @@ public class TerranBunker {
 		MapPoint tileForBunker = null;
 
 		// Offensive bunker
-		if (TerranOffensiveBunker.isStrategyActive() && getNumberOfUnits() < GLOBAL_MAX_BUNKERS) {
-			return TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+		int bunkers = getNumberOfUnits();
+		if (TerranOffensiveBunker.isStrategyActive() && bunkers < GLOBAL_MAX_BUNKERS) {
+			if (bunkers == 0) {
+				return TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+			} else {
+				return TerranOffensiveBunker.getTerranSecondOffensiveBunkerPosition();
+			}
 		}
 
 		// Protected main base

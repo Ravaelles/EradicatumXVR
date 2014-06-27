@@ -3,10 +3,10 @@ package ai.managers.units.workers;
 import jnibwapi.model.Map;
 import jnibwapi.model.Unit;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
+import ai.strategies.TerranOffensiveBunker;
 
 public class ExplorerCirclingEnemyBase {
 

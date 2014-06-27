@@ -8,7 +8,6 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -18,6 +17,7 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.constructing.WorkerSelection;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
+import ai.strategies.TerranOffensiveBunker;
 import ai.utils.RUtilities;
 
 public class TerranSupplyDepot {
@@ -44,12 +44,18 @@ public class TerranSupplyDepot {
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
 
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (barracks == 0) {
+			if (barracks == 0 || (!xvr.canAfford(180) && free > 1)) {
 				return false;
+			}
+
+			if (free <= 2) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			} else {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}
 
-		if (total > 10 && total < 200 && free <= 3) {
+		if (total >= 10 && total < 200 && free <= 3) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 

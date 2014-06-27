@@ -3,10 +3,10 @@ package ai.terran;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
+import ai.strategies.TerranOffensiveBunker;
 
 public class TerranAcademy {
 
@@ -23,6 +23,11 @@ public class TerranAcademy {
 
 	public static boolean shouldBuild() {
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
+
+		if (XVR.isEnemyTerran()) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		if (weAreBuilding) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}

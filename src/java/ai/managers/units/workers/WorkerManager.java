@@ -9,7 +9,6 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import ai.core.Painter;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.strength.StrengthRatio;
@@ -20,6 +19,8 @@ import ai.managers.units.army.RunManager;
 import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.buildings.BuildingRepairManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
+import ai.strategies.TerranOffensiveBunker;
+import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranRefinery;
@@ -54,7 +55,7 @@ public class WorkerManager {
 			professionalRepairersIndices.clear();
 
 			if (TerranOffensiveBunker.isStrategyActive()) {
-				professionalRepairersIndices.add(6);
+				professionalRepairersIndices.add(5);
 				// professionalRepairersIndices.add(16);
 				// professionalRepairersIndices.add(17);
 				// professionalRepairersIndices.add(18);
@@ -159,10 +160,20 @@ public class WorkerManager {
 			// =========================================================
 
 			// Unit can act as either a simple worker or as an explorer.
+			if (_counter == EXPLORER_INDEX) {
+				worker.setIsExplorer();
+				if (TerranBarracks.getNumberOfUnits() > 0) {
+					ExplorerManager.explore(worker);
+				} else {
+					if (worker.isIdle()) {
+						gatherResources(worker, xvr.getFirstBase());
+					}
+				}
+			}
+
 			if (_counter != EXPLORER_INDEX) {
+				worker.setIsNotExplorer();
 				WorkerManager.act(worker);
-			} else {
-				ExplorerManager.explore(worker);
 			}
 
 			_counter++;
@@ -174,11 +185,12 @@ public class WorkerManager {
 		// return;
 		// }
 
-		if (unit.isIdle()) {
-			gatherResources(unit, xvr.getFirstBase());
+		if (unit.equals(ExplorerManager.getExplorer()) && TerranBarracks.getNumberOfUnits() > 0) {
+			return;
 		}
 
-		if (unit.equals(ExplorerManager.getExplorer())) {
+		if (unit.isIdle()) {
+			gatherResources(unit, xvr.getFirstBase());
 			return;
 		}
 
@@ -406,6 +418,10 @@ public class WorkerManager {
 	}
 
 	public static void gatherResources(Unit worker, Unit nearestBase) {
+		if (worker == null || nearestBase == null) {
+			return;
+		}
+
 		boolean existsAssimilatorNearBase = TerranCommandCenter
 				.isExistingCompletedAssimilatorNearBase(nearestBase);
 

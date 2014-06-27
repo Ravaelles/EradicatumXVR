@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.units.UnitManager;
+import ai.strategies.TerranOffensiveBunker;
 
 public class TerranBarracks {
 
@@ -45,10 +45,24 @@ public class TerranBarracks {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
+		// =========================================================
+
+		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
+
+			// Build first barracks always
 			if (barracks == 0) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			} else {
+				return xvr.canAfford(200);
 			}
+
+			// // Second barracks should be built only if we have enough
+			// minerals
+			// // for the army
+			// if (barracks > 0 && xvr.canAfford(192)) {
+			// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			// }
 		}
 
 		// =========================================================
@@ -71,6 +85,10 @@ public class TerranBarracks {
 		}
 
 		// =========================================================
+
+		if (XVR.isEnemyTerran() && barracks == 0) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
 
 		if (TerranCommandCenter.shouldBuild() && barracks >= (2 * bases)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);

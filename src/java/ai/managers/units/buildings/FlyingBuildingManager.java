@@ -2,7 +2,6 @@ package ai.managers.units.buildings;
 
 import jnibwapi.model.Unit;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -13,6 +12,7 @@ import ai.managers.units.army.FlyerManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.managers.units.workers.RepairAndSons;
+import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranEngineeringBay;
 import ai.terran.TerranSiegeTank;

@@ -37,7 +37,7 @@ public class RunManager {
 
 				// If close unit is strong and there're many of them, include
 				// enemy range.
-				if (enemy.getHP() >= 50 && enemyUnitsInRadius.size() >= 4) {
+				if (enemy.getHP() >= 50 || enemyUnitsInRadius.size() >= 4) {
 					int enemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles();
 					distToEnemy -= enemyRange;
 				}

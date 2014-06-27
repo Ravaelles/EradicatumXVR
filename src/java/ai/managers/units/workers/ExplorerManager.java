@@ -8,13 +8,13 @@ import jnibwapi.model.BaseLocation;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.enemy.TerranOffensiveBunker;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
 import ai.managers.constructing.WorkerSelection;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
+import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranCommandCenter;
 import ai.utils.RUtilities;
 
@@ -94,7 +94,9 @@ public class ExplorerManager {
 			return;
 		}
 
-		if (!explorer.isIdle()
+		if (!explorer.isGatheringMinerals()
+				&& !explorer.isGatheringGas()
+				&& !explorer.isIdle()
 				&& (shouldBeDiscovering || shouldBeMoving || shouldBeConstructing || shouldContinueAttacking)) {
 			return;
 		}
@@ -138,12 +140,20 @@ public class ExplorerManager {
 
 		if (!explorer.isConstructing() && !explorer.isRepairing()
 				&& !orderString.equals(explorer.getAiOrderString())) {
-			MapPoint rendezvousOffensive = TerranOffensiveBunker.getRendezvousOffensive();
-			if (rendezvousOffensive != null) {
-				MapPointInstance pointForSCV = MapPointInstance.getMiddlePointBetween(
-						rendezvousOffensive, TerranOffensiveBunker.getSecondEnemyBase());
+			// MapPoint rendezvousOffensive =
+			// TerranOffensiveBunker.getRendezvousOffensive();
+			MapPoint rendezvousForWorker = TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
+			if (rendezvousForWorker != null) {
+				// MapPointInstance pointForSCV =
+				// MapPointInstance.getMiddlePointBetween(
+				// rendezvousOffensive,
+				// TerranOffensiveBunker.getSecondEnemyBase());
 
-				UnitActions.moveTo(explorer, pointForSCV);
+				UnitActions.moveTo(explorer, rendezvousForWorker);
+				// UnitActions.moveTo(explorer,
+				// TerranOffensiveBunker.getSecondEnemyBase());
+				// UnitActions.moveTo(explorer,
+				// TerranOffensiveBunker.getImportantChokeNearEnemyMainBase());
 				explorer.setAiOrder(orderString);
 				return true;
 			}
@@ -183,7 +193,7 @@ public class ExplorerManager {
 	// =========================================================
 
 	private static void gatherResourcesIfIdle() {
-		if (explorer.isIdle()) {
+		if (explorer.isIdle() && !TerranOffensiveBunker.isStrategyActive()) {
 			explorer.setAiOrder("Gather resources");
 			WorkerManager.gatherResources(explorer, xvr.getFirstBase());
 		}
@@ -367,11 +377,10 @@ public class ExplorerManager {
 				MapExploration.setCalculatedEnemyBaseLocation(base);
 			}
 
-			// // STRATEGY: Offensive Bunker
-			// if (TerranOffensiveBunker.isStrategyActive()) {
-			//
-			// }
-			// }
+			// STRATEGY: Offensive Bunker
+			if (TerranOffensiveBunker.isStrategyActive()) {
+				return false;
+			}
 		}
 
 		// =========================================================
@@ -415,7 +424,7 @@ public class ExplorerManager {
 	private static boolean tryScoutingNextBaseLocation() {
 
 		// Explore place behind our minerals
-		if (!_exploredBackOfMainBase) {
+		if (!_exploredBackOfMainBase && !TerranOffensiveBunker.isStrategyActive()) {
 			explorer.setAiOrder("Explore back of base");
 			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
 			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
@@ -425,7 +434,7 @@ public class ExplorerManager {
 					UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
 				}
 			}
-			if (backOfTheBasePoint == null) {
+			if (backOfTheBasePoint == null || _explorerForBackOfBase == null) {
 				_exploredBackOfMainBase = true;
 			}
 			if (_explorerForBackOfBase == null
@@ -450,7 +459,8 @@ public class ExplorerManager {
 		}
 
 		// Explore random base location
-		if (!explorer.isMoving() && RUtilities.rand(0, 1) == 0) {
+		if (!TerranOffensiveBunker.isStrategyActive() && !explorer.isMoving()
+				&& RUtilities.rand(0, 1) == 0) {
 			explorer.setAiOrder("Scout random base");
 			scoutRandomBaseLocation();
 		}
