@@ -12,7 +12,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
-import ai.managers.constructing.WorkerSelection;
+import ai.managers.constructing.BuilderSelector;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranCommandCenter;
@@ -428,7 +428,7 @@ public class ExplorerManager {
 			explorer.setAiOrder("Explore back of base");
 			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
 			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
-				_explorerForBackOfBase = WorkerSelection.getOptimalBuilder(backOfTheBasePoint);
+				_explorerForBackOfBase = BuilderSelector.getOptimalBuilder(backOfTheBasePoint);
 				if (_explorerForBackOfBase != null
 						&& xvr.getDistanceBetween(_explorerForBackOfBase, backOfTheBasePoint) <= 30) {
 					UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);

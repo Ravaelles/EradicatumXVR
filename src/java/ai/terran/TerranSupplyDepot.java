@@ -14,7 +14,7 @@ import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import ai.managers.constructing.WorkerSelection;
+import ai.managers.constructing.BuilderSelector;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
 import ai.strategies.TerranOffensiveBunker;
@@ -43,9 +43,11 @@ public class TerranSupplyDepot {
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
 
+		// =========================================================
+		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (barracks == 0 || (!xvr.canAfford(180) && free > 1)) {
-				return false;
+			if ((barracks == 0 && !xvr.canAfford(152)) || (!xvr.canAfford(180) && free > 1)) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 
 			if (free <= 2) {
@@ -54,6 +56,8 @@ public class TerranSupplyDepot {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}
+
+		// =========================================================
 
 		if (total >= 10 && total < 200 && free <= 3) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -171,7 +175,7 @@ public class TerranSupplyDepot {
 	}
 
 	public static MapPoint findTileForDepot() {
-		Unit builder = WorkerSelection.getRandomWorker();
+		Unit builder = BuilderSelector.getRandomWorker();
 
 		if (UnitCounter.weHaveSupplyDepot()) {
 			return findTileForNextDepot(builder);
@@ -207,7 +211,7 @@ public class TerranSupplyDepot {
 	}
 
 	private static MapPoint findTileForSupplyDepotNearby(MapPoint point, int minDist, int maxDist) {
-		return findLegitTileForDepot(point, WorkerSelection.getRandomWorker());
+		return findLegitTileForDepot(point, BuilderSelector.getRandomWorker());
 	}
 
 	private static MapPoint findLegitTileForDepot(MapPoint buildNearToHere, Unit builder) {

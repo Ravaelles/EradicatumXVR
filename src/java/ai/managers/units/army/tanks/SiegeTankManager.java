@@ -100,12 +100,21 @@ public class SiegeTankManager {
 		int enemiesVeryClose = xvr.countUnitsEnemyInRadius(unit, 4);
 		int enemiesInSight = xvr.countUnitsEnemyInRadius(unit, 13);
 
-		if (enemiesInSight >= 2 && enemiesVeryClose == 0) {
+		boolean isEnemyInSight = enemiesInSight >= 2;
+		boolean isEnemyVeryClose = enemiesVeryClose != 0;
+		if (isEnemyInSight && !isEnemyVeryClose) {
 			unit.siege();
+			if (isEnemyInSight) {
+				unit.setAiOrder("Enemy in sight: Siege");
+			}
+			if (!isEnemyVeryClose) {
+				unit.setAiOrder("Enemy close: Siege");
+			}
 			return;
 		}
 
 		UnitActions.attackTo(unit, ArmyRendezvousManager.getRendezvousPointForTanks());
+		unit.setAiOrder("Go");
 	}
 
 	private static boolean mustSiege(Unit unit) {
@@ -113,6 +122,7 @@ public class SiegeTankManager {
 		// If there's enemy building in range, siege.
 		if (TargettingDetails._nearestEnemyBuilding != null
 				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
+			unit.setAiOrder("Enemy building: Siege");
 			return true;
 		}
 
@@ -122,6 +132,7 @@ public class SiegeTankManager {
 				enemyArmyUnits).isEmpty()
 				|| !xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode, 10.9,
 						unit, enemyArmyUnits).isEmpty()) {
+			unit.setAiOrder("Enemy tank: Siege");
 			return true;
 		}
 
@@ -190,6 +201,7 @@ public class SiegeTankManager {
 		if (isTankWhereItShouldBe(unit) && notTooManySiegedInArea(unit) || isEnemyNearShootRange) {
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)
 					&& (!isNearMainBase(unit) || isNearBunker(unit))) {
+				unit.setAiOrder("Should Siege");
 				return true;
 			}
 		}
@@ -198,6 +210,7 @@ public class SiegeTankManager {
 		// units around this tank, then siege.
 		int oursNearby = xvr.countUnitsOursInRadius(unit, 7);
 		if (isEnemyNearShootRange && oursNearby >= 5) {
+			unit.setAiOrder("Enemy & support: Siege");
 			return true;
 		}
 
@@ -205,6 +218,7 @@ public class SiegeTankManager {
 		if (TargettingDetails._nearestEnemyBuilding != null
 				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5
 				&& oursNearby >= 2) {
+			unit.setAiOrder("Enemy building: Siege");
 			return true;
 		}
 

@@ -18,7 +18,7 @@ public class TerranOffensiveBunker {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static boolean isStrategyActive = false;
+	protected static boolean isStrategyActive = false;
 
 	private static MapPoint _offensivePoint = null;
 	private static BaseLocation secondEnemyBase = null;
@@ -26,6 +26,7 @@ public class TerranOffensiveBunker {
 	// =========================================================
 
 	public static void applyStrategy() {
+		isStrategyActive = true;
 
 		// BUNKER
 		TerranBunker.MAX_STACK = 2;
@@ -160,13 +161,13 @@ public class TerranOffensiveBunker {
 		return isStrategyActive;
 	}
 
-	public static void activateStrategy() {
-		isStrategyActive = true;
-	}
-
-	public static void disableStrategy() {
-		isStrategyActive = false;
-	}
+	// public static void activateStrategy() {
+	// isStrategyActive = true;
+	// }
+	//
+	// public static void disableStrategy() {
+	// isStrategyActive = false;
+	// }
 
 	public static MapPoint getOffensivePoint() {
 		return _offensivePoint;

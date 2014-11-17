@@ -11,7 +11,6 @@ import jnibwapi.model.Player;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
-import ai.handling.enemy.AdaptStrategyToEnemy;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -28,6 +27,7 @@ import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.army.specialforces.SpecialForces;
 import ai.managers.units.buildings.FlyingBuildingManager;
 import ai.managers.units.workers.WorkerManager;
+import ai.strategies.Strategies;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranSiegeTank;
@@ -936,7 +936,7 @@ public class XVR {
 		// Protoss
 		if ("Protoss".equals(xvr.ENEMY_RACE)) {
 			enemyProtoss = true;
-			AdaptStrategyToEnemy.setEnemyIsProtoss();
+			Strategies.setEnemyIsProtoss();
 
 			// boolean shouldExpandWithCannons =
 			// enemyBotName.contains("alberta");
@@ -948,14 +948,14 @@ public class XVR {
 		// Zerg
 		else if ("Zerg".equals(xvr.ENEMY_RACE)) {
 			enemyZerg = true;
-			AdaptStrategyToEnemy.setEnemyIsZerg();
+			Strategies.setEnemyIsZerg();
 		}
 
 		// ============
 		// Terran
 		else if ("Terran".equals(xvr.ENEMY_RACE)) {
 			enemyTerran = true;
-			AdaptStrategyToEnemy.setEnemyIsTerran();
+			Strategies.setEnemyIsTerran();
 		}
 	}
 

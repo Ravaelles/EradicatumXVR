@@ -1073,13 +1073,23 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		return aiOrderString;
 	}
 
-	public void setAiOrderString(String aiOrderString) {
-		this.aiOrderString = aiOrderString;
-	}
+	// private void setAiOrderString(String aiOrderString) {
+	// this.aiOrderString = aiOrderString;
+	// }
 
 	public void setAiOrder(String label) {
-		aiOrderString = label;
-		aiOrderTime = xvr.getTimeSeconds();
+		int newTime = xvr.getTimeSeconds();
+
+		// Try to append order to the previous one
+		if (newTime - 3 <= aiOrderTime) {
+			if (!aiOrderString.contains(label)) {
+				aiOrderString += " " + label;
+			}
+		} else {
+			aiOrderString = label;
+		}
+
+		aiOrderTime = newTime;
 	}
 
 	public boolean isAiOrderObsolete() {

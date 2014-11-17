@@ -8,7 +8,7 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
 import ai.managers.constructing.Constructing;
-import ai.managers.constructing.WorkerSelection;
+import ai.managers.constructing.BuilderSelector;
 import ai.managers.units.UnitManager;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranComsatStation;
@@ -65,7 +65,7 @@ public class BuildingManager {
 			Unit builder = getBuilderFor(building);
 			if (builder == null
 					|| (builder != null && (!builder.isExists() || !builder.isConstructing()))) {
-				Unit newBuilder = WorkerSelection.getOptimalBuilder(building);
+				Unit newBuilder = BuilderSelector.getOptimalBuilder(building);
 				if (newBuilder != null) {
 					UnitActions.rightClick(newBuilder, building);
 				}

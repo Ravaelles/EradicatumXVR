@@ -13,7 +13,7 @@ import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import ai.managers.constructing.WorkerSelection;
+import ai.managers.constructing.BuilderSelector;
 import ai.managers.units.UnitManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.strategies.TerranOffensiveBunker;
@@ -291,7 +291,7 @@ public class TerranBunker {
 		MapPoint initialBuildTile = mapPoint;
 
 		// Define random worker, for technical reasons
-		Unit workerUnit = WorkerSelection.getRandomWorker();
+		Unit workerUnit = BuilderSelector.getRandomWorker();
 
 		// ================================
 		// Define minimum and maximum distance from a choke point for a bunker

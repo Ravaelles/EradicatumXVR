@@ -1,6 +1,5 @@
 package ai.strategies;
 
-import ai.core.XVR;
 import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranBarracks;
@@ -8,13 +7,8 @@ import ai.terran.TerranBunker;
 
 public class TerranInfantryRush {
 
-	private static XVR xvr = XVR.getInstance();
-
-	private static boolean isStrategyActive = false;
-
-	// =========================================================
-
 	public static void applyStrategy() {
+		isStrategyActive = true;
 
 		// BUNKER
 		TerranBunker.MAX_STACK = 0;
@@ -36,16 +30,10 @@ public class TerranInfantryRush {
 
 	// =========================================================
 
+	protected static boolean isStrategyActive = false;
+
 	public static boolean isStrategyActive() {
 		return isStrategyActive;
-	}
-
-	public static void activateStrategy() {
-		isStrategyActive = true;
-	}
-
-	public static void disableStrategy() {
-		isStrategyActive = false;
 	}
 
 }

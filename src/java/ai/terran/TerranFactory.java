@@ -86,7 +86,7 @@ public class TerranFactory {
 
 				int tanks = TerranSiegeTank.getNumberOfUnits();
 				if (factories == 0
-						|| (factories < tanks + 1 || xvr.canAfford(240, 170 + factories * 20))) {
+						|| (factories <= tanks + 1 || xvr.canAfford(240, 170 + factories * 20))) {
 					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				}
 			}

@@ -110,7 +110,11 @@ public class BuildingRepairManager {
 				// }
 
 				int enemyAdvantage = (int) (enemiesNearBunker - oursNearBunker * 0.77);
-				return Math.min(2, (int) (enemyAdvantage / 2.3));
+				int repairers = Math.min(2, (int) (enemyAdvantage / 2.3));
+				if (repairers > 7) {
+					repairers = 7;
+				}
+				return repairers;
 			}
 		}
 		return 0;

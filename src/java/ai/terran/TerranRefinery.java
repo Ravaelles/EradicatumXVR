@@ -50,7 +50,7 @@ public class TerranRefinery {
 		// =========================================================
 
 		if (refineries == 0) {
-			if (xvr.getSuppliesUsed() >= 13) {
+			if (xvr.getSuppliesUsed() >= 18) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 

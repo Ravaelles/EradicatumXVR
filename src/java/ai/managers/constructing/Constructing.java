@@ -113,7 +113,7 @@ public class Constructing {
 			return null;
 		}
 
-		MapPoint tile = Constructing.getLegitTileToBuildNear(WorkerSelection.getRandomWorker(),
+		MapPoint tile = Constructing.getLegitTileToBuildNear(BuilderSelector.getRandomWorker(),
 				typeToBuild, base.translate(5, 2), 5, MAX_RANGE);
 
 		return tile;
@@ -255,7 +255,7 @@ public class Constructing {
 
 	public static MapPoint getLegitTileToBuildNear(UnitTypes type, MapPoint nearTo,
 			int minimumDist, int maximumDist) {
-		Unit worker = WorkerSelection.getRandomWorker();
+		Unit worker = BuilderSelector.getRandomWorker();
 		if (worker == null || type == null) {
 			return null;
 		}
@@ -312,7 +312,7 @@ public class Constructing {
 					if (canBuildAt(place, type)) {
 						// && isBuildTileFullyBuildableFor(builderID, i, j,
 						// buildingTypeID)
-						Unit builderUnit = WorkerSelection.getRandomWorker();
+						Unit builderUnit = BuilderSelector.getRandomWorker();
 						if (builderUnit != null
 								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
 										builderUnit.getID(), i, j))) {
@@ -534,7 +534,7 @@ public class Constructing {
 	}
 
 	private static boolean canBuildAt(MapPoint point, UnitType type) {
-		Unit randomWorker = WorkerSelection.getRandomWorker();
+		Unit randomWorker = BuilderSelector.getRandomWorker();
 		if (randomWorker == null || point == null) {
 			return false;
 		}
@@ -556,7 +556,7 @@ public class Constructing {
 			return false;
 		}
 
-		Unit workerUnit = WorkerSelection.getOptimalBuilder(buildTile, building);
+		Unit workerUnit = BuilderSelector.getOptimalBuilder(buildTile, building);
 		if (workerUnit != null) {
 
 			// if we found a good build position, and we aren't already

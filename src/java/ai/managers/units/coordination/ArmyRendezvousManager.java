@@ -9,7 +9,6 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitActions;
-import ai.managers.strategy.StrategyManager;
 import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
@@ -109,16 +108,34 @@ public class ArmyRendezvousManager {
 		}
 
 		// =========================================================
+		// Define rendezvous point for tank. It will be around the middle of the
+		// army, but slightly in direction to the closest enemy building
 
-		if (StrategyManager.isAnyAttackFormPending()) {
-			return getArmyMedianPoint();
+		MapPoint armyMedianPoint = getArmyMedianPoint();
+		MapPoint someEnemy = xvr.getEnemyDefensiveGroundBuildingNear(xvr.getFirstBase());
+		MapPoint rendezvousPoint = null;
+
+		// If we have army, know enemy etc, return proper location
+		if (armyMedianPoint != null && someEnemy != null) {
+			rendezvousPoint = MapPointInstance.getPointBetween(armyMedianPoint, someEnemy, 2);
 		} else {
-			if (TerranBunker.getNumberOfUnitsCompleted() > 0) {
-				return defineRendezvousBunkerIfPossible();
-			} else {
-				return getArmyMedianPoint();
-			}
+			rendezvousPoint = getArmyMedianPoint();
 		}
+
+		// if (StrategyManager.isAnyAttackFormPending()) {
+		// return rendezvousPoint;
+		// }
+		// else {
+		// if (TerranBunker.getNumberOfUnitsCompleted() > 0) {
+		// return defineRendezvousBunkerIfPossible();
+		// } else {
+		// return getArmyMedianPoint();
+		// }
+		// }
+
+		// If we're here, it means we're either screwed or we do not know the
+		// enemy location. Try going to the bunker.
+		return defineRendezvousBunkerIfPossible();
 	}
 
 	private static MapPoint defineRendezvousPointWhenOffensiveBunker(Unit unit) {

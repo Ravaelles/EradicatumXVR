@@ -12,7 +12,7 @@ import ai.managers.units.workers.WorkerManager;
 import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBunker;
 
-public class WorkerSelection {
+public class BuilderSelector {
 
 	private static XVR xvr = XVR.getInstance();
 

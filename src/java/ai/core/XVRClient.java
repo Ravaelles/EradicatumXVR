@@ -5,11 +5,10 @@ import java.util.HashMap;
 
 import jnibwapi.BWAPIEventListener;
 import jnibwapi.JNIBWAPI;
-import jnibwapi.model.Player;
 import jnibwapi.model.Unit;
 import jnibwapi.types.RaceType.RaceTypes;
-import jnibwapi.types.UnitDamages;
 import jnibwapi.types.UnitType;
+import ai._start.BotStart;
 import ai.handling.map.MapExploration;
 import ai.handling.other.NukeHandling;
 import ai.managers.strategy.StrategyManager;
@@ -52,52 +51,7 @@ public class XVRClient implements BWAPIEventListener {
 
 	@Override
 	public void gameStarted() {
-
-		// Game settings
-		bwapi.enableUserInput();
-		bwapi.setGameSpeed(XVR.GAME_SPEED);
-		bwapi.loadMapData(true);
-
-		MapExploration.disableChokePointsNearFirstBase();
-
-		// ========================================
-
-		xvr.SELF = bwapi.getSelf();
-		xvr.SELF_ID = bwapi.getSelf().getID();
-
-		xvr.NEUTRAL = bwapi.getNeutralPlayer();
-
-		Player enemy = bwapi.getEnemies().get(0);
-		xvr.setENEMY(enemy);
-		xvr.ENEMY_ID = enemy.getID();
-
-		// ========================================
-
-		// Creates map where values of attacks of all unit types are stored.
-		UnitDamages.rememberUnitDamageValues();
-
-		// Removes some of initial choke points e.g. those on the edge of the
-		// map.
-		MapExploration.processInitialChokePoints();
-
-		// ========================================
-
-		// Enemy -> Protoss
-		if (enemy.getRaceID() == RaceTypes.Protoss.getID()) {
-			XVR.setEnemyRace("Protoss");
-		}
-		// ENEMY -> Terran
-		else if (enemy.getRaceID() == RaceTypes.Terran.getID()) {
-			XVR.setEnemyRace("Terran");
-		}
-		// ENEMY -> Zerg
-		else if (enemy.getRaceID() == RaceTypes.Zerg.getID()) {
-			XVR.setEnemyRace("Zerg");
-		}
-
-		// ==========
-		// HotFix
-		TerranCommandCenter.initialMineralGathering();
+		BotStart.start(bwapi, xvr);
 	}
 
 	@Override

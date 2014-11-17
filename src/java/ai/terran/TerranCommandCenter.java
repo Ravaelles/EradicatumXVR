@@ -13,7 +13,7 @@ import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import ai.managers.constructing.WorkerSelection;
+import ai.managers.constructing.BuilderSelector;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
@@ -477,7 +477,7 @@ public class TerranCommandCenter {
 
 			CodeProfiler.startMeasuring("New base");
 			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(
-					WorkerSelection.getRandomWorker(), buildingType, point, 0, 10);
+					BuilderSelector.getRandomWorker(), buildingType, point, 0, 10);
 			CodeProfiler.endMeasuring("New base");
 		} else {
 			System.out.println("Error! No place for next base!");

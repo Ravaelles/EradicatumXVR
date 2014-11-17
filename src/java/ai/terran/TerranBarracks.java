@@ -46,7 +46,6 @@ public class TerranBarracks {
 		}
 
 		// =========================================================
-
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
 

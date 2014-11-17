@@ -190,7 +190,7 @@ public class WorkerManager {
 		}
 
 		if (unit.isIdle()) {
-			gatherResources(unit, xvr.getFirstBase());
+			gatherResources(unit, null);
 			return;
 		}
 
@@ -200,6 +200,14 @@ public class WorkerManager {
 
 		// Don't interrupt when REPAIRING
 		if (unit.isRepairing()) {
+			Unit repairedUnit = Unit.getMyUnitByID(unit.getTargetUnitID());
+			if (repairedUnit != null && repairedUnit.isWounded()) {
+				if (xvr.getTimeSeconds() % 3 == 0) {
+					UnitActions.repair(unit, repairedUnit);
+				}
+			} else {
+				UnitActions.moveToMainBase(unit);
+			}
 			return;
 		}
 
@@ -418,9 +426,24 @@ public class WorkerManager {
 	}
 
 	public static void gatherResources(Unit worker, Unit nearestBase) {
-		if (worker == null || nearestBase == null) {
+		if (worker == null) {
 			return;
 		}
+
+		// =========================================================
+		// If nearest base is null, it means we should find the nearest base
+		// ourselves
+
+		if (nearestBase == null) {
+			nearestBase = TerranCommandCenter.getNearestBaseForUnit(worker);
+		}
+
+		// if it's still null, just quit
+		if (nearestBase == null) {
+			return;
+		}
+
+		// =========================================================
 
 		boolean existsAssimilatorNearBase = TerranCommandCenter
 				.isExistingCompletedAssimilatorNearBase(nearestBase);
