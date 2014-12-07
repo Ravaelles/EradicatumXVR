@@ -7,7 +7,6 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.army.TargetHandling;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
@@ -29,18 +28,16 @@ public class AttackCloseTargets {
 	public static boolean tryAttackingCloseTargets(Unit unit) {
 
 		// Only relatively healthy units can attack
-		if (xvr.getTimeSeconds() < 350 && unit.getType().isTerranInfantry()
-				&& !unit.isHPAtLeastNPercent(70)) {
+		if (xvr.getTimeSeconds() < 350 && unit.getType().isTerranInfantry() && !unit.isHPAtLeastNPercent(70)) {
 			return false;
 		}
 
 		// For tanks, allow to attack only if there're other tanks nearby
 		if (unit.getType().isTank()) {
 			int TANK_DIST = 8;
-			int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
-					UnitTypes.Terran_Siege_Tank_Siege_Mode, TANK_DIST, unit, true)
-					+ xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
-							TANK_DIST, unit, true);
+			int tanksNear = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, TANK_DIST, unit,
+					true)
+					+ xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, TANK_DIST, unit, true);
 			if (tanksNear < MIN_TANKS_TO_FORWARD) {
 				return false;
 			}
@@ -50,8 +47,7 @@ public class AttackCloseTargets {
 		// attack
 		if (StrategyManager.isAnyAttackFormPending()) {
 			Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, unit);
-			if (nearestBase != null
-					&& nearestBase.distanceTo(unit) > MAX_DIST_TO_BASE_WHEN_AT_PEACE) {
+			if (nearestBase != null && nearestBase.distanceTo(unit) > MAX_DIST_TO_BASE_WHEN_AT_PEACE) {
 				return false;
 			}
 		}
@@ -84,7 +80,7 @@ public class AttackCloseTargets {
 
 		boolean groundAttackCapable = unit.canAttackGroundUnits();
 		boolean airAttackCapable = unit.canAttackAirUnits();
-		Unit importantEnemyUnitNearby = null;
+		// Unit importantEnemyUnitNearby = null;
 		Unit enemyToAttack = null;
 
 		// ============================================
@@ -95,22 +91,23 @@ public class AttackCloseTargets {
 		}
 
 		// Try selecting top priority units like lurkers, siege tanks.
-		importantEnemyUnitNearby = TargetHandling.getImportantEnemyUnitTargetIfPossibleFor(unit,
-				groundAttackCapable, airAttackCapable);
+		// importantEnemyUnitNearby =
+		// TargetHandling.getImportantEnemyUnitTargetIfPossibleFor(unit,
+		// groundAttackCapable, airAttackCapable);
 
-		ArrayList<Unit> enemyUnits = xvr
-				.getEnemyUnitsVisible(groundAttackCapable, airAttackCapable);
+		ArrayList<Unit> enemyUnits = xvr.getEnemyUnitsVisible(groundAttackCapable, airAttackCapable);
 
-		if (importantEnemyUnitNearby != null && importantEnemyUnitNearby.isDetected()) {
-			if (!importantEnemyUnitNearby.getType().isSpiderMine()
-					|| (unit.getType().getGroundWeapon().getMaxRangeInTiles()) >= 2)
-				enemyToAttack = importantEnemyUnitNearby;
-		}
+		// if (importantEnemyUnitNearby != null &&
+		// importantEnemyUnitNearby.isDetected()) {
+		// if (!importantEnemyUnitNearby.getType().isSpiderMine()
+		// || (unit.getType().getGroundWeapon().getMaxRangeInTiles()) >= 2)
+		// enemyToAttack = importantEnemyUnitNearby;
+		// }
 
 		// If no such unit is nearby then attack the closest one.
-		else {
-			enemyToAttack = xvr.getUnitNearestFromList(unit, enemyUnits);
-		}
+		// else {
+		enemyToAttack = xvr.getUnitNearestFromList(unit, enemyUnits);
+		// }
 
 		if (enemyToAttack != null && !enemyToAttack.isDetected()) {
 			enemyToAttack = null;
@@ -253,8 +250,8 @@ public class AttackCloseTargets {
 	}
 
 	protected static boolean isUnitInPositionToAlwaysAttack(Unit unit) {
-		boolean ourPhotonCannonIsNear = xvr.getUnitsOfGivenTypeInRadius(
-				TerranBunker.getBuildingType(), 4, unit, true).size() > 0;
+		boolean ourPhotonCannonIsNear = xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 4, unit, true)
+				.size() > 0;
 		boolean baseInDanger = (xvr.getDistanceBetween(
 				xvr.getUnitNearestFromList(unit, TerranCommandCenter.getBases()), unit) <= 7);
 

@@ -85,8 +85,7 @@ public class TerranFactory {
 				}
 
 				int tanks = TerranSiegeTank.getNumberOfUnits();
-				if (factories == 0
-						|| (factories <= tanks + 1 || xvr.canAfford(240, 170 + factories * 20))) {
+				if (factories == 0 || (factories <= tanks + 1 || xvr.canAfford(240, 170 + factories * 20))) {
 					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				}
 			}
@@ -95,11 +94,20 @@ public class TerranFactory {
 		}
 
 		// =========================================================
+		// FIRST BUILDING
 
-		if (factories <= 2
-				&& (xvr.canAfford(250, 200) || TerranCommandCenter.getNumberOfUnits() > 1)) {
+		// Build HQ first
+		// if (factories <= 2
+		// && (xvr.canAfford(250, 200) || TerranCommandCenter.getNumberOfUnits()
+		// > 1)) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// }
+
+		if (factories < 2) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
+
+		// =========================================================
 
 		if (battleUnits <= 4 && battleUnits < ArmyCreationManager.MINIMUM_MARINES) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -111,8 +119,7 @@ public class TerranFactory {
 			}
 		}
 
-		if (factories >= 1 && !xvr.canAfford(550) && xvr.getTimeSeconds() < 800
-				&& TerranCommandCenter.shouldBuild()) {
+		if (factories >= 1 && !xvr.canAfford(550) && xvr.getTimeSeconds() < 800 && TerranCommandCenter.shouldBuild()) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
@@ -197,8 +204,7 @@ public class TerranFactory {
 				return TANK_TANK_MODE;
 			}
 
-			if (tanks >= 1 && !TechnologyManager.isSiegeModeResearched()
-					&& !xvr.canAfford(300, 250)) {
+			if (tanks >= 1 && !TechnologyManager.isSiegeModeResearched() && !xvr.canAfford(300, 250)) {
 				return null;
 			}
 		}
@@ -239,9 +245,7 @@ public class TerranFactory {
 		}
 
 		// GOLIATH
-		if (freeGas >= 50
-				&& notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage,
-						totalRatio)) {
+		if (freeGas >= 50 && notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage, totalRatio)) {
 			return GOLIATH;
 		}
 
@@ -278,8 +282,8 @@ public class TerranFactory {
 		// return null;
 	}
 
-	private static boolean notEnoughPercentOf(int vehiclesOfThisType, int totalVehicles,
-			int minPercentInArmy, int totalOfPercentage) {
+	private static boolean notEnoughPercentOf(int vehiclesOfThisType, int totalVehicles, int minPercentInArmy,
+			int totalOfPercentage) {
 		double percentOfVehicles = (double) vehiclesOfThisType / totalVehicles;
 		double minPercentOfVehicles = (double) minPercentInArmy / totalOfPercentage;
 		if (percentOfVehicles < minPercentOfVehicles) {
