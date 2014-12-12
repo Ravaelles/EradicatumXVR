@@ -53,7 +53,7 @@ public class TerranMissileTurret {
 
 		// Every bunker needs to have one Turret nearby (acting as a detector)
 		for (Unit bunker : xvr.getUnitsOfType(TerranBunker.getBuildingType())) {
-			if (xvr.countUnitsOfGivenTypeInRadius(type, MAX_DIST_OF_TURRET_FROM_BUNKER, bunker,
+			if (xvr.countUnitsOfTypeInRadius(type, MAX_DIST_OF_TURRET_FROM_BUNKER, bunker,
 					true) == 0) {
 				MapPoint tileForTurret = Constructing.getLegitTileToBuildNear(type, bunker,
 						MIN_DIST_OF_TURRET_FROM_BUNKER, MAX_DIST_OF_TURRET_FROM_BUNKER);

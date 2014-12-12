@@ -7,9 +7,10 @@ import ai.handling.units.UnitCounter;
 import ai.managers.constructing.AddOn;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import ai.strategies.TerranOffensiveBunker;
 
 public class TerranMachineShop {
+
+	private static final int MIN_VULTURES_TO_BUILD_ADDON = 6;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Machine_Shop;
 	private static XVR xvr = XVR.getInstance();
@@ -18,15 +19,16 @@ public class TerranMachineShop {
 
 	public static boolean shouldBuild() {
 		if (UnitCounter.weHaveBuilding(TerranFactory.getBuildingType())) {
-			if (!TerranOffensiveBunker.isStrategyActive() && TerranVulture.getNumberOfUnits() == 0) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
-			}
+			// if (!TerranOffensiveBunker.isStrategyActive() &&
+			// TerranVulture.getNumberOfUnits() == 0) {
+			// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			// return false;
+			// }
 
 			int factories = TerranFactory.getNumberOfUnitsCompleted();
 			int addOns = getNumberOfUnits();
 
-			boolean shouldBuild = factories > addOns;
+			boolean shouldBuild = TerranVulture.getNumberOfUnits() >= MIN_VULTURES_TO_BUILD_ADDON && factories > addOns;
 			if (shouldBuild) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
@@ -42,8 +44,7 @@ public class TerranMachineShop {
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.constructAddOn(
-					AddOn.getBuildingWithNoAddOn(TerranFactory.getBuildingType()), buildingType);
+			Constructing.constructAddOn(AddOn.getBuildingWithNoAddOn(TerranFactory.getBuildingType()), buildingType);
 			return;
 		}
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);

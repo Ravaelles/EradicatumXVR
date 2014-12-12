@@ -9,8 +9,6 @@ import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.army.ArmyCreationManager;
-import ai.strategies.TerranOffensiveBunker;
 
 public class TerranFactory {
 
@@ -20,10 +18,11 @@ public class TerranFactory {
 
 	public static boolean FORCE_FACTORY_BEFORE_SECOND_BASE = false;
 
-	private static final int MINIMUM_VULTURES = 3;
-	public static final int MINIMUM_TANKS = 2;
-	private static final int MINIMUM_GOLIATHS_EARLY = 2;
-	private static final int MINIMUM_GOLIATHS_LATER = 6;
+	public static final int MIN_FACTORIES = 3;
+	private static final int MIN_VULTURES = 4;
+	public static final int MIN_TANKS = 2;
+	private static final int MIN_GOLIATHS_EARLY = 2;
+	private static final int MIN_GOLIATHS_LATER = 6;
 
 	private static final int tanksPercentage = 30;
 	private static final int vulturesPercentage = 40;
@@ -39,6 +38,10 @@ public class TerranFactory {
 			return;
 		}
 
+		if (facility.isTraining()) {
+			return;
+		}
+
 		int[] buildingQueueDetails = Constructing.shouldBuildAnyBuilding();
 		int freeMinerals = xvr.getMinerals();
 		int freeGas = xvr.getGas();
@@ -47,18 +50,24 @@ public class TerranFactory {
 			return;
 		}
 
-		if (buildingQueueDetails != null) {
-			freeMinerals -= buildingQueueDetails[0];
-			freeGas -= buildingQueueDetails[1];
-		}
+		if (TerranVulture.getNumberOfUnitsCompleted() < 5) {
+			UnitTypes unitToBuild = defineUnitToBuild(freeMinerals, freeGas);
+			System.out.println(freeMinerals + " / " + freeGas + " / " + unitToBuild);
+			xvr.buildUnit(facility, unitToBuild);
+		} else {
+			if (buildingQueueDetails != null) {
+				freeMinerals -= buildingQueueDetails[0];
+				freeGas -= buildingQueueDetails[1];
+			}
 
-		if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
-			freeGas -= 150;
-		}
+			if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
+				freeGas -= 150;
+			}
 
-		if (buildingQueueDetails == null || (freeMinerals >= 125 && freeGas >= 25)) {
-			if (facility.getTrainingQueueSize() == 0) {
-				xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
+			if (buildingQueueDetails == null || (freeMinerals >= 125 && freeGas >= 25)) {
+				if (facility.getTrainingQueueSize() == 0) {
+					xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
+				}
 			}
 		}
 	}
@@ -73,25 +82,26 @@ public class TerranFactory {
 
 		// =========================================================
 
-		// STRATEGY: Offensive Bunker
-		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (TerranBarracks.getNumberOfUnitsCompleted() > 0) {
-				if (factories == 0 && xvr.canAfford(200, 100)) {
-					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				}
-
-				if (xvr.canAfford(450, 270)) {
-					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				}
-
-				int tanks = TerranSiegeTank.getNumberOfUnits();
-				if (factories == 0 || (factories <= tanks + 1 || xvr.canAfford(240, 170 + factories * 20))) {
-					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				}
-			}
-
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		}
+		// // STRATEGY: Offensive Bunker
+		// if (TerranOffensiveBunker.isStrategyActive()) {
+		// if (TerranBarracks.getNumberOfUnitsCompleted() > 0) {
+		// if (factories == 0 && xvr.canAfford(200, 100)) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// }
+		//
+		// if (xvr.canAfford(450, 270)) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// }
+		//
+		// int tanks = TerranSiegeTank.getNumberOfUnits();
+		// if (factories == 0 || (factories <= tanks + 1 || xvr.canAfford(240,
+		// 170 + factories * 20))) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// }
+		// }
+		//
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
 
 		// =========================================================
 		// FIRST BUILDING
@@ -103,15 +113,16 @@ public class TerranFactory {
 		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		// }
 
-		if (factories < 2) {
+		if (factories < MIN_FACTORIES) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		// =========================================================
 
-		if (battleUnits <= 4 && battleUnits < ArmyCreationManager.MINIMUM_MARINES) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		}
+		// if (battleUnits <= 4 && battleUnits <
+		// ArmyCreationManager.MINIMUM_MARINES) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
 
 		if (TerranBunker.GLOBAL_MAX_BUNKERS >= 2 && xvr.getTimeSeconds() < 500) {
 			if (!xvr.canAfford(250) && TerranBunker.getNumberOfUnits() < TerranBunker.MAX_STACK) {
@@ -178,8 +189,10 @@ public class TerranFactory {
 	// Unit creating
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
-		boolean tanksAllowed = (freeMinerals >= 150 && freeGas >= 100)
-				&& UnitCounter.weHaveBuildingFinished(TerranMachineShop.getBuildingType());
+		boolean tanksAllowed = (freeMinerals >= 150 && freeGas >= 100) && TechnologyManager.isSiegeModeResearched();
+		// boolean tanksAllowed = (freeMinerals >= 150 && freeGas >= 100)
+		// &&
+		// UnitCounter.weHaveBuildingFinished(TerranMachineShop.getBuildingType());
 		boolean goliathsAllowed = (freeMinerals >= 125 && freeGas >= 50)
 				&& UnitCounter.weHaveBuildingFinished(TerranArmory.getBuildingType());
 
@@ -189,24 +202,30 @@ public class TerranFactory {
 		int tanks = TerranSiegeTank.getNumberOfUnits();
 		int goliaths = UnitCounter.getNumberOfUnits(GOLIATH);
 
-		boolean forceTanks = XVR.isEnemyTerran();
-		boolean notEnoughVultures = vultures < MINIMUM_VULTURES;
-		boolean notEnoughTanks = vultures < MINIMUM_TANKS;
-		boolean notEnoughGoliaths = xvr.getTimeSeconds() < 800 ? goliaths < MINIMUM_GOLIATHS_EARLY
-				: goliaths < MINIMUM_GOLIATHS_LATER;
+		boolean forceVultures = vultures < MIN_VULTURES;
+		boolean forceTanks = XVR.isEnemyTerran() && tanksAllowed;
+		boolean notEnoughVultures = vultures < MIN_VULTURES;
+		boolean notEnoughTanks = vultures < MIN_TANKS;
+		boolean notEnoughGoliaths = xvr.getTimeSeconds() < 800 ? goliaths < MIN_GOLIATHS_EARLY
+				: goliaths < MIN_GOLIATHS_LATER;
 
 		// ==================
 		// If very little units, below critical limit
 
 		// Force researching Siege Mode if we have at least one tank
-		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (xvr.canAfford(150, 100)) {
-				return TANK_TANK_MODE;
-			}
+		// if (TerranOffensiveBunker.isStrategyActive()) {
+		// if (xvr.canAfford(150, 100)) {
+		// return TANK_TANK_MODE;
+		// }
+		//
+		// if (tanks >= 1 && !TechnologyManager.isSiegeModeResearched() &&
+		// !xvr.canAfford(300, 250)) {
+		// return null;
+		// }
+		// }
 
-			if (tanks >= 1 && !TechnologyManager.isSiegeModeResearched() && !xvr.canAfford(300, 250)) {
-				return null;
-			}
+		if (forceVultures) {
+			return VULTURE;
 		}
 
 		// TANK
@@ -224,13 +243,13 @@ public class TerranFactory {
 			return VULTURE;
 		}
 
-		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (xvr.canAfford(250)) {
-				return VULTURE;
-			} else {
-				return null;
-			}
-		}
+		// if (TerranOffensiveBunker.isStrategyActive()) {
+		// if (xvr.canAfford(250)) {
+		// return VULTURE;
+		// } else {
+		// return null;
+		// }
+		// }
 
 		// =================
 		// Standard production, based on units percentage in our army

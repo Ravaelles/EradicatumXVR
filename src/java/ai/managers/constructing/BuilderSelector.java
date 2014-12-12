@@ -8,6 +8,7 @@ import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.managers.units.UnitManager;
 import ai.managers.units.workers.ExplorerManager;
+import ai.managers.units.workers.RepairersManager;
 import ai.managers.units.workers.WorkerManager;
 import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBunker;
@@ -28,8 +29,7 @@ public class BuilderSelector {
 		if (building != null && TerranOffensiveBunker.isStrategyActive()) {
 
 			// If we're building bunker, make sure we do it with the explorer
-			if (building.ordinal() == TerranBunker.getBuildingType().ordinal()
-					&& TerranBunker.getNumberOfUnits() == 0) {
+			if (building.ordinal() == TerranBunker.getBuildingType().ordinal() && TerranBunker.getNumberOfUnits() == 0) {
 				Unit explorer = ExplorerManager.getExplorer();
 				if (explorer != null) {
 					return explorer;
@@ -54,9 +54,8 @@ public class BuilderSelector {
 							&& !worker.equals(ExplorerManager.getExplorer()))
 					&& (!worker.isExplorer() || (building != null && building.getType().isBunker()))) {
 
-				if (!WorkerManager.isProfessionalRepairer(worker)) {
-					if (!worker.equals(WorkerManager.getGuyToChaseOthers())
-							|| TerranOffensiveBunker.isStrategyActive()) {
+				if (!RepairersManager.isProfessionalRepairer(worker)) {
+					if (!worker.equals(WorkerManager.getGuyToChaseOthers()) || TerranOffensiveBunker.isStrategyActive()) {
 						freeWorkers.add(worker);
 					}
 				}

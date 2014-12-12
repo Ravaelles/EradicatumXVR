@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.strength.StrengthRatio;
@@ -39,7 +38,7 @@ public class UnitManager {
 		ArmyRendezvousManager.updateRendezvousPoints();
 
 		// If there's no any base left, we're so fucked up there's no point to
-		// continue.
+		// continue (and there won't be any lags).
 		Unit base = xvr.getFirstBase();
 		if (base == null) {
 			return;
@@ -49,15 +48,7 @@ public class UnitManager {
 		// Act with all UNITS or outsource action to different manager.
 
 		// Act with non workers units
-		for (Unit unit : xvr.getUnitsNonWorkerAllowIncompleted()) {
-			UnitType type = unit.getType();
-
-			// Reject non controllable unit types
-			if (type.isSpiderMine()) {
-				continue;
-			}
-
-			// =========================================================
+		for (Unit unit : xvr.getNonWorkerUnitsToControl()) {
 
 			updateBeingRepairedStatus(unit);
 
@@ -65,22 +56,19 @@ public class UnitManager {
 			// IF UNIT SHOULD BE HANDLED BY DIFFERENT MANAGE
 
 			// BUILDINGS have their own manager.
-			if (type.isBuilding()) {
+			if (unit.isBuilding()) {
 				BuildingManager.act(unit);
 				continue;
 			}
 
-			if (!unit.isCompleted()) {
-				continue;
-			}
-
 			// FLYERS (air units) have their own manager.
-			if (type.isFlyer()) {
+			if (unit.isFlyer()) {
 				FlyerManager.act(unit);
 				continue;
 			}
 
 			// ===============================
+
 			act(unit);
 
 			// ======================================
@@ -129,10 +117,10 @@ public class UnitManager {
 		}
 
 		// Make sure unit will get repaired
-		if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
-			unit.setAiOrder("To repair!");
-			return;
-		}
+		// if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
+		// unit.setAiOrder("To repair!");
+		// return;
+		// }
 
 		// Use Stimpacks if need.
 		ArmyUnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
@@ -248,8 +236,7 @@ public class UnitManager {
 	}
 
 	public static boolean isHasValidTargetToAttack(Unit unit) {
-		return unit.getOrderTargetID() != -1 || unit.getTargetUnitID() != -1
-				|| unit.isStartingAttack();
+		return unit.getOrderTargetID() != -1 || unit.getTargetUnitID() != -1 || unit.isStartingAttack();
 	}
 
 	public static void avoidSpellEffectsAndMinesIfNecessary() {

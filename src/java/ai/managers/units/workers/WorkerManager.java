@@ -1,15 +1,10 @@
 package ai.managers.units.workers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-
 import jnibwapi.model.Unit;
+import jnibwapi.types.OrderType.OrderTypes;
 import jnibwapi.types.UnitType;
 import ai.core.Painter;
 import ai.core.XVR;
-import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitActions;
@@ -19,12 +14,9 @@ import ai.managers.units.army.RunManager;
 import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.buildings.BuildingRepairManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
-import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
-import ai.terran.TerranRefinery;
-import ai.terran.TerranSiegeTank;
 import ai.utils.RUtilities;
 
 public class WorkerManager {
@@ -38,71 +30,13 @@ public class WorkerManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static int _counter;
-	// private static Unit professionalRepairer = null;
-	private static List<Integer> professionalRepairersIndices = new ArrayList<>();
-	private static List<Unit> lastProfessionalRepairers = new ArrayList<>();
+	protected static int _counter;
 	private static Unit guyToChaseOthers = null;
 
 	// ======================
 
-	@SuppressWarnings("unused")
-	private static ProfessionalRepairersSettings instance = new ProfessionalRepairersSettings();
-
-	private static class ProfessionalRepairersSettings {
-
-		private ProfessionalRepairersSettings() {
-			professionalRepairersIndices.clear();
-
-			if (TerranOffensiveBunker.isStrategyActive()) {
-				professionalRepairersIndices.add(5);
-				// professionalRepairersIndices.add(16);
-				// professionalRepairersIndices.add(17);
-				// professionalRepairersIndices.add(18);
-			} else {
-				professionalRepairersIndices.add(19);
-				if (!XVR.isEnemyTerran()) {
-					professionalRepairersIndices.add(20);
-				}
-			}
-		}
-
-	}
-
-	private static void handleProfessionalRepairer(Unit unit) {
-		unit.setAiOrder("Ima Repairer, boetch");
-
-		Unit beHere = null;
-		// professionalRepairer = unit;
-		lastProfessionalRepairers.add(unit);
-
-		if (unit.isRepairing() || unit.isConstructing()) {
-			return;
-		}
-
-		if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
-			MapPoint centerPoint = MapExploration.getNearestEnemyBuilding();
-			if (centerPoint == null) {
-				centerPoint = MapExploration.getMostDistantBaseLocation(unit);
-			}
-			beHere = xvr.getNearestTankTo(centerPoint);
-		} else {
-
-			beHere = xvr.getUnitOfTypeMostFarTo(TerranBunker.getBuildingType(), xvr.getFirstBase(),
-					true);
-		}
-
-		if (unit.distanceTo(beHere) >= 3) {
-			UnitActions.moveTo(unit, beHere);
-		} else {
-			UnitActions.holdPosition(unit);
-		}
-	}
-
-	// ======================
-
 	public static void act() {
-		lastProfessionalRepairers.clear();
+		RepairAndSons.refreshStatus();
 		_counter = 0;
 
 		// ==================================
@@ -110,41 +44,6 @@ public class WorkerManager {
 		for (Unit worker : xvr.getUnitsOfType(UnitManager.WORKER)) {
 			if (!worker.isCompleted()) {
 				continue;
-			}
-
-			// =========================================================
-			// Section of methods from UNIT MANAGER
-
-			// Avoid enemy tanks in Siege Mode
-			if (EnemyTanksManager.tryAvoidingEnemyTanks(worker)) {
-				return;
-			}
-
-			// Disallow units to move close to the defensive buildings
-			if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(worker)) {
-				return;
-			}
-
-			// It may happen that this unit is supposed to repair other unit. If
-			// so, this would have the highest priority.
-			if (RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
-				return;
-			}
-
-			// Wounded units should avoid being killed (if possible you know...)
-			if (ArmyUnitBasicBehavior.tryRunningIfSeriouslyWounded(worker)) {
-				worker.setAiOrder("Badly wounded");
-				return;
-			}
-
-			// If enemy has got very close near to us, move away
-			if (RunManager.runFromCloseOpponentsIfNecessary(worker)) {
-				return;
-			}
-
-			// Run from hidden Lurkers, Dark Templars etc.
-			if (HiddenEnemyUnitsManager.tryAvoidingHiddenUnitsIfNecessary(worker)) {
-				return;
 			}
 
 			// =========================================================
@@ -161,14 +60,7 @@ public class WorkerManager {
 
 			// Unit can act as either a simple worker or as an explorer.
 			if (_counter == EXPLORER_INDEX) {
-				worker.setIsExplorer();
-				if (TerranBarracks.getNumberOfUnits() > 0) {
-					ExplorerManager.explore(worker);
-				} else {
-					if (worker.isIdle()) {
-						gatherResources(worker, xvr.getFirstBase());
-					}
-				}
+				actWhenIsExplorer(worker);
 			}
 
 			if (_counter != EXPLORER_INDEX) {
@@ -180,55 +72,94 @@ public class WorkerManager {
 		}
 	}
 
-	public static void act(Unit unit) {
-		// if (true) {
+	// =========================================================
+
+	private static void actWhenIsExplorer(Unit worker) {
+		worker.setIsExplorer();
+		if (TerranBarracks.getNumberOfUnits() > 0) {
+			ExplorerManager.explore(worker);
+		} else {
+			if (worker.isIdle()) {
+				GathererManager.gatherResources(worker, xvr.getFirstBase());
+			}
+		}
+	}
+
+	public static void act(Unit worker) {
+
+		// =========================================================
+		// Section of methods from UNIT MANAGER
+
+		// Make idle units gather resources
+		if (isUnitActuallyIdle(worker)) {
+			GathererManager.gatherResources(worker, null);
+			return;
+		}
+
+		// Avoid enemy tanks in Siege Mode
+		if (EnemyTanksManager.tryAvoidingEnemyTanks(worker)) {
+			return;
+		}
+
+		// Disallow units to move close to defensive buildings
+		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(worker)) {
+			return;
+		}
+
+		// It may happen that this unit is supposed to repair other unit. If
+		// so, this would have the highest priority.
+		if (RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
+			return;
+		}
+
+		// Wounded units should avoid being killed (if possible you know...)
+		if (ArmyUnitBasicBehavior.tryRunningIfSeriouslyWounded(worker)) {
+			worker.setAiOrder("Badly wounded");
+			return;
+		}
+
+		// If enemy has got very close near to us, move away
+		if (RunManager.runFromCloseOpponentsIfNecessary(worker)) {
+			return;
+		}
+
+		// Run from hidden Lurkers, Dark Templars etc.
+		if (HiddenEnemyUnitsManager.tryAvoidingHiddenUnitsIfNecessary(worker)) {
+			return;
+		}
+
+		// =========================================================
+
+		// if (unit.equals(ExplorerManager.getExplorer()) &&
+		// TerranBarracks.getNumberOfUnits() > 0) {
 		// return;
 		// }
 
-		if (unit.equals(ExplorerManager.getExplorer()) && TerranBarracks.getNumberOfUnits() > 0) {
-			return;
-		}
-
-		if (unit.isIdle()) {
-			gatherResources(unit, null);
-			return;
-		}
-
-		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
-			return;
-		}
-
 		// Don't interrupt when REPAIRING
-		if (unit.isRepairing()) {
-			Unit repairedUnit = Unit.getMyUnitByID(unit.getTargetUnitID());
-			if (repairedUnit != null && repairedUnit.isWounded()) {
-				if (xvr.getTimeSeconds() % 3 == 0) {
-					UnitActions.repair(unit, repairedUnit);
-				}
-			} else {
-				UnitActions.moveToMainBase(unit);
-			}
+		if (worker.isRepairing()) {
+			actWhenIsRepairing(worker);
 			return;
 		}
 
 		if (xvr.getTimeSeconds() < 300) {
-			defendBase(unit);
+			defendBase(worker);
 		}
 
-		if (unit.isAttacking()
-				&& (unit.distanceTo(xvr.getFirstBase()) < 17 || unit.distanceTo(xvr.getFirstBase()) < 17)) {
+		if (worker.isAttacking()
+				&& (worker.distanceTo(xvr.getFirstBase()) < 17 || worker.distanceTo(xvr.getFirstBase()) < 17)) {
 			return;
 		}
 
 		// ==================================
 
-		if (isProfessionalRepairer(unit) && TerranBunker.getNumberOfUnits() > 0) {
-			handleProfessionalRepairer(unit);
-			return;
-		}
+		// if (RepairersManager.isProfessionalRepairer(worker) &&
+		// TerranBunker.getNumberOfUnits() > 0) {
+		// RepairersManager.handleProfessionalRepairer(worker);
+		// return;
+		// }
 
-		if (unit.isWounded() && RunManager.runFromCloseOpponentsIfNecessary(unit)) {
-			unit.setAiOrder("Fuck...");
+		if (worker.isWounded() && RunManager.runFromCloseOpponentsIfNecessary(worker)) {
+			worker.setAiOrder("Fuck...");
 			return;
 		}
 
@@ -243,23 +174,21 @@ public class WorkerManager {
 
 		// If this worker is attacking, and he's far from base, make him go
 		// back.
-		int distToMainBase = xvr.getDistanceSimple(unit, xvr.getFirstBase());
-		if (unit.isAttacking()
-				&& distToMainBase >= 7
-				|| (unit.isConstructing() && unit.getHP() < 21 && StrengthRatio
-						.isStrengthRatioCriticalFor(unit))) {
-			UnitActions.moveTo(unit, xvr.getFirstBase());
+		int distToMainBase = xvr.getDistanceSimple(worker, xvr.getFirstBase());
+		if (worker.isAttacking() && distToMainBase >= 7
+				|| (worker.isConstructing() && worker.getHP() < 21 && StrengthRatio.isStrengthRatioCriticalFor(worker))) {
+			UnitActions.moveTo(worker, xvr.getFirstBase());
 			return;
 		}
 
 		// Act with worker that is under attack
-		if (unit.isUnderAttack()) {
+		if (worker.isUnderAttack()) {
 
 			// If nearest enemy is worker, attack this bastard!
-			Unit nearestEnemy = xvr.getUnitNearestFromList(unit, xvr.getBwapi().getEnemyUnits());
+			Unit nearestEnemy = xvr.getUnitNearestFromList(worker, xvr.getBwapi().getEnemyUnits());
 			if (nearestEnemy != null) {
-				if (xvr.getDistanceSimple(unit, xvr.getFirstBase()) <= 9 && !unit.isConstructing()) {
-					UnitActions.attackEnemyUnit(unit, nearestEnemy);
+				if (xvr.getDistanceSimple(worker, xvr.getFirstBase()) <= 9 && !worker.isConstructing()) {
+					UnitActions.attackEnemyUnit(worker, nearestEnemy);
 					return;
 				}
 			}
@@ -269,8 +198,7 @@ public class WorkerManager {
 			MapPoint goTo = null;
 
 			// Try to go to the nearest bunker
-			Unit defensiveBuildings = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
-					unit);
+			Unit defensiveBuildings = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), worker);
 			if (defensiveBuildings != null) {
 				goTo = defensiveBuildings;
 			} else {
@@ -278,34 +206,33 @@ public class WorkerManager {
 			}
 
 			if (goTo != null) {
-				if (xvr.getDistanceSimple(unit, goTo) >= 15) {
-					UnitActions.moveTo(unit, goTo.getX(), goTo.getY());
+				if (xvr.getDistanceSimple(worker, goTo) >= 15) {
+					UnitActions.moveTo(worker, goTo.getX(), goTo.getY());
 				} else {
-					UnitActions.moveTo(unit, goTo.getX() + 5 - RUtilities.rand(0, 12), goTo.getY()
-							+ 5 - RUtilities.rand(0, 12));
-					UnitActions.callForHelp(unit, false);
+					UnitActions.moveTo(worker, goTo.getX() + 5 - RUtilities.rand(0, 12),
+							goTo.getY() + 5 - RUtilities.rand(0, 12));
+					UnitActions.callForHelp(worker, false);
 				}
 			}
 		}
 
 		// Act with idle worker
-		if (unit.isIdle() && !unit.isGatheringGas() && !unit.isGatheringMinerals()
-				&& !unit.isAttacking()) {
+		if (worker.isIdle() && !worker.isGatheringGas() && !worker.isGatheringMinerals() && !worker.isAttacking()) {
 
 			// Find the nearest base for this SCV
-			Unit nearestBase = TerranCommandCenter.getNearestBaseForUnit(unit);
+			Unit nearestBase = TerranCommandCenter.getNearestBaseForUnit(worker);
 
 			// If base exists try to gather resources
 			if (nearestBase != null) {
-				gatherResources(unit, nearestBase);
+				GathererManager.gatherResources(worker, nearestBase);
 				return;
 			}
 		}
 
 		// Act with unit that is possibly stuck e.g. by just built Protoss
 		// building, yeah it happens this shit.
-		else if (unit.isConstructing() && !unit.isMoving()) {
-			UnitActions.moveTo(unit, TerranCommandCenter.getNearestBaseForUnit(unit));
+		else if (worker.isConstructing() && !worker.isMoving()) {
+			UnitActions.moveTo(worker, TerranCommandCenter.getNearestBaseForUnit(worker));
 			return;
 		}
 
@@ -314,6 +241,17 @@ public class WorkerManager {
 		// else if (unit.isConstructing()) {
 		// Constructing.removeDuplicateConstructionsPending(unit);
 		// }
+	}
+
+	private static void actWhenIsRepairing(Unit worker) {
+		Unit repairedUnit = Unit.getMyUnitByID(worker.getTargetUnitID());
+		if (repairedUnit != null && repairedUnit.isWounded()) {
+			if (xvr.getTimeSeconds() % 3 == 0) {
+				UnitActions.repair(worker, repairedUnit);
+			}
+		} else {
+			UnitActions.moveToMainBase(worker);
+		}
 	}
 
 	// =========================================================
@@ -347,11 +285,9 @@ public class WorkerManager {
 
 		// =================
 		// Look for potential dangers to the main base
-		Unit enemyToFight = xvr.getNearestEnemyInRadius(xvr.getFirstBase(), DEFEND_BASE_RADIUS,
-				true, false);
+		Unit enemyToFight = xvr.getNearestEnemyInRadius(xvr.getFirstBase(), DEFEND_BASE_RADIUS, true, false);
 		if (enemyToFight == null) {
-			Unit enemyBuilding = xvr.getUnitNearestFromList(worker, xvr.getEnemyBuildings(), true,
-					false);
+			Unit enemyBuilding = xvr.getUnitNearestFromList(worker, xvr.getEnemyBuildings(), true, false);
 			if (enemyBuilding != null && enemyBuilding.distanceTo(worker) <= DEFEND_BASE_RADIUS) {
 				enemyToFight = enemyBuilding;
 				UnitActions.attackEnemyUnit(worker, enemyToFight);
@@ -373,8 +309,7 @@ public class WorkerManager {
 		if (!isEnemyWorker && !enemyToFight.getType().isZergling()) {
 			int numberOfEnemies = xvr.getEnemyUnitsInRadius(8, worker).size();
 			if (isCriticalUnit || numberOfEnemies > 2) {
-				Unit safeCannon = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(),
-						xvr.getLastBase());
+				Unit safeCannon = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), xvr.getLastBase());
 				if (safeCannon != null) {
 					UnitActions.moveTo(worker, safeCannon);
 					return;
@@ -386,14 +321,11 @@ public class WorkerManager {
 		}
 
 		// ==============================
-		boolean shouldThisWorkerConsiderAttack = distToEnemy > 0 && distToEnemy < 17
-				&& !worker.isAttacking() && enemyToFight.isDetected();
-		boolean isTargetDangerous = !isEnemyWorker
-				|| (isEnemyWorker && (enemyToFight.isConstructing()));
-		boolean isTargetExtremelyDangerous = isEnemyWorker && enemyToFight.isConstructing()
-				&& distToEnemy < 22;
-		boolean isEnemyWorkerAttackingUs = isEnemyWorker && enemyToFight.isAttacking()
-				&& distToEnemy <= 2;
+		boolean shouldThisWorkerConsiderAttack = distToEnemy > 0 && distToEnemy < 17 && !worker.isAttacking()
+				&& enemyToFight.isDetected();
+		boolean isTargetDangerous = !isEnemyWorker || (isEnemyWorker && (enemyToFight.isConstructing()));
+		boolean isTargetExtremelyDangerous = isEnemyWorker && enemyToFight.isConstructing() && distToEnemy < 22;
+		boolean isEnemyWorkerAttackingUs = isEnemyWorker && enemyToFight.isAttacking() && distToEnemy <= 2;
 		if ((shouldThisWorkerConsiderAttack && (isTargetDangerous || isEnemyWorkerAttackingUs) || isTargetExtremelyDangerous)
 				&& distToEnemy < DEFEND_BASE_RADIUS) {
 			// System.out.println("        ######## ATATCK");
@@ -404,11 +336,9 @@ public class WorkerManager {
 
 		// ==========================
 		// Dont allow enemy to build any buildings at our base!
-		Unit enemyBuildingNearBase = xvr.getUnitNearestFromList(xvr.getFirstBase(),
-				xvr.getEnemyBuildings());
+		Unit enemyBuildingNearBase = xvr.getUnitNearestFromList(xvr.getFirstBase(), xvr.getEnemyBuildings());
 		if (enemyBuildingNearBase != null) {
-			double distToBuilding = xvr.getDistanceBetween(xvr.getFirstBase(),
-					enemyBuildingNearBase);
+			double distToBuilding = xvr.getDistanceBetween(xvr.getFirstBase(), enemyBuildingNearBase);
 			if (distToBuilding > 0 && distToBuilding <= DEFEND_BASE_RADIUS
 					&& enemyBuildingNearBase.getType().isBuilding()) {
 				Painter.message(xvr, "Attack building: " + enemyBuildingNearBase.getName());
@@ -416,162 +346,6 @@ public class WorkerManager {
 				return;
 			}
 		}
-	}
-
-	public static boolean isProfessionalRepairer(Unit unit) {
-		return professionalRepairersIndices.contains(_counter)
-				|| lastProfessionalRepairers.contains(unit);
-		// return _counter == WORKER_INDEX_PROFESSIONAL_REPAIRER
-		// || (EXTRA_PROFESSIONAL_REPAIRERERS.contains(_counter));
-	}
-
-	public static void gatherResources(Unit worker, Unit nearestBase) {
-		if (worker == null) {
-			return;
-		}
-
-		// =========================================================
-		// If nearest base is null, it means we should find the nearest base
-		// ourselves
-
-		if (nearestBase == null) {
-			nearestBase = TerranCommandCenter.getNearestBaseForUnit(worker);
-		}
-
-		// if it's still null, just quit
-		if (nearestBase == null) {
-			return;
-		}
-
-		// =========================================================
-
-		boolean existsAssimilatorNearBase = TerranCommandCenter
-				.isExistingCompletedAssimilatorNearBase(nearestBase);
-
-		int gatheringGas = TerranCommandCenter.getNumberOfGasGatherersForBase(nearestBase);
-		int gatheringMinerals = TerranCommandCenter.getNumberOfMineralGatherersForBase(nearestBase);
-
-		if (existsAssimilatorNearBase
-				&& gatheringGas < TerranCommandCenter.WORKERS_PER_GEYSER
-				&& (gatheringMinerals >= 5 * gatheringGas || TerranCommandCenter
-						.getMineralsNearBase(nearestBase).size() <= 4)) {
-			gatherGas(worker, nearestBase);
-		} else {
-			gatherMinerals(worker, nearestBase);
-		}
-	}
-
-	private static void gatherGas(Unit worker, Unit base) {
-		Unit onGeyser = xvr.getUnitOfTypeNearestTo(TerranRefinery.getBuildingType(), base);
-		if (onGeyser != null) {
-			xvr.getBwapi().rightClick(worker.getID(), onGeyser.getID());
-		}
-	}
-
-	private static void gatherMinerals(Unit gathererToAssign, Unit nearestBase) {
-		Unit mineral = getOptimalMineralForGatherer(gathererToAssign, nearestBase);
-		if (mineral != null) {
-			xvr.getBwapi().rightClick(gathererToAssign.getID(), mineral.getID());
-		}
-	}
-
-	public static void forceGatherMinerals(Unit gathererToAssign, Unit mineral) {
-		if (gathererToAssign.isCarryingMinerals()) {
-			Unit nearBase = TerranCommandCenter.getNearestBaseForUnit(gathererToAssign);
-			xvr.getBwapi().rightClick(gathererToAssign.getID(), nearBase.getID());
-			return;
-		} else if (gathererToAssign.isCarryingGas()) {
-			Unit nearBase = TerranCommandCenter.getNearestBaseForUnit(gathererToAssign);
-			xvr.getBwapi().rightClick(gathererToAssign.getID(), nearBase.getID());
-			return;
-		}
-
-		if (mineral != null) {
-			xvr.getBwapi().rightClick(gathererToAssign.getID(), mineral.getID());
-		}
-	}
-
-	public static void forceGatherGas(Unit gathererToAssign, Unit nearestBase) {
-		Unit onGeyser = TerranCommandCenter.getExistingCompletedAssimilatorNearBase(nearestBase);
-
-		if (gathererToAssign.isCarryingMinerals()) {
-			Unit nearBase = TerranCommandCenter.getNearestBaseForUnit(gathererToAssign);
-			xvr.getBwapi().rightClick(gathererToAssign.getID(), nearBase.getID());
-			return;
-		} else if (gathererToAssign.isCarryingGas()) {
-			Unit nearBase = TerranCommandCenter.getNearestBaseForUnit(gathererToAssign);
-			xvr.getBwapi().rightClick(gathererToAssign.getID(), nearBase.getID());
-			return;
-		}
-
-		if (onGeyser != null) {
-			xvr.getBwapi().rightClick(gathererToAssign.getID(), onGeyser.getID());
-		}
-	}
-
-	private static Unit getOptimalMineralForGatherer(Unit gathererToAssign, Unit nearestBase) {
-
-		// Get the minerals that are closes to the base.
-		ArrayList<Unit> minerals = TerranCommandCenter.getMineralsNearBase(nearestBase);
-		int counter = 0;
-		while (minerals.isEmpty()) {
-			minerals = TerranCommandCenter.getMineralsNearBase(nearestBase, 15 + 10 * counter++);
-		}
-
-		// if (minerals.isEmpty()) {
-		// // minerals = xvr.getMineralsUnits();
-		// minerals = xvr
-		// .getUnitsInRadius(nearestBase, 17 + (UnitCounter
-		// .getNumberOfUnits(UnitManager.BASE) - 1) * 13, xvr
-		// .getMineralsUnits());
-		// }
-
-		// Get workers
-		ArrayList<Unit> workers = TerranCommandCenter.getWorkersNearBase(nearestBase);
-
-		// Build mapping of number of worker to mineral
-		HashMap<Unit, Integer> workersAtMineral = new HashMap<Unit, Integer>();
-		for (Unit worker : workers) {
-			// System.out.println();
-			// System.out.println("scv.getTargetUnitID() = " +
-			// scv.getTargetUnitID());
-			// System.out.println("scv.getOrderTargetID() = " +
-			// scv.getOrderTargetID());
-			// System.out.println("scv.isGatheringMinerals() = " +
-			// scv.isGatheringMinerals());
-			// System.out.println("scv.getLastCommand() = " +
-			// scv.getLastCommand());
-			if (worker.isGatheringMinerals()) {
-				Unit mineral = Unit.getByID(worker.getTargetUnitID());
-				// System.out.println(mineral);
-				// }
-				// if (scv.isGatheringMinerals()) {
-
-				if (workersAtMineral.containsKey(mineral)) {
-					workersAtMineral.put(mineral, workersAtMineral.get(mineral) + 1);
-				} else {
-					workersAtMineral.put(mineral, 1);
-				}
-			}
-		}
-
-		// Get minimal value of gatherers assigned to one mineral
-		int minimumGatherersAssigned = workersAtMineral.isEmpty() ? 0 : 9999;
-		for (Integer value : workersAtMineral.values()) {
-			if (minimumGatherersAssigned > value) {
-				minimumGatherersAssigned = value;
-			}
-		}
-
-		// Get the nearest mineral which has minimumGatherersAssigned
-		Collections.shuffle(minerals);
-		for (Unit mineral : minerals) {
-			if (!workersAtMineral.containsKey(mineral)
-					|| workersAtMineral.get(mineral) <= minimumGatherersAssigned) {
-				return mineral;
-			}
-		}
-		return minerals.isEmpty() ? null : (Unit) RUtilities.getRandomListElement(minerals);
 	}
 
 	public static Unit findNearestWorkerTo(int x, int y) {
@@ -584,8 +358,7 @@ public class WorkerManager {
 		Unit nearestUnit = null;
 
 		for (Unit otherUnit : xvr.getUnitsOfType(UnitManager.WORKER)) {
-			if (!otherUnit.isCompleted()
-					|| (!otherUnit.isGatheringMinerals() && !otherUnit.isGatheringGas())
+			if (!otherUnit.isCompleted() || (!otherUnit.isGatheringMinerals() && !otherUnit.isGatheringGas())
 					|| otherUnit.isConstructing()) {
 				continue;
 			}
@@ -613,8 +386,7 @@ public class WorkerManager {
 
 		while (nearestUnit == null && counter < 2) {
 			for (Unit otherUnit : xvr.getUnitsOfType(UnitManager.WORKER)) {
-				if (!otherUnit.isCompleted() || otherUnit.isRepairing()
-						|| otherUnit.isConstructing()) {
+				if (!otherUnit.isCompleted() || otherUnit.isRepairing() || otherUnit.isConstructing()) {
 					continue;
 				}
 
@@ -643,6 +415,13 @@ public class WorkerManager {
 	// public static Unit getProfessionalRepairer() {
 	// return professionalRepairer;
 	// }
+
+	// =========================================================
+	// Auxiliary
+
+	private static boolean isUnitActuallyIdle(Unit unit) {
+		return unit.isIdle() || unit.getOrderID() == OrderTypes.None.ordinal();
+	}
 
 	public static Unit getGuyToChaseOthers() {
 		return guyToChaseOthers;

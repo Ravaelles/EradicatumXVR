@@ -94,9 +94,7 @@ public class ExplorerManager {
 			return;
 		}
 
-		if (!explorer.isGatheringMinerals()
-				&& !explorer.isGatheringGas()
-				&& !explorer.isIdle()
+		if (!explorer.isGatheringMinerals() && !explorer.isGatheringGas() && !explorer.isIdle()
 				&& (shouldBeDiscovering || shouldBeMoving || shouldBeConstructing || shouldContinueAttacking)) {
 			return;
 		}
@@ -138,8 +136,7 @@ public class ExplorerManager {
 	private static boolean tryGoingNearOffensiveBunker() {
 		final String orderString = "To Offens. bunker";
 
-		if (!explorer.isConstructing() && !explorer.isRepairing()
-				&& !orderString.equals(explorer.getAiOrderString())) {
+		if (!explorer.isConstructing() && !explorer.isRepairing() && !orderString.equals(explorer.getAiOrderString())) {
 			// MapPoint rendezvousOffensive =
 			// TerranOffensiveBunker.getRendezvousOffensive();
 			MapPoint rendezvousForWorker = TerranOffensiveBunker.getTerranOffensiveBunkerPosition();
@@ -195,13 +192,13 @@ public class ExplorerManager {
 	private static void gatherResourcesIfIdle() {
 		if (explorer.isIdle() && !TerranOffensiveBunker.isStrategyActive()) {
 			explorer.setAiOrder("Gather resources");
-			WorkerManager.gatherResources(explorer, xvr.getFirstBase());
+			GathererManager.gatherResources(explorer, xvr.getFirstBase());
 		}
 	}
 
 	private static double getDistanceToNearestEnemy() {
-		Unit nearestEnemy = xvr.getUnitNearestFromList(explorer.getX(), explorer.getY(),
-				xvr.getEnemyUnitsVisible(), true, true);
+		Unit nearestEnemy = xvr.getUnitNearestFromList(explorer.getX(), explorer.getY(), xvr.getEnemyUnitsVisible(),
+				true, true);
 		return explorer.distanceTo(nearestEnemy);
 	}
 
@@ -217,14 +214,13 @@ public class ExplorerManager {
 			return false;
 		}
 
-		Unit nearestEnemy = xvr.getUnitNearestFromList(explorer.getX(), explorer.getY(),
-				xvr.getEnemyUnitsVisible(), true, true);
+		Unit nearestEnemy = xvr.getUnitNearestFromList(explorer.getX(), explorer.getY(), xvr.getEnemyUnitsVisible(),
+				true, true);
 		double distToNearestEnemy = explorer.distanceTo(nearestEnemy);
 
 		boolean isUnitUnderAttack = explorer.isUnderAttack();
 		boolean isEnemyArmyUnitClose = isEnemyArmyUnitCloseToExplorer();
-		boolean isEnemyCloseAndUnitIsWounded = distToNearestEnemy > 0 && distToNearestEnemy <= 5
-				&& isWounded;
+		boolean isEnemyCloseAndUnitIsWounded = distToNearestEnemy > 0 && distToNearestEnemy <= 5 && isWounded;
 		boolean isOverwhelmed = xvr.getEnemyUnitsInRadius(6, explorer).size() >= 2
 				&& xvr.getEnemyUnitsInRadius(3, explorer).size() >= 1;
 
@@ -233,8 +229,7 @@ public class ExplorerManager {
 		// System.out.println(isEnemyCloseAndUnitIsWounded);
 		// System.out.println(isAttackingAndIsOverwhelmed);
 
-		if (isOverwhelmed || isUnitUnderAttack || isEnemyArmyUnitClose
-				|| isEnemyCloseAndUnitIsWounded) {
+		if (isOverwhelmed || isUnitUnderAttack || isEnemyArmyUnitClose || isEnemyCloseAndUnitIsWounded) {
 			double distToMainBase = explorer.distanceTo(xvr.getFirstBase());
 
 			// If already at base, run to the most distant base
@@ -254,8 +249,7 @@ public class ExplorerManager {
 	}
 
 	private static boolean isEnemyArmyUnitCloseToExplorer() {
-		Unit nearestArmyUnit = xvr.getUnitNearestFromList(explorer, xvr.getEnemyArmyUnits(), true,
-				true);
+		Unit nearestArmyUnit = xvr.getUnitNearestFromList(explorer, xvr.getEnemyArmyUnits(), true, true);
 		if (nearestArmyUnit == null) {
 			return false;
 		} else {
@@ -318,8 +312,7 @@ public class ExplorerManager {
 		boolean isVeryAlive = explorer.getHP() >= 40;
 		boolean isOverwhelmed = xvr.getEnemyWorkersInRadius(6, explorer).size() >= 2;
 
-		if ((!isOverwhelmed || isVeryAlive)
-				&& isProperTargetSelected
+		if ((!isOverwhelmed || isVeryAlive) && isProperTargetSelected
 				&& ((!isWounded && isNeighborhoodQuiteSafe) || (hasFullLife && isNeighborhoodQuiteSafe))) {
 			// Debug.message(xvr, "Explorer attacks UNIT");
 			UnitActions.attackEnemyUnit(explorer, enemyUnit);
@@ -328,13 +321,12 @@ public class ExplorerManager {
 
 		// If there's no unit to attack, try to attack a building
 		if (enemyUnit == null && (!isWounded && isNeighborhoodQuiteSafe)) {
-			enemyUnit = xvr.getEnemyUnitOfType(UnitTypes.Protoss_Pylon,
-					UnitTypes.Terran_Supply_Depot, UnitTypes.Zerg_Spawning_Pool);
+			enemyUnit = xvr.getEnemyUnitOfType(UnitTypes.Protoss_Pylon, UnitTypes.Terran_Supply_Depot,
+					UnitTypes.Zerg_Spawning_Pool);
 			// Debug.message(xvr, "---> building?");
 
 			if (enemyUnit == null) {
-				enemyUnit = xvr.getUnitNearestFromList(explorer, xvr.getEnemyBuildings(), true,
-						false);
+				enemyUnit = xvr.getUnitNearestFromList(explorer, xvr.getEnemyBuildings(), true, false);
 			}
 		}
 
@@ -369,8 +361,7 @@ public class ExplorerManager {
 
 			// We know there's only one base left, but we still didn't find it
 			// if (MapExploration.getBaseLocationsDiscovered().isEmpty()) {
-			BaseLocation base = (BaseLocation) RUtilities
-					.getRandomElement(undiscoveredStartLocations);
+			BaseLocation base = (BaseLocation) RUtilities.getRandomElement(undiscoveredStartLocations);
 			if (base != null) {
 				// System.out.println("     BASE IS: " +
 				// base.toStringLocation());
@@ -392,8 +383,7 @@ public class ExplorerManager {
 			// If there is any unvisited base- go there. If no- go to the random
 			// base.
 			if (undiscoveredStartLocations.isEmpty()) {
-				goTo = (BaseLocation) RUtilities.getRandomListElement(xvr.getBwapi().getMap()
-						.getStartLocations());
+				goTo = (BaseLocation) RUtilities.getRandomListElement(xvr.getBwapi().getMap().getStartLocations());
 			} else {
 				goTo = (BaseLocation) RUtilities.getRandomListElement(undiscoveredStartLocations);
 			}
@@ -437,11 +427,9 @@ public class ExplorerManager {
 			if (backOfTheBasePoint == null || _explorerForBackOfBase == null) {
 				_exploredBackOfMainBase = true;
 			}
-			if (_explorerForBackOfBase == null
-					|| _explorerForBackOfBase.distanceTo(backOfTheBasePoint) <= 1.5) {
+			if (_explorerForBackOfBase == null || _explorerForBackOfBase.distanceTo(backOfTheBasePoint) <= 1.5) {
 				_exploredBackOfMainBase = true;
-				MapPoint nearBaseLoc = MapExploration
-						.getNearestBaseLocation(_explorerForBackOfBase);
+				MapPoint nearBaseLoc = MapExploration.getNearestBaseLocation(_explorerForBackOfBase);
 				if (xvr.getDistanceBetween(_explorerForBackOfBase, nearBaseLoc) <= 30) {
 					UnitActions.moveTo(_explorerForBackOfBase, nearBaseLoc);
 				}
@@ -459,8 +447,7 @@ public class ExplorerManager {
 		}
 
 		// Explore random base location
-		if (!TerranOffensiveBunker.isStrategyActive() && !explorer.isMoving()
-				&& RUtilities.rand(0, 1) == 0) {
+		if (!TerranOffensiveBunker.isStrategyActive() && !explorer.isMoving() && RUtilities.rand(0, 1) == 0) {
 			explorer.setAiOrder("Scout random base");
 			scoutRandomBaseLocation();
 		}
@@ -530,8 +517,7 @@ public class ExplorerManager {
 		// System.out.println();
 
 		for (int i = 15; i >= 1; i -= 2) {
-			MapPoint pointToGo = UnitActions.moveInDirectionOfPointIfPossible(explorer,
-					backOfTheBase, i);
+			MapPoint pointToGo = UnitActions.moveInDirectionOfPointIfPossible(explorer, backOfTheBase, i);
 
 			if (pointToGo != null && xvr.getMap().isConnected(explorer, pointToGo)) {
 				// System.out.println("success: " + pointToGo.toStringLocation()

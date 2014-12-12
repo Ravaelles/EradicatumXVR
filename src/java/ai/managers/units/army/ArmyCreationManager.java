@@ -6,13 +6,10 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
-import ai.managers.constructing.Constructing;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.UnitManager;
 import ai.strategies.TerranOffensiveBunker;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
-import ai.terran.TerranCommandCenter;
 import ai.terran.TerranFactory;
 import ai.terran.TerranMachineShop;
 import ai.terran.TerranStarport;
@@ -64,8 +61,8 @@ public class ArmyCreationManager {
 				boolean isFewInfantry = isCriticallyFewInfantry();
 				boolean noFactories = TerranFactory.getNumberOfUnitsCompleted() == 0;
 				boolean haveFreeFactorySpots = TerranFactory.getOneNotBusy() != null;
-				boolean shouldBuildInfantry = isFewInfantry || noFactories
-						|| (!haveFreeFactorySpots && isFewInfantry) || isEnforcedByStrategy;
+				boolean shouldBuildInfantry = isFewInfantry || noFactories || (!haveFreeFactorySpots && isFewInfantry)
+						|| isEnforcedByStrategy;
 				if (shouldBuildInfantry) {
 					ArrayList<Unit> barracks = TerranBarracks.getAllObjects();
 					if (!barracks.isEmpty()) {
@@ -85,8 +82,7 @@ public class ArmyCreationManager {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()
-				&& (UnitCounter.getNumberOfInfantryUnits() < 1 || xvr.canAfford(150) || TerranBunker
-						.getNumberOfUnits() > 0)) {
+				&& (UnitCounter.getNumberOfInfantryUnits() < 1 || xvr.canAfford(150) || TerranBunker.getNumberOfUnits() > 0)) {
 			return true;
 		}
 
@@ -95,8 +91,7 @@ public class ArmyCreationManager {
 		if (!isTooMuchInfantry()) {
 			if (isCriticallyFewInfantry()) {
 				boolean factoriesHaveEnoughPriority = factories.isEmpty()
-						|| (xvr.canAfford(200) && !isTooMuchInfantry() && TerranVulture
-								.getNumberOfUnits() >= 3);
+						|| (xvr.canAfford(200) && !isTooMuchInfantry() && TerranVulture.getNumberOfUnits() >= 3);
 				if (factoriesHaveEnoughPriority) {
 					return true;
 				}
@@ -118,8 +113,7 @@ public class ArmyCreationManager {
 
 		// STRATEGY: Offensive Bunker
 		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (TerranBunker.shouldBuild() && !xvr.canAfford(150)
-					&& UnitCounter.getNumberOfBattleUnits() > 2) {
+			if (TerranBunker.shouldBuild() && !xvr.canAfford(150) && UnitCounter.getNumberOfBattleUnits() > 2) {
 				return false;
 			} else {
 				return true;
@@ -128,39 +122,41 @@ public class ArmyCreationManager {
 
 		// =========================================================
 
-		if (xvr.getTimeSeconds() >= 800 && TerranCommandCenter.getNumberOfUnits() <= 1
-				&& !xvr.canAfford(560)) {
-			return false;
-		}
+		// if (xvr.getTimeSeconds() >= 800 &&
+		// TerranCommandCenter.getNumberOfUnits() <= 1
+		// && !xvr.canAfford(560)) {
+		// return false;
+		// }
 
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
-		if (xvr.getTimeSeconds() >= 350 && TerranFactory.getNumberOfUnits() == 0
-				&& battleUnits >= 10 && !xvr.canAfford(560)) {
-			return false;
-		}
+		// if (xvr.getTimeSeconds() >= 350 && TerranFactory.getNumberOfUnits()
+		// == 0 && battleUnits >= 10
+		// && !xvr.canAfford(560)) {
+		// return false;
+		// }
 
 		if (isCriticallyFewInfantry()) {
 			return true;
 		}
 
-		int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
-
-		if (battleUnits <= MINIMUM_UNITS) {
-			return true;
-		}
-		if (bases == 1
-				&& (TerranCommandCenter.shouldBuild() || Constructing
-						.weAreBuilding(UnitManager.BASE)) && !xvr.canAfford(550)) {
-			return false;
-		}
-
-		// if (!xvr.canAfford(125)) {
+		// int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
+		//
+		// if (battleUnits <= MINIMUM_UNITS) {
+		// return true;
+		// }
+		// if (bases == 1 && (TerranCommandCenter.shouldBuild() ||
+		// Constructing.weAreBuilding(UnitManager.BASE))
+		// && !xvr.canAfford(550)) {
 		// return false;
 		// }
-		if (TerranBunker.shouldBuild() && !xvr.canAfford(200)) {
-			return false;
-		}
+		//
+		// // if (!xvr.canAfford(125)) {
+		// // return false;
+		// // }
+		// if (TerranBunker.shouldBuild() && !xvr.canAfford(200)) {
+		// return false;
+		// }
 
 		return true;
 	}

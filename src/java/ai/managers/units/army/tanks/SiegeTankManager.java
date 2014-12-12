@@ -128,9 +128,9 @@ public class SiegeTankManager {
 
 		// If there's enemy Siege Tank in range, siege.
 		Collection<Unit> enemyArmyUnits = xvr.getEnemyArmyUnits();
-		if (!xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 11.1, unit,
+		if (!xvr.getUnitsOfTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 11.1, unit,
 				enemyArmyUnits).isEmpty()
-				|| !xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode, 10.9,
+				|| !xvr.getUnitsOfTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode, 10.9,
 						unit, enemyArmyUnits).isEmpty()) {
 			unit.setAiOrder("Enemy tank: Siege");
 			return true;
@@ -257,7 +257,7 @@ public class SiegeTankManager {
 		boolean isNearChoke = nearChoke != null && unit.distanceToChokePoint(nearChoke) <= 3;
 
 		if (isNearBuilding || isNearChoke) {
-			return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7,
+			return xvr.countUnitsOfTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7,
 					unit, true) <= 2;
 		} else {
 			return false;

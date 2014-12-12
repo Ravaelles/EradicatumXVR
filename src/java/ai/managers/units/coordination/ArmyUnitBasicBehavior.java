@@ -125,7 +125,7 @@ public class ArmyUnitBasicBehavior {
 
 		// Check if there's any activted mine nearby and if so, get the fuck out
 		// of here.
-		for (Unit spiderMine : xvr.getUnitsOfGivenTypeInRadius(
+		for (Unit spiderMine : xvr.getUnitsOfTypeInRadius(
 				UnitTypes.Terran_Vulture_Spider_Mine, 5, unit, true)) {
 			if (spiderMine.isMoving() || spiderMine.isAttacking()) {
 				activatedMine = spiderMine;
@@ -292,7 +292,7 @@ public class ArmyUnitBasicBehavior {
 		// than fighting here, near the bunker.
 		if (!unit.isWounded()
 				&& unit.getGroundWeaponCooldown() > 0
-				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
+				&& xvr.countUnitsOfTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
 						true) > 0) {
 			return false;
 		}

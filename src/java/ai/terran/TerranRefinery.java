@@ -10,8 +10,6 @@ import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
-import ai.managers.units.army.ArmyCreationManager;
-import ai.strategies.TerranOffensiveBunker;
 
 public class TerranRefinery {
 
@@ -31,26 +29,36 @@ public class TerranRefinery {
 		// =========================================================
 
 		// STRATEGY: Offensive Bunker
-		if (TerranOffensiveBunker.isStrategyActive()) {
-			if (barracks < TerranBarracks.MAX_BARRACKS || TerranSupplyDepot.getNumberOfUnits() == 0) {
-				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			}
-
-			if (TerranBunker.getNumberOfUnits() > 0 && UnitCounter.getNumberOfWorkers() >= 8
-					&& UnitCounter.getNumberOfBattleUnits() > ArmyCreationManager.MINIMUM_MARINES
-					|| xvr.canAfford(300)) {
-				if (UnitCounter.getNumberOfInfantryUnits() >= 4) {
-					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				}
-			} else {
-				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			}
-		}
+		// if (TerranOffensiveBunker.isStrategyActive()) {
+		// if (barracks < TerranBarracks.MAX_BARRACKS ||
+		// TerranSupplyDepot.getNumberOfUnits() == 0) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
+		//
+		// if (TerranBunker.getNumberOfUnits() > 0 &&
+		// UnitCounter.getNumberOfWorkers() >= 8
+		// && UnitCounter.getNumberOfBattleUnits() >
+		// ArmyCreationManager.MINIMUM_MARINES || xvr.canAfford(300)) {
+		// if (UnitCounter.getNumberOfInfantryUnits() >= 4) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// }
+		// } else {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
+		// }
 
 		// =========================================================
+		// FIRST building
 
 		if (refineries == 0) {
-			if (xvr.getSuppliesUsed() >= 18) {
+
+			// Build HQ first
+			// if (xvr.getSuppliesUsed() >= 18) {
+			// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			// }
+
+			// Build Factory first
+			if (xvr.getSuppliesUsed() >= 13) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 
@@ -66,6 +74,8 @@ public class TerranRefinery {
 			// }
 		}
 
+		// =========================================================
+
 		if (UnitCounter.getNumberOfUnitsCompleted(TerranEngineeringBay.getBuildingType()) == 0
 				&& UnitCounter.getNumberOfUnits(TerranBunker.getBuildingType()) == 0) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -73,24 +83,23 @@ public class TerranRefinery {
 		}
 
 		if (!Constructing.weAreBuilding(buildingType)
-				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
-						.getNumberOfUnitsCompleted(UnitManager.BASE) && weHaveAcademy) {
+				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE)
+				&& weHaveAcademy) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
 
 		if (!Constructing.weAreBuilding(buildingType)
 				&& (weHaveAcademy || barracks >= minGateways || xvr.canAfford(700))
-				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
-						.getNumberOfUnitsCompleted(UnitManager.BASE)) {
+				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE)) {
 			if (battleUnits >= TerranBarracks.MIN_UNITS_FOR_DIFF_BUILDING) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}
 		}
 
-		if (UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
-				.getNumberOfUnitsCompleted(UnitManager.BASE) && xvr.canAfford(750)) {
+		if (UnitCounter.getNumberOfUnits(buildingType) < UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE)
+				&& xvr.canAfford(750)) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			return true;
 		}
@@ -123,9 +132,7 @@ public class TerranRefinery {
 
 	public static MapPoint findTileForRefinery() {
 		Unit nearestGeyser = xvr.getUnitNearestFromList(xvr.getFirstBase(), xvr.getGeysersUnits());
-		if (nearestGeyser != null
-				&& xvr.getUnitsOfGivenTypeInRadius(UnitManager.BASE, 15, nearestGeyser, true)
-						.isEmpty()) {
+		if (nearestGeyser != null && xvr.getUnitsOfTypeInRadius(UnitManager.BASE, 15, nearestGeyser, true).isEmpty()) {
 			return null;
 		}
 

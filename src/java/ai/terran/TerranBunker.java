@@ -270,7 +270,7 @@ public class TerranBunker {
 			searchInDistance = 9;
 		}
 
-		ArrayList<Unit> cannonsNearby = xvr.getUnitsOfGivenTypeInRadius(type, searchInDistance,
+		ArrayList<Unit> cannonsNearby = xvr.getUnitsOfTypeInRadius(type, searchInDistance,
 				mapPoint, true);
 
 		double result = 0;

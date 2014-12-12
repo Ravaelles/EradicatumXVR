@@ -133,7 +133,7 @@ public class Painter {
 		if (FULL_DEBUG) {
 			paintTimeConsumption(xvr);
 			paintOffensivePoint(xvr);
-			paintBuildingsToConstructPosition(xvr);
+			// paintBuildingsToConstructPosition(xvr);
 			paintSpeculatedEnemyTanksPositions();
 		}
 		paintUnitsDetails(xvr);
@@ -518,9 +518,11 @@ public class Painter {
 		}
 
 		if (u.isGatheringMinerals()) {
-			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.BLUE, false, false);
+			// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.BLUE, false,
+			// false);
 		} else if (u.isGatheringGas()) {
-			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREEN, false, false);
+			// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREEN, false,
+			// false);
 		} else if (u.isMoving() && !u.isConstructing()) {
 			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false, false);
 
@@ -570,10 +572,8 @@ public class Painter {
 
 		// ACTION LABEL: display action like #RUN, #LOAD
 		if (u.hasAiOrder()) {
-			// bwapi.drawText(u.getX() - u.getAiOrderString().length() * 3,
-			// u.getY(),
-			// BWColor.getToStringHex(BWColor.WHITE) + u.getAiOrderString(),
-			// false);
+			bwapi.drawText(u.getX() - u.getAiOrderString().length() * 3, u.getY(),
+					BWColor.getToStringHex(BWColor.WHITE) + u.getAiOrderString(), false);
 		}
 
 		// FLYERS: paint nearest AntiAir enemy unit.

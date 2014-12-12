@@ -35,9 +35,9 @@ public class AttackCloseTargets {
 		// For tanks, allow to attack only if there're other tanks nearby
 		if (unit.getType().isTank()) {
 			int TANK_DIST = 8;
-			int tanksNear = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, TANK_DIST, unit,
+			int tanksNear = xvr.countUnitsOfTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, TANK_DIST, unit,
 					true)
-					+ xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, TANK_DIST, unit, true);
+					+ xvr.countUnitsOfTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, TANK_DIST, unit, true);
 			if (tanksNear < MIN_TANKS_TO_FORWARD) {
 				return false;
 			}
@@ -250,7 +250,7 @@ public class AttackCloseTargets {
 	}
 
 	protected static boolean isUnitInPositionToAlwaysAttack(Unit unit) {
-		boolean ourPhotonCannonIsNear = xvr.getUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 4, unit, true)
+		boolean ourPhotonCannonIsNear = xvr.getUnitsOfTypeInRadius(TerranBunker.getBuildingType(), 4, unit, true)
 				.size() > 0;
 		boolean baseInDanger = (xvr.getDistanceBetween(
 				xvr.getUnitNearestFromList(unit, TerranCommandCenter.getBases()), unit) <= 7);

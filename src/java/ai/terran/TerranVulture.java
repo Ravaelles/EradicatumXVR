@@ -13,7 +13,6 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.army.RunManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.utils.RUtilities;
 
@@ -49,24 +48,38 @@ public class TerranVulture {
 			return true;
 		}
 
-		if (RunManager.runFromCloseOpponentsIfNecessary(unit, SAFE_DISTANCE_FROM_ENEMY)) {
-			unit.setAiOrder("Run from enemy");
-			return true;
-		}
+		// if (RunManager.runFromCloseOpponentsIfNecessary(unit,
+		// SAFE_DISTANCE_FROM_ENEMY)
+		// && xvr.getN) {
+		// unit.setAiOrder("Run from enemy");
+		// return true;
+		// }
 
-		// Disallow fighting when overwhelmed.
-		if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
+		// Disallow fighting when overwhelmed, but force to fight if there's
+		// bunker near and has some HP
+		if (unit.getHP() < 40 && ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)
+				&& xvr.countUnitsOfTypeInRadius(UnitTypes.Terran_Bunker, 6, unit, true) == 0) {
 			unit.setAiOrder("Would lose");
 			return true;
 		}
 
 		// Scout bases near the enemy
-		if (handleExplorerVulture(unit)) {
-			return false;
-		}
+		// if (actWhenIsExplorer(unit)) {
+		// return false;
+		// }
 
 		// ======== DEFINE NEXT MOVE =============================
 
+		if (actNormal(unit)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	// =========================================================
+
+	private static boolean actNormal(Unit unit) {
 		// Get base locations near enemy, or buildings and try to go there.
 		MapPoint pointToHarass = defineNeighborhoodToHarass(unit);
 
@@ -86,9 +99,7 @@ public class TerranVulture {
 
 		else {
 			goTo = MapExploration.getNearestUnknownPointFor(unit.getX(), unit.getY(), true);
-			if (goTo != null
-					&& xvr.getBwapi().getMap()
-							.isConnected(unit, goTo.getX() / 32, goTo.getY() / 32)) {
+			if (goTo != null && xvr.getBwapi().getMap().isConnected(unit, goTo.getX() / 32, goTo.getY() / 32)) {
 			}
 		}
 
@@ -112,7 +123,7 @@ public class TerranVulture {
 		return false;
 	}
 
-	private static boolean handleExplorerVulture(Unit unit) {
+	private static boolean actWhenIsExplorer(Unit unit) {
 
 		// Choose random Vulture to become Vulture Explorer
 		if (explorerVulture == null) {
@@ -136,17 +147,6 @@ public class TerranVulture {
 		return false;
 	}
 
-	private static MapPoint getRandomBaseLocationNearEnemyMainBase() {
-		if (!MapExploration.getEnemyBasesDiscovered().isEmpty()) {
-			Unit enemyBase = MapExploration.getEnemyBasesDiscovered().values().iterator().next();
-			return (MapPoint) RUtilities.getRandomElement(MapExploration.getBaseLocationsNear(
-					enemyBase, 50));
-
-		}
-
-		return null;
-	}
-
 	// =========================================================
 
 	private static boolean tryPlantingMines(Unit unit) {
@@ -158,8 +158,8 @@ public class TerranVulture {
 			// isSafelyFarFromBuildings(unit);
 
 			if (isSafePlaceForOurUnits) {
-				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit)
-						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
+				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit) || isQuiteNearChokePoint(unit)
+						|| isQuiteNearEnemy(unit);
 				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)) {
 					placeSpiderMine(unit, unit);
 					return true;
@@ -178,15 +178,24 @@ public class TerranVulture {
 
 	// =========================================================
 
+	private static MapPoint getRandomBaseLocationNearEnemyMainBase() {
+		if (!MapExploration.getEnemyBasesDiscovered().isEmpty()) {
+			Unit enemyBase = MapExploration.getEnemyBasesDiscovered().values().iterator().next();
+			return (MapPoint) RUtilities.getRandomElement(MapExploration.getBaseLocationsNear(enemyBase, 50));
+
+		}
+
+		return null;
+	}
+
 	private static boolean isFarFromMainbase(MapPoint point) {
 		return point.distanceTo(xvr.getFirstBase()) > 26;
 	}
 
 	private static boolean isNoMinesInRegion(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 2, unit,
-				true) == 0
-				&& xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 8, unit,
-						true) <= 1 || unit.getSpiderMineCount() == 3;
+		return xvr.countUnitsOfTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 2, unit, true) == 0
+				&& xvr.countUnitsOfTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 8, unit, true) <= 1
+				|| unit.getSpiderMineCount() == 3;
 	}
 
 	private static boolean isQuiteNearEnemy(Unit unit) {
@@ -200,7 +209,7 @@ public class TerranVulture {
 	}
 
 	private static boolean isQuiteNearBunker(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 18, unit, true) > 0;
+		return xvr.countUnitsOfTypeInRadius(UnitTypes.Terran_Bunker, 18, unit, true) > 0;
 	}
 
 	private static boolean isQuiteNearChokePoint(Unit unit) {
@@ -213,8 +222,7 @@ public class TerranVulture {
 	}
 
 	private static boolean minesArentStackedTooMuchNear(Unit unit) {
-		return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 3, unit,
-				true) <= 1;
+		return xvr.countUnitsOfTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 3, unit, true) <= 1;
 	}
 
 	private static boolean isSafelyFarFromOurUnits(Unit unit) {
@@ -248,21 +256,25 @@ public class TerranVulture {
 	}
 
 	private static MapPoint defineNeighborhoodToHarass(Unit unit) {
+		if (xvr.getTimeSeconds() < 510) {
+			return MapExploration.getRandomKnownEnemyBase();
+		} else {
 
-		// Try to get random base
-		MapPoint pointToHarass = MapExploration.getRandomKnownEnemyBase();
+			// Try to get random base
+			MapPoint pointToHarass = MapExploration.getRandomKnownEnemyBase();
 
-		// If we don't know any base, get random building
-		if (pointToHarass == null) {
-			pointToHarass = MapExploration.getNearestEnemyBuilding();
+			// If we don't know any base, get random building
+			if (pointToHarass == null) {
+				pointToHarass = MapExploration.getNearestEnemyBuilding();
+			}
+
+			// If still nothing...
+			if (pointToHarass == null) {
+				pointToHarass = MapExploration.getRandomChokePoint();
+			}
+
+			return pointToHarass;
 		}
-
-		// If still nothing...
-		if (pointToHarass == null) {
-			pointToHarass = MapExploration.getRandomChokePoint();
-		}
-
-		return pointToHarass;
 	}
 
 	public static int getNumberOfUnits() {

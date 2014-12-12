@@ -301,10 +301,12 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		return typeID;
 	}
 
+	@Override
 	public int getX() {
 		return x;
 	}
 
+	@Override
 	public int getY() {
 		return y;
 	}
@@ -760,8 +762,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	// =================================================
 
 	public boolean isWorker() {
-		return typeID == UnitTypes.Protoss_Probe.ordinal()
-				|| typeID == UnitTypes.Zerg_Drone.ordinal()
+		return typeID == UnitTypes.Protoss_Probe.ordinal() || typeID == UnitTypes.Zerg_Drone.ordinal()
 				|| typeID == UnitTypes.Terran_SCV.ordinal();
 	}
 
@@ -853,9 +854,8 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public String toStringShort() {
-		return "Unit [type=" + getType().getName() + ", exists=" + isExists() + ", tileX=" + tileX
-				+ ", tileY=" + tileY + ", hitPoints=" + hitPoints + ", visible=" + visible
-				+ ", underAttack=" + underAttack + "]";
+		return "Unit [type=" + getType().getName() + ", exists=" + isExists() + ", tileX=" + tileX + ", tileY=" + tileY
+				+ ", hitPoints=" + hitPoints + ", visible=" + visible + ", underAttack=" + underAttack + "]";
 	}
 
 	public String toStringType() {
@@ -864,58 +864,48 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	@Override
 	public String toString() {
-		return "Unit [type=" + getType() + ", mineralGathered=" + mineralGathered
-				+ ", callForHelpMission=" + callForHelpMission + ", ID=" + ID + ", replayID="
-				+ replayID + ", playerID=" + playerID + ", typeID=" + typeID + ", x=" + x + ", y="
-				+ y + ", tileX=" + tileX + ", tileY=" + tileY + ", angle=" + angle + ", velocityX="
-				+ velocityX + ", velocityY=" + velocityY + ", hitPoints=" + hitPoints + ", shield="
-				+ shield + ", energy=" + energy + ", resources=" + resources + ", resourceGroup="
-				+ resourceGroup + ", lastCommandFrame=" + lastCommandFrame + ", lastCommandID="
-				+ lastCommandID + ", initialTypeID=" + initialTypeID + ", initialX=" + initialX
-				+ ", initialY=" + initialY + ", initialTileX=" + initialTileX + ", initialTileY="
-				+ initialTileY + ", initialHitPoints=" + initialHitPoints + ", initialResources="
-				+ initialResources + ", killCount=" + killCount + ", acidSporeCount="
-				+ acidSporeCount + ", interceptorCount=" + interceptorCount + ", scarabCount="
-				+ scarabCount + ", spiderMineCount=" + spiderMineCount + ", groundWeaponCooldown="
-				+ groundWeaponCooldown + ", airWeaponCooldown=" + airWeaponCooldown
-				+ ", spellCooldown=" + spellCooldown + ", defenseMatrixPoints="
-				+ defenseMatrixPoints + ", defenseMatrixTimer=" + defenseMatrixTimer
-				+ ", ensnareTimer=" + ensnareTimer + ", irradiateTimer=" + irradiateTimer
-				+ ", lockdownTimer=" + lockdownTimer + ", maelstromTimer=" + maelstromTimer
-				+ ", orderTimer=" + orderTimer + ", plagueTimer=" + plagueTimer + ", removeTimer="
-				+ removeTimer + ", stasisTimer=" + stasisTimer + ", stimTimer=" + stimTimer
-				+ ", buildTypeID=" + buildTypeID + ", trainingQueueSize=" + trainingQueueSize
-				+ ", researchingTechID=" + researchingTechID + ", upgradingUpgradeID="
-				+ upgradingUpgradeID + ", remainingBuildTimer=" + remainingBuildTimer
-				+ ", remainingTrainTime=" + remainingTrainTime + ", remainingResearchTime="
-				+ remainingResearchTime + ", remainingUpgradeTime=" + remainingUpgradeTime
-				+ ", buildUnitID=" + buildUnitID + ", targetUnitID=" + targetUnitID + ", targetX="
-				+ targetX + ", targetY=" + targetY + ", orderID=" + orderID + ", orderTargetID="
-				+ orderTargetID + ", secondaryOrderID=" + secondaryOrderID + ", rallyX=" + rallyX
-				+ ", rallyY=" + rallyY + ", rallyUnitID=" + rallyUnitID + ", addOnID=" + addOnID
-				+ ", transportID=" + transportID + ", numLoadedUnits=" + numLoadedUnits
-				+ ", numLarva=" + numLarva + ", exists=" + exists + ", nukeReady=" + nukeReady
-				+ ", accelerating=" + accelerating + ", attacking=" + attacking + ", attackFrame="
-				+ attackFrame + ", beingConstructed=" + beingConstructed + ", beingGathered="
-				+ beingGathered + ", beingHealed=" + beingHealed + ", blind=" + blind
-				+ ", braking=" + braking + ", burrowed=" + burrowed + ", carryingGas="
-				+ carryingGas + ", carryingMinerals=" + carryingMinerals + ", cloaked=" + cloaked
-				+ ", completed=" + completed + ", constructing=" + constructing
-				+ ", defenseMatrixed=" + defenseMatrixed + ", detected=" + detected + ", ensnared="
-				+ ensnared + ", following=" + following + ", gatheringGas=" + gatheringGas
-				+ ", gatheringMinerals=" + gatheringMinerals + ", hallucination=" + hallucination
-				+ ", holdingPosition=" + holdingPosition + ", idle=" + idle + ", interruptable="
-				+ interruptable + ", invincible=" + invincible + ", irradiated=" + irradiated
-				+ ", lifted=" + lifted + ", loaded=" + loaded + ", lockedDown=" + lockedDown
-				+ ", maelstrommed=" + maelstrommed + ", morphing=" + morphing + ", moving="
-				+ moving + ", parasited=" + parasited + ", patrolling=" + patrolling + ", plagued="
-				+ plagued + ", repairing=" + repairing + ", selected=" + selected + ", sieged="
-				+ sieged + ", startingAttack=" + startingAttack + ", stasised=" + stasised
-				+ ", stimmed=" + stimmed + ", stuck=" + stuck + ", training=" + training
-				+ ", underAttack=" + underAttack + ", underDarkSwarm=" + underDarkSwarm
-				+ ", underDisruptionWeb=" + underDisruptionWeb + ", underStorm=" + underStorm
-				+ ", unpowered=" + unpowered + ", upgrading=" + upgrading + ", visible=" + visible
-				+ "]";
+		return "Unit [type=" + getType() + ", mineralGathered=" + mineralGathered + ", callForHelpMission="
+				+ callForHelpMission + ", ID=" + ID + ", replayID=" + replayID + ", playerID=" + playerID + ", typeID="
+				+ typeID + ", x=" + x + ", y=" + y + ", tileX=" + tileX + ", tileY=" + tileY + ", angle=" + angle
+				+ ", velocityX=" + velocityX + ", velocityY=" + velocityY + ", hitPoints=" + hitPoints + ", shield="
+				+ shield + ", energy=" + energy + ", resources=" + resources + ", resourceGroup=" + resourceGroup
+				+ ", lastCommandFrame=" + lastCommandFrame + ", lastCommandID=" + lastCommandID + ", initialTypeID="
+				+ initialTypeID + ", initialX=" + initialX + ", initialY=" + initialY + ", initialTileX="
+				+ initialTileX + ", initialTileY=" + initialTileY + ", initialHitPoints=" + initialHitPoints
+				+ ", initialResources=" + initialResources + ", killCount=" + killCount + ", acidSporeCount="
+				+ acidSporeCount + ", interceptorCount=" + interceptorCount + ", scarabCount=" + scarabCount
+				+ ", spiderMineCount=" + spiderMineCount + ", groundWeaponCooldown=" + groundWeaponCooldown
+				+ ", airWeaponCooldown=" + airWeaponCooldown + ", spellCooldown=" + spellCooldown
+				+ ", defenseMatrixPoints=" + defenseMatrixPoints + ", defenseMatrixTimer=" + defenseMatrixTimer
+				+ ", ensnareTimer=" + ensnareTimer + ", irradiateTimer=" + irradiateTimer + ", lockdownTimer="
+				+ lockdownTimer + ", maelstromTimer=" + maelstromTimer + ", orderTimer=" + orderTimer
+				+ ", plagueTimer=" + plagueTimer + ", removeTimer=" + removeTimer + ", stasisTimer=" + stasisTimer
+				+ ", stimTimer=" + stimTimer + ", buildTypeID=" + buildTypeID + ", trainingQueueSize="
+				+ trainingQueueSize + ", researchingTechID=" + researchingTechID + ", upgradingUpgradeID="
+				+ upgradingUpgradeID + ", remainingBuildTimer=" + remainingBuildTimer + ", remainingTrainTime="
+				+ remainingTrainTime + ", remainingResearchTime=" + remainingResearchTime + ", remainingUpgradeTime="
+				+ remainingUpgradeTime + ", buildUnitID=" + buildUnitID + ", targetUnitID=" + targetUnitID
+				+ ", targetX=" + targetX + ", targetY=" + targetY + ", orderID=" + orderID + ", orderTargetID="
+				+ orderTargetID + ", secondaryOrderID=" + secondaryOrderID + ", rallyX=" + rallyX + ", rallyY="
+				+ rallyY + ", rallyUnitID=" + rallyUnitID + ", addOnID=" + addOnID + ", transportID=" + transportID
+				+ ", numLoadedUnits=" + numLoadedUnits + ", numLarva=" + numLarva + ", exists=" + exists
+				+ ", nukeReady=" + nukeReady + ", accelerating=" + accelerating + ", attacking=" + attacking
+				+ ", attackFrame=" + attackFrame + ", beingConstructed=" + beingConstructed + ", beingGathered="
+				+ beingGathered + ", beingHealed=" + beingHealed + ", blind=" + blind + ", braking=" + braking
+				+ ", burrowed=" + burrowed + ", carryingGas=" + carryingGas + ", carryingMinerals=" + carryingMinerals
+				+ ", cloaked=" + cloaked + ", completed=" + completed + ", constructing=" + constructing
+				+ ", defenseMatrixed=" + defenseMatrixed + ", detected=" + detected + ", ensnared=" + ensnared
+				+ ", following=" + following + ", gatheringGas=" + gatheringGas + ", gatheringMinerals="
+				+ gatheringMinerals + ", hallucination=" + hallucination + ", holdingPosition=" + holdingPosition
+				+ ", idle=" + idle + ", interruptable=" + interruptable + ", invincible=" + invincible
+				+ ", irradiated=" + irradiated + ", lifted=" + lifted + ", loaded=" + loaded + ", lockedDown="
+				+ lockedDown + ", maelstrommed=" + maelstrommed + ", morphing=" + morphing + ", moving=" + moving
+				+ ", parasited=" + parasited + ", patrolling=" + patrolling + ", plagued=" + plagued + ", repairing="
+				+ repairing + ", selected=" + selected + ", sieged=" + sieged + ", startingAttack=" + startingAttack
+				+ ", stasised=" + stasised + ", stimmed=" + stimmed + ", stuck=" + stuck + ", training=" + training
+				+ ", underAttack=" + underAttack + ", underDarkSwarm=" + underDarkSwarm + ", underDisruptionWeb="
+				+ underDisruptionWeb + ", underStorm=" + underStorm + ", unpowered=" + unpowered + ", upgrading="
+				+ upgrading + ", visible=" + visible + "]";
 	}
 
 	public boolean isBuildingNotBusy() {
@@ -951,8 +941,8 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		// return type.isPhotonCannon() || type.isSunkenColony() ||
 		// type.isBunker();
 		UnitType type = getType();
-		return type.isBuilding() && type.getGroundWeaponID() != WeaponTypes.None.ordinal()
-				&& type.isAttackCapable() || type.isBunker();
+		return type.isBuilding() && type.getGroundWeaponID() != WeaponTypes.None.ordinal() && type.isAttackCapable()
+				|| type.isBunker();
 	}
 
 	public boolean isHidden() {
@@ -1025,8 +1015,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public boolean isRepairable() {
-		return type.isFlyer() || type.isBuilding() || type.isVulture() || type.isTank()
-				|| type.isGoliath();
+		return type.isFlyer() || type.isBuilding() || type.isVulture() || type.isTank() || type.isGoliath();
 	}
 
 	public boolean isBeingRepaired() {
@@ -1105,6 +1094,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		aiOrderTime = -1;
 	}
 
+	@Override
 	public Region getRegion() {
 		if (_region == null) {
 			_region = xvr.getMap().getRegion(this);
@@ -1177,6 +1167,18 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public boolean isExplorer() {
 		return isExplorer;
+	}
+
+	public boolean isSpiderMine() {
+		return getType().isSpiderMine();
+	}
+
+	public boolean isBuilding() {
+		return getType().isBuilding();
+	}
+
+	public boolean isFlyer() {
+		return getType().isFlyer();
 	}
 
 }

@@ -127,7 +127,7 @@ public class TerranBarracks {
 
 		// If we have very few tanks, always leave cash for one.
 		if (TerranMachineShop.getNumberOfUnitsCompleted() > 0
-				&& TerranSiegeTank.getNumberOfUnits() < TerranFactory.MINIMUM_TANKS
+				&& TerranSiegeTank.getNumberOfUnits() < TerranFactory.MIN_TANKS
 				&& TerranFactory.getOneNotBusy() != null) {
 			if (!xvr.canAfford(200) && UnitCounter.getNumberOfInfantryUnits() >= 8) {
 				return;

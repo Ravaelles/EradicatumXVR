@@ -100,7 +100,7 @@ public class XVR {
 
 		// Slow down after the start
 		if (!_gameSpeedChangeApplied && secondCounter > 60) {
-			bwapi.setGameSpeed(8);
+			// bwapi.setGameSpeed(8);
 			_gameSpeedChangeApplied = true;
 		}
 
@@ -355,6 +355,18 @@ public class XVR {
 		return objectsOfThisType;
 	}
 
+	public ArrayList<Unit> getNonWorkerUnitsToControl() {
+		ArrayList<Unit> objectsOfThisType = new ArrayList<Unit>();
+
+		for (Unit unit : bwapi.getMyUnits()) {
+			if (unit.isCompleted() && !unit.isWorker() && !unit.getType().isSpiderMine()) {
+				objectsOfThisType.add(unit);
+			}
+		}
+
+		return objectsOfThisType;
+	}
+
 	public ArrayList<Unit> getArmyUnitsIncludingDefensiveBuildings() {
 		ArrayList<Unit> objectsOfThisType = new ArrayList<Unit>();
 
@@ -569,14 +581,14 @@ public class XVR {
 		return true;
 	}
 
-	public int countUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, MapPoint point, boolean onlyMyUnits) {
+	public int countUnitsOfTypeInRadius(UnitTypes type, double tileRadius, MapPoint point, boolean onlyMyUnits) {
 		if (point == null) {
 			return -1;
 		}
-		return countUnitsOfGivenTypeInRadius(type, tileRadius, point.getX(), point.getY(), onlyMyUnits);
+		return countUnitsOfTypeInRadius(type, tileRadius, point.getX(), point.getY(), onlyMyUnits);
 	}
 
-	public int countUnitsEnemyOfGivenTypeInRadius(UnitTypes type, int tileRadius, MapPoint point) {
+	public int countUnitsEnemyOfTypeInRadius(UnitTypes type, int tileRadius, MapPoint point) {
 		if (point == null) {
 			return -1;
 		}
@@ -589,7 +601,7 @@ public class XVR {
 		return result;
 	}
 
-	public int countUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, int x, int y, boolean onlyMyUnits) {
+	public int countUnitsOfTypeInRadius(UnitTypes type, double tileRadius, int x, int y, boolean onlyMyUnits) {
 		int result = 0;
 		Collection<Unit> unitsList = onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits();
 		for (Unit unit : unitsList) {
@@ -600,16 +612,14 @@ public class XVR {
 		return result;
 	}
 
-	public ArrayList<Unit> getUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, MapPoint point,
-			boolean onlyMyUnits) {
+	public ArrayList<Unit> getUnitsOfTypeInRadius(UnitTypes type, double tileRadius, MapPoint point, boolean onlyMyUnits) {
 		if (point == null) {
 			return new ArrayList<>();
 		}
-		return getUnitsOfGivenTypeInRadius(type, tileRadius, point.getX(), point.getY(), onlyMyUnits);
+		return getUnitsOfTypeInRadius(type, tileRadius, point.getX(), point.getY(), onlyMyUnits);
 	}
 
-	public ArrayList<Unit> getUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, int x, int y,
-			boolean onlyMyUnits) {
+	public ArrayList<Unit> getUnitsOfTypeInRadius(UnitTypes type, double tileRadius, int x, int y, boolean onlyMyUnits) {
 		HashMap<Unit, Double> unitToDistance = new HashMap<Unit, Double>();
 
 		for (Unit unit : (onlyMyUnits ? bwapi.getMyUnits() : bwapi.getAllUnits())) {
@@ -625,7 +635,7 @@ public class XVR {
 		return resultList;
 	}
 
-	public ArrayList<Unit> getUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, MapPoint point,
+	public ArrayList<Unit> getUnitsOfTypeInRadius(UnitTypes type, double tileRadius, MapPoint point,
 			Collection<Unit> units) {
 		HashMap<Unit, Double> unitToDistance = new HashMap<Unit, Double>();
 

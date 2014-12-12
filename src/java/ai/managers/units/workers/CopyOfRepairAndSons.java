@@ -6,11 +6,11 @@ import jnibwapi.model.Unit;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
 
-public class RepairAndSons {
+public class CopyOfRepairAndSons {
 
 	private static final int MAX_GOOD_WILL_REPAIRERS = 3;
 	private static final int REPAIR_IF_NOT_ASKED_MAX_DISTANCE_FROM_UNIT = 8;
-	// private static final int REPAIR_IF_NOT_ASKED_MIN_DISTANCE_FROM_BASE = 10;
+	private static final int REPAIR_IF_NOT_ASKED_MIN_DISTANCE_FROM_BASE = 10;
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -32,7 +32,7 @@ public class RepairAndSons {
 
 		// =========================================================
 		// Issue an ticket to repair this unit
-		RepairAndSons.tryIssuingRepairOrderIfPossible(unit);
+		CopyOfRepairAndSons.tryIssuingRepairOrderIfPossible(unit);
 
 		// Go to repairer if distance is big
 		Unit repairerForUnit = getRepairerForUnit(unit);
@@ -66,22 +66,21 @@ public class RepairAndSons {
 		}
 
 		// Disallow wounded workers to repair; this way we can save many lives
-		// if (worker.getHP() < 25) {
-		// return false;
-		// }
+		if (worker.getHP() < 45) {
+			return false;
+		}
 
 		// Only units far from base can repair
-		// Unit firstBase = xvr.getFirstBase();
-		// if (firstBase != null) {
-		// if (firstBase.distanceTo(worker) <
-		// REPAIR_IF_NOT_ASKED_MIN_DISTANCE_FROM_BASE) {
-		// return false;
-		// }
-		// }
+		Unit firstBase = xvr.getFirstBase();
+		if (firstBase != null) {
+			if (firstBase.distanceTo(worker) < REPAIR_IF_NOT_ASKED_MIN_DISTANCE_FROM_BASE) {
+				return false;
+			}
+		}
 
 		// =========================================================
 
-		Unit repairThisUnit = RepairAndSons.getUnitAssignedToRepairBy(worker);
+		Unit repairThisUnit = CopyOfRepairAndSons.getUnitAssignedToRepairBy(worker);
 
 		// This worker has assigned unit to repair
 		if (repairThisUnit != null) {
@@ -103,7 +102,7 @@ public class RepairAndSons {
 
 			// This repair order is obsolete, remove it.
 			else {
-				RepairAndSons.removeTicketFor(repairThisUnit, worker);
+				CopyOfRepairAndSons.removeTicketFor(repairThisUnit, worker);
 			}
 		}
 
@@ -129,13 +128,9 @@ public class RepairAndSons {
 
 	// =========================================================
 
-	public static void refreshStatus() {
-
-	}
-
 	private static boolean tryRepairingSomethingEvenIfNotAsked(Unit worker) {
-		for (Unit otherUnit : xvr.getUnitsInRadius(worker, REPAIR_IF_NOT_ASKED_MAX_DISTANCE_FROM_UNIT, xvr.getBwapi()
-				.getMyUnits())) {
+		for (Unit otherUnit : xvr.getUnitsInRadius(worker,
+				REPAIR_IF_NOT_ASKED_MAX_DISTANCE_FROM_UNIT, xvr.getBwapi().getMyUnits())) {
 			if (otherUnit.isRepairable() && !otherUnit.isConstructing() && otherUnit.isWounded()
 					&& !otherUnit.getType().isOnGeyser()) {
 
