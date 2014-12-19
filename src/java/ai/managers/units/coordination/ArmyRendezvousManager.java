@@ -148,8 +148,12 @@ public class ArmyRendezvousManager {
 			// If bunker has enough space, go near it in (wise) hope to be
 			// loaded into
 			if (bunker != null && bunker.getNumLoadedUnits() < 4) {
-				runTo = MapPointInstance.getPointBetween(bunker,
-						TerranOffensiveBunker.getEnemyWhereabout(), 80);
+				MapPoint enemyWhereabout = TerranOffensiveBunker.getEnemyWhereabout();
+				if (enemyWhereabout != null) {
+					runTo = MapPointInstance.getPointBetween(bunker, enemyWhereabout, 80);
+				} else {
+					runTo = bunker;
+				}
 			}
 
 			// If bunker is already full, stand on the second base, protect this

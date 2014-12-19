@@ -27,7 +27,7 @@ public class Strategies {
 		// =========================================================
 		// Decision variables
 		// useTerranOffensiveBunker = isTwoPlayersMap;
-		useTerranOffensiveBunker = true;
+		useTerranOffensiveBunker = false;
 		useTerranInfantryRush = false;
 	}
 
@@ -36,9 +36,9 @@ public class Strategies {
 		// Apply specific strategies if needed
 		boolean someStrategyApplied = false;
 		if (useTerranOffensiveBunker) {
-			TerranOffensiveBunker.applyStrategy();
-			someStrategyApplied = true;
-			System.out.println("Strategy: Offensive Bunker");
+			// TerranOffensiveBunker.applyStrategy();
+			// someStrategyApplied = true;
+			// System.out.println("Strategy: Offensive Bunker");
 		}
 		if (useTerranInfantryRush) {
 			TerranInfantryRush.applyStrategy();

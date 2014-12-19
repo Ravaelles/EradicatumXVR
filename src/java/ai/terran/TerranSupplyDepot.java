@@ -35,6 +35,10 @@ public class TerranSupplyDepot {
 	public static boolean shouldBuild() {
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 
+		if (weAreBuilding) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		int free = xvr.getSuppliesFree();
 		int total = xvr.getSuppliesTotal();
 		int depots = UnitCounter.getNumberOfUnits(buildingType);
@@ -63,8 +67,8 @@ public class TerranSupplyDepot {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		if (TerranBunker.getNumberOfUnits() < TerranBunker.GLOBAL_MAX_BUNKERS && TerranBunker.shouldBuild()
-				&& !xvr.canAfford(200)) {
+		if (TerranBunker.getNumberOfUnits() < TerranBunker.GLOBAL_MAX_BUNKERS
+				&& TerranBunker.shouldBuild() && !xvr.canAfford(200)) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
@@ -113,13 +117,15 @@ public class TerranSupplyDepot {
 
 		if (BotStrategyManager.isExpandWithBunkers()) {
 			if (depots == 1
-					&& ((engineeringBays == 1 && xvr.canAfford(54)) || (engineeringBays == 0 && xvr.canAfford(194)))) {
+					&& ((engineeringBays == 1 && xvr.canAfford(54)) || (engineeringBays == 0 && xvr
+							.canAfford(194)))) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}
 		} else {
 			if (depots == 1
-					&& ((engineeringBays == 1 && xvr.canAfford(92)) || (engineeringBays == 0 && xvr.canAfford(216)))) {
+					&& ((engineeringBays == 1 && xvr.canAfford(92)) || (engineeringBays == 0 && xvr
+							.canAfford(216)))) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}
@@ -139,8 +145,9 @@ public class TerranSupplyDepot {
 
 		boolean shouldBuild = ((depots == 0 && total <= 9 && free <= 3)
 				|| (total >= 10 && total <= 17 && free <= 4 && depots <= 1)
-				|| (total >= 18 && total <= 25 && free <= 5) || (total > 25 && total <= 45 && free <= 8)
-				|| (total > 45 && free <= 10) || (total > 90 && total < 200 && free <= 20));
+				|| (total >= 18 && total <= 25 && free <= 5)
+				|| (total > 25 && total <= 45 && free <= 8) || (total > 45 && free <= 10) || (total > 90
+				&& total < 200 && free <= 20));
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, shouldBuild);
 		return shouldBuild;
@@ -188,7 +195,8 @@ public class TerranSupplyDepot {
 
 		// Or build near random depot.
 		Unit supplyDepot = null;
-		ArrayList<Unit> depotsNearMainBase = xvr.getUnitsOfTypeInRadius(buildingType, 14, xvr.getFirstBase(), true);
+		ArrayList<Unit> depotsNearMainBase = xvr.getUnitsOfTypeInRadius(buildingType, 14,
+				xvr.getFirstBase(), true);
 		if (!depotsNearMainBase.isEmpty()) {
 			supplyDepot = (Unit) RUtilities.getRandomElement(depotsNearMainBase);
 		}
@@ -227,8 +235,8 @@ public class TerranSupplyDepot {
 					int x = i * 32;
 					int y = j * 32;
 					if (Constructing.canBuildHere(builder, unitType, i, j)
-							&& xvr.getUnitsOfTypeInRadius(buildingType, DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true)
-									.isEmpty()) {
+							&& xvr.getUnitsOfTypeInRadius(buildingType,
+									DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true).isEmpty()) {
 						MapPointInstance point = new MapPointInstance(x, y);
 						if (!Constructing.isTooNearMineralsOrGeyser(buildingType.getType(), point)) {
 
@@ -272,7 +280,8 @@ public class TerranSupplyDepot {
 
 		// Find point being in the middle of way base<->nearest choke point.
 		ChokePoint choke = MapExploration.getNearestChokePointFor(base);
-		MapPointInstance location = new MapPointInstance((2 * base.getX() + choke.getCenterX()) / 3,
+		MapPointInstance location = new MapPointInstance(
+				(2 * base.getX() + choke.getCenterX()) / 3,
 				(2 * base.getY() + choke.getCenterY()) / 3);
 		// System.out.println();
 		// System.out.println(choke.toStringLocation());

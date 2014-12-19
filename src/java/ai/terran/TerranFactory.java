@@ -19,7 +19,7 @@ public class TerranFactory {
 	public static boolean FORCE_FACTORY_BEFORE_SECOND_BASE = false;
 
 	public static final int MIN_FACTORIES = 3;
-	private static final int MIN_VULTURES = 4;
+	private static final int MIN_VULTURES = 6;
 	public static final int MIN_TANKS = 2;
 	private static final int MIN_GOLIATHS_EARLY = 2;
 	private static final int MIN_GOLIATHS_LATER = 6;
@@ -52,7 +52,8 @@ public class TerranFactory {
 
 		if (TerranVulture.getNumberOfUnitsCompleted() < 5) {
 			UnitTypes unitToBuild = defineUnitToBuild(freeMinerals, freeGas);
-			System.out.println(freeMinerals + " / " + freeGas + " / " + unitToBuild);
+			// System.out.println(freeMinerals + " / " + freeGas + " / " +
+			// unitToBuild);
 			xvr.buildUnit(facility, unitToBuild);
 		} else {
 			if (buildingQueueDetails != null) {
@@ -60,7 +61,8 @@ public class TerranFactory {
 				freeGas -= buildingQueueDetails[1];
 			}
 
-			if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
+			if (TerranControlTower.getNumberOfUnits() >= 1
+					&& UnitCounter.getNumberOfShipUnits() <= 1) {
 				freeGas -= 150;
 			}
 
@@ -130,7 +132,8 @@ public class TerranFactory {
 			}
 		}
 
-		if (factories >= 1 && !xvr.canAfford(550) && xvr.getTimeSeconds() < 800 && TerranCommandCenter.shouldBuild()) {
+		if (factories >= 1 && !xvr.canAfford(550) && xvr.getTimeSeconds() < 800
+				&& TerranCommandCenter.shouldBuild()) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
@@ -189,7 +192,8 @@ public class TerranFactory {
 	// Unit creating
 
 	private static UnitTypes defineUnitToBuild(int freeMinerals, int freeGas) {
-		boolean tanksAllowed = (freeMinerals >= 150 && freeGas >= 100) && TechnologyManager.isSiegeModeResearched();
+		boolean tanksAllowed = (freeMinerals >= 150 && freeGas >= 100)
+				&& TechnologyManager.isSiegeModeResearched();
 		// boolean tanksAllowed = (freeMinerals >= 150 && freeGas >= 100)
 		// &&
 		// UnitCounter.weHaveBuildingFinished(TerranMachineShop.getBuildingType());
@@ -264,7 +268,9 @@ public class TerranFactory {
 		}
 
 		// GOLIATH
-		if (freeGas >= 50 && notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage, totalRatio)) {
+		if (freeGas >= 50
+				&& notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage,
+						totalRatio)) {
 			return GOLIATH;
 		}
 
@@ -301,8 +307,8 @@ public class TerranFactory {
 		// return null;
 	}
 
-	private static boolean notEnoughPercentOf(int vehiclesOfThisType, int totalVehicles, int minPercentInArmy,
-			int totalOfPercentage) {
+	private static boolean notEnoughPercentOf(int vehiclesOfThisType, int totalVehicles,
+			int minPercentInArmy, int totalOfPercentage) {
 		double percentOfVehicles = (double) vehiclesOfThisType / totalVehicles;
 		double minPercentOfVehicles = (double) minPercentInArmy / totalOfPercentage;
 		if (percentOfVehicles < minPercentOfVehicles) {
