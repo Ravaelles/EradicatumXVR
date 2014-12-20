@@ -17,6 +17,8 @@ public class SpecialForcesManager {
 		return false;
 	}
 
+	// =========================================================
+
 	public static boolean act(Unit unit) {
 		MissionType mission = SpecialForces.getMissionForUnit(unit);
 

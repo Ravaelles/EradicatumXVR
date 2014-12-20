@@ -13,7 +13,7 @@ import ai.terran.TerranWraith;
 public class FlyerManager {
 
 	private static final int MIN_DIST_BETWEEN_FLYERS = 4;
-	private static final int SAFE_MARGIN_FROM_ENEMY_RANGE = 6;
+	private static final int SAFE_MARGIN_FROM_ENEMY_RANGE = 8;
 
 	private static XVR xvr = XVR.getInstance();
 

@@ -14,21 +14,22 @@ import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.units.army.RunManager;
+import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.utils.RUtilities;
 
 public class TerranVulture {
 
-	private static XVR xvr = XVR.getInstance();
-
-	private static UnitTypes unitType = UnitTypes.Terran_Vulture;
-
-	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.85;
+	public static final int CRITICALLY_FEW_VULTURES = 4;
 	public static final int SAFE_DISTANCE_FROM_ENEMY_DEFENSIVE_BUILDING = 12;
-
+	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.85;
 	private static final int MINIMUM_VULTURES_TO_DO_SCOUTING = 5;
 
+	// =========================================================
+
+	private static UnitTypes unitType = UnitTypes.Terran_Vulture;
 	private static Unit explorerVulture = null;
+	private static XVR xvr = XVR.getInstance();
 
 	// =========================================================
 
@@ -67,6 +68,40 @@ public class TerranVulture {
 
 		// ======== DEFINE NEXT MOVE =============================
 
+		if (xvr.getTimeSeconds() > 350) {
+			harassTheEnemy(unit);
+		} else {
+			behaveDefensively(unit);
+		}
+
+		// =================================
+		// Use mines if possible
+		if (tryPlantingMines(unit)) {
+			return true;
+		}
+
+		// if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
+		// UnitActions.moveToSafePlace(unit);
+		// }
+		//
+		// UnitActions.actWhenLowHitPointsOrShields(unit, false);
+
+		return false;
+	}
+
+	// =========================================================
+
+	private static void behaveDefensively(Unit unit) {
+		MapPoint genericRendezvous = ArmyRendezvousManager.getRendezvousPointFor(unit);
+		if (genericRendezvous != null && genericRendezvous.distanceTo(unit) > 6.5) {
+			UnitActions.attackTo(unit, genericRendezvous);
+		} else {
+			unit.setAiOrder("Entrench");
+		}
+	}
+
+	private static void harassTheEnemy(Unit unit) {
+
 		// Get base locations near enemy, or buildings and try to go there.
 		MapPoint pointToHarass = defineNeighborhoodToHarass(unit);
 
@@ -96,20 +131,6 @@ public class TerranVulture {
 
 		// Attack this randomly chosen base location.
 		UnitActions.attackTo(unit, goTo);
-
-		// =================================
-		// Use mines if possible
-		if (tryPlantingMines(unit)) {
-			return true;
-		}
-
-		// if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
-		// UnitActions.moveToSafePlace(unit);
-		// }
-		//
-		// UnitActions.actWhenLowHitPointsOrShields(unit, false);
-
-		return false;
 	}
 
 	private static boolean handleExplorerVulture(Unit unit) {
@@ -160,7 +181,9 @@ public class TerranVulture {
 			if (isSafePlaceForOurUnits) {
 				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit)
 						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
-				if (isPlaceInterestingChoiceForMine && minesArentStackedTooMuchNear(unit)) {
+				boolean isNoEnemyNear = xvr.countUnitsEnemyInRadius(unit, 9) == 0;
+				if (isNoEnemyNear && isPlaceInterestingChoiceForMine
+						&& minesArentStackedTooMuchNear(unit)) {
 					placeSpiderMine(unit, unit);
 					return true;
 				}

@@ -13,6 +13,7 @@ import ai.handling.units.UnitActions;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranBunker;
+import ai.terran.TerranSiegeTank;
 
 public class SiegeTankManager {
 
@@ -105,7 +106,11 @@ public class SiegeTankManager {
 			return;
 		}
 
-		UnitActions.attackTo(unit, ArmyRendezvousManager.getRendezvousPointForTanks());
+		if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 4) {
+			UnitActions.attackTo(unit, ArmyRendezvousManager.getRendezvousPointFor(unit));
+		} else {
+			UnitActions.attackTo(unit, ArmyRendezvousManager.getRendezvousPointForTanks());
+		}
 	}
 
 	private static boolean mustSiege(Unit unit) {

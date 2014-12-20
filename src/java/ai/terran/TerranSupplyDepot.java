@@ -41,6 +41,20 @@ public class TerranSupplyDepot {
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
 
+		// =========================================================
+		// Begin EASY-WAY
+
+		if (depots == 0) {
+			if (xvr.canAfford(90)) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			} else {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			}
+		}
+
+		// End EASY-WAY
+		// =========================================================
+
 		if (total > 0 && total < 200 && free <= 3) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
@@ -70,7 +84,7 @@ public class TerranSupplyDepot {
 
 		// NON-ZERG RUSH
 		else {
-			if (depots == 0) {
+			if (depots == 0 && xvr.canAfford(90)) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}

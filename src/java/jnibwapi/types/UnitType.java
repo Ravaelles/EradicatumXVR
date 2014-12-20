@@ -14,7 +14,7 @@ public class UnitType {
 	public static final int numAttributes = 56;
 	public static final double fixedScale = 100.0;
 
-	private static ArrayList<UnitType> allObjects = new ArrayList<UnitType>();
+	public static ArrayList<UnitType> allObjects = new ArrayList<UnitType>();
 
 	private String name;
 	private int ID;
@@ -715,6 +715,10 @@ public class UnitType {
 			_unitTypes = getUnitTypesByID(ID);
 		}
 		return _unitTypes;
+	}
+
+	public boolean isDefensiveBuilding() {
+		return isBunker() || isPhotonCannon() || isSunkenColony();
 	}
 
 }

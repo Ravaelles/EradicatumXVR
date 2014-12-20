@@ -18,6 +18,17 @@ public class BuildingRepairManager {
 	// =========================================================
 
 	protected static void handleBuildingsNeedingRepair(Unit building) {
+
+		// =========================================================
+		// Do not repair buildings far from base other than bunker
+		if (!building.getType().isBunker()) {
+			if (building.distanceTo(xvr.getFirstBase()) >= 14) {
+				return;
+			}
+		}
+
+		// =========================================================
+
 		int currentRepairers = -1;
 		boolean isBuildingDamaged = building.isWounded();
 
@@ -96,7 +107,7 @@ public class BuildingRepairManager {
 				// }
 
 				int enemyAdvantage = (int) (enemiesNearBunker - oursNearBunker * 0.77);
-				return Math.min(2, (int) (enemyAdvantage / 2.3));
+				return Math.min(5, Math.min(2, (int) (enemyAdvantage / 2.3)));
 			}
 		}
 		return 0;

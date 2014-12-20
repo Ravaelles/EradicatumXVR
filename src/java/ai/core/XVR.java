@@ -15,19 +15,16 @@ import ai.handling.enemy.AdaptStrategyToEnemy;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
-import ai.handling.missions.MissionProtectBase;
 import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitCounter;
-import ai.managers.constructing.ConstructionManager;
+import ai.managers.constructing.ConstructingManager;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
-import ai.managers.units.army.specialforces.SpecialForces;
 import ai.managers.units.buildings.FlyingBuildingManager;
 import ai.managers.units.workers.WorkerManager;
-import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranSiegeTank;
 import ai.terran.TerranVulture;
@@ -85,11 +82,11 @@ public class XVR {
 	public void act() {
 		try {
 
-			// Slow down after the start
-			if (!_gameSpeedChangeApplied && secondCounter > 60) {
-				bwapi.setGameSpeed(8);
-				_gameSpeedChangeApplied = true;
-			}
+			// // Slow down after the start
+			// if (!_gameSpeedChangeApplied && secondCounter > 60) {
+			// bwapi.setGameSpeed(8);
+			// _gameSpeedChangeApplied = true;
+			// }
 
 			// Update time
 			frameCounter = bwapi.getFrameCount();
@@ -172,7 +169,7 @@ public class XVR {
 			// Handle constructing new buildings
 			if (getFrames() % 9 == 0) {
 				CodeProfiler.startMeasuring("Construct");
-				ConstructionManager.act();
+				ConstructingManager.act();
 				CodeProfiler.endMeasuring("Construct");
 			}
 
@@ -212,12 +209,13 @@ public class XVR {
 		// TerranConstructing.removeIsBeingBuilt(unitType);
 		// }
 
-		if (type.isMarine()) {
-			if (!SpecialForces.hasMainBaseProtector()
-					&& UnitCounter.getNumberOfUnits(TerranBarracks.MARINE) == MissionProtectBase.NTH_MARINE) {
-				SpecialForces.assignMainBaseProtector(unit);
-			}
-		}
+		// if (type.isMarine()) {
+		// if (!SpecialForces.hasMainBaseProtector()
+		// && UnitCounter.getNumberOfUnits(TerranBarracks.MARINE) ==
+		// MissionProtectBase.NTH_MARINE) {
+		// SpecialForces.assignMainBaseProtector(unit);
+		// }
+		// }
 	}
 
 	// =========================================================

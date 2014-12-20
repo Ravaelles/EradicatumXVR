@@ -41,31 +41,35 @@ public class TerranCommandCenter {
 
 	// =========================================================
 
-	public static void buildIfNecessary() {
-		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
-		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-	}
-
 	public static boolean shouldBuild() {
-		// if (Constructing.weAreBuilding(buildingType)) {
-		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		// }
-
 		int bases = UnitCounter.getNumberOfUnits(buildingType);
-		// int barracks =
-		// UnitCounter.getNumberOfUnits(TerranBarracks.getBuildingType());
-		// int barracksCompleted =
-		// UnitCounter.getNumberOfUnitsCompleted(TerranBarracks
-		// .getBuildingType());
+		int factories = UnitCounter.getNumberOfUnits(buildingType);
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
 		boolean factoryFirstConditionOkay = xvr.canAfford(384)
 				|| (!TerranFactory.FORCE_FACTORY_BEFORE_SECOND_BASE || TerranFactory
 						.getNumberOfUnits() > 0);
 
+		// =========================================================
+		// Begin EASY-WAY
+
+		if (factories < 2) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		else if (factories >= 2 && xvr.canAfford(92)) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		else if (bases <= 1 && xvr.canAfford(370)) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		else if (bases == 1 && xvr.getTimeSeconds() >= 500) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		// End EASY-WAY
 		// =========================================================
 
 		if (bases <= 1
@@ -152,6 +156,16 @@ public class TerranCommandCenter {
 
 		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
+
+	public static void buildIfNecessary() {
+		if (shouldBuild()) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			Constructing.construct(xvr, buildingType);
+		}
+		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+	}
+
+	// =========================================================
 
 	public static void act() {
 		for (Unit base : xvr.getUnitsOfTypeCompleted(buildingType)) {
@@ -452,6 +466,11 @@ public class TerranCommandCenter {
 		}
 
 		// =========================================================
+
+		if (depots == 0 && workers > 6 && xvr.canAfford(84) && !weAreBuildingDepot
+				&& TerranSupplyDepot.shouldBuild()) {
+			return false;
+		}
 
 		if (TerranBunker.getNumberOfUnits() < TerranBunker.GLOBAL_MAX_BUNKERS
 				&& TerranBunker.shouldBuild() && !xvr.canAfford(150)) {

@@ -13,6 +13,42 @@ public class TerranMachineShop {
 	private static final UnitTypes buildingType = UnitTypes.Terran_Machine_Shop;
 	private static XVR xvr = XVR.getInstance();
 
+	// =========================================================
+
+	public static boolean shouldBuild() {
+		// =========================================================
+		// Begin EASY-WAY
+
+		int factories = TerranFactory.getNumberOfUnitsCompleted();
+		if (factories < 2) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		int vultures = TerranVulture.getNumberOfUnits();
+		if (vultures <= TerranVulture.CRITICALLY_FEW_VULTURES
+				&& TerranFactory.getOneNotBusy() == null) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		// End EASY-WAY
+		// =========================================================
+
+		if (factories > 0) {
+			int mashineShops = getNumberOfUnits();
+
+			if (xvr.canAfford(50, 50) && factories > mashineShops
+					&& TerranFactory.getOneNotBusy() != null) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				return true;
+			}
+		}
+
+		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		return false;
+	}
+
+	// =========================================================
+
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -23,26 +59,7 @@ public class TerranMachineShop {
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
-	public static boolean shouldBuild() {
-		if (UnitCounter.weHaveBuilding(TerranFactory.getBuildingType())) {
-			if (TerranVulture.getNumberOfUnits() == 0) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
-			}
-
-			int factories = TerranFactory.getNumberOfUnitsCompleted();
-			int addOns = getNumberOfUnits();
-
-			boolean shouldBuild = factories > addOns;
-			if (shouldBuild) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-		}
-
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
-	}
+	// =========================================================
 
 	public static Unit getOneNotBusy() {
 		for (Unit unit : xvr.getUnitsOfType(buildingType)) {

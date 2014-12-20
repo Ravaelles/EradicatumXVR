@@ -19,6 +19,8 @@ public class TerranFactory {
 
 	public static boolean FORCE_FACTORY_BEFORE_SECOND_BASE = false;
 
+	private static final int MAX_FACTORIES = 4;
+
 	private static final int MINIMUM_VULTURES = 3;
 	public static final int MINIMUM_TANKS = 2;
 	private static final int MINIMUM_GOLIATHS_EARLY = 2;
@@ -38,6 +40,9 @@ public class TerranFactory {
 			return;
 		}
 
+		int vultures = UnitCounter.getNumberOfUnits(VULTURE);
+		boolean isCriticallyFewVultures = vultures < 4;
+
 		int[] buildingQueueDetails = Constructing.shouldBuildAnyBuilding();
 		int freeMinerals = xvr.getMinerals();
 		int freeGas = xvr.getGas();
@@ -46,16 +51,22 @@ public class TerranFactory {
 			return;
 		}
 
-		if (buildingQueueDetails != null) {
-			freeMinerals -= buildingQueueDetails[0];
-			freeGas -= buildingQueueDetails[1];
+		if (!isCriticallyFewVultures) {
+			if (buildingQueueDetails != null) {
+				freeMinerals -= buildingQueueDetails[0];
+				freeGas -= buildingQueueDetails[1];
+			}
+
+			if (TerranControlTower.getNumberOfUnits() >= 1
+					&& UnitCounter.getNumberOfShipUnits() <= 1) {
+				freeGas -= 150;
+			}
 		}
 
-		if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
-			freeGas -= 150;
-		}
-
-		if (buildingQueueDetails == null || (freeMinerals >= 125 && freeGas >= 25)) {
+		// boolean isEnoughFreeResources = (freeMinerals >= 125 && freeGas >=
+		// 25);
+		boolean isEnoughFreeResources = freeMinerals >= 70;
+		if (buildingQueueDetails == null || isEnoughFreeResources || isCriticallyFewVultures) {
 			if (facility.getTrainingQueueSize() == 0) {
 				xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
 			}
@@ -69,6 +80,24 @@ public class TerranFactory {
 		if (!xvr.canAfford(0, 10)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
+
+		// =========================================================
+		// Begin EASY-WAY
+
+		if (factories < 2 && battleUnits >= 3 && xvr.canAfford(0, 1)) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		if (factories < MAX_FACTORIES && xvr.canAfford(200, 100)) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		if (factories >= 3 && TerranCommandCenter.getNumberOfUnits() <= 1) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		// End EASY-WAY
+		// =========================================================
 
 		if (factories <= 2 && (xvr.canAfford(250) || TerranCommandCenter.getNumberOfUnits() > 1)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);

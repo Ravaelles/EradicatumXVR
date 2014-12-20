@@ -25,7 +25,7 @@ public class TerranBarracks {
 
 	public static int MIN_UNITS_FOR_DIFF_BUILDING = TerranBunker.MAX_STACK * 4;
 	public static int MIN_MEDICS = 2;
-	public static int MAX_BARRACKS = 2;
+	public static int MAX_BARRACKS = 1;
 
 	public static boolean LIMIT_MARINES = false;
 
@@ -98,6 +98,8 @@ public class TerranBarracks {
 			}
 		}
 
+		int battleUnits = UnitCounter.getNumberOfBattleUnits();
+
 		int[] buildingQueueDetails = Constructing.shouldBuildAnyBuilding();
 		int freeMinerals = xvr.getMinerals();
 		int freeGas = xvr.getGas();
@@ -121,8 +123,9 @@ public class TerranBarracks {
 		}
 
 		// =====================================================
-		boolean shouldAlwaysBuild = xvr.canAfford(100)
-				&& UnitCounter.getNumberOfBattleUnits() <= MIN_UNITS_FOR_DIFF_BUILDING;
+		boolean criticallyFewInfantry = battleUnits < 4;
+		boolean notEnoughInfantry = (xvr.canAfford(100) && UnitCounter.getNumberOfBattleUnits() <= MIN_UNITS_FOR_DIFF_BUILDING);
+		boolean shouldAlwaysBuild = criticallyFewInfantry || notEnoughInfantry;
 		if (shouldAlwaysBuild || buildingQueueDetails == null || freeMinerals >= 100) {
 			if (barracks.getTrainingQueueSize() == 0) {
 				xvr.buildUnit(barracks, defineUnitToBuild(freeMinerals, freeGas));

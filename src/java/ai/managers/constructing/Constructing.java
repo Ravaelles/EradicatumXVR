@@ -542,7 +542,7 @@ public class Constructing {
 	}
 
 	public static boolean weAreBuilding(UnitTypes type) {
-		return ConstructionManager.weAreBuilding(type);
+		return ConstructingHelper.weAreBuilding(type);
 	}
 
 	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
@@ -550,13 +550,13 @@ public class Constructing {
 
 		// Disallow multiple building of all buildings, except barracks,
 		// bunkers.
-		if (building.getType().isBarracks()) {
+		if (building.getType().isBarracks() || building.getType().isFactory()) {
 			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			int barracks = TerranBarracks.getNumberOfUnits();
-			if (barracks != 1) {
+			int numOfBuildings = TerranBarracks.getNumberOfUnits();
+			if (numOfBuildings != 1) {
 				canProceed = builders == 0;
 			}
-			if (barracks == 1) {
+			if (numOfBuildings == 1) {
 				canProceed = builders <= 1;
 			}
 			// } else if (building.getType().isBunker()) {
@@ -584,7 +584,7 @@ public class Constructing {
 		if (canProceed) {
 			xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
 					building.ordinal());
-			ConstructionManager.addInfoAboutConstruction(building, builder, buildTile);
+			ConstructingHelper.addInfoAboutConstruction(building, builder, buildTile);
 		}
 	}
 

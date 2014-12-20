@@ -10,7 +10,6 @@ import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
-import ai.managers.units.army.ArmyCreationManager;
 
 public class TerranRefinery {
 
@@ -21,22 +20,40 @@ public class TerranRefinery {
 	// =========================================================
 
 	public static boolean shouldBuild() {
+		int supplyUsed = xvr.getSuppliesUsed();
 		int minGateways = BotStrategyManager.isExpandWithBunkers() ? 3 : 4;
 		int barracks = UnitCounter.getNumberOfUnits(UnitManager.BARRACKS);
 		int refineries = UnitCounter.getNumberOfUnits(buildingType);
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());
 
-		if (refineries == 0) {
-			boolean isEnoughInfantry = (battleUnits >= 6 || battleUnits >= ArmyCreationManager.MINIMUM_MARINES);
-			boolean isAnotherBaseAndFreeMinerals = TerranCommandCenter.getNumberOfUnits() > 1
-					|| xvr.canAfford(468)
-					|| (TerranBarracks.getNumberOfUnitsCompleted() == 0
-							&& TerranBarracks.getNumberOfUnits() > 0 && xvr.canAfford(134));
-			if (isEnoughInfantry || isAnotherBaseAndFreeMinerals) {
-				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			}
+		// =========================================================
+		// Begin EASY-WAY
+
+		int minSupply = 14;
+		if (XVR.isEnemyProtoss()) {
+			minSupply += 2;
 		}
+
+		if (refineries == 0 && supplyUsed >= minSupply) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		// End EASY-WAY
+		// =========================================================
+
+		// if (refineries == 0) {
+		// boolean isEnoughInfantry = (battleUnits >= 6 || battleUnits >=
+		// ArmyCreationManager.MINIMUM_MARINES);
+		// boolean isAnotherBaseAndFreeMinerals =
+		// TerranCommandCenter.getNumberOfUnits() > 1
+		// || xvr.canAfford(468)
+		// || (TerranBarracks.getNumberOfUnitsCompleted() == 0
+		// && TerranBarracks.getNumberOfUnits() > 0 && xvr.canAfford(134));
+		// if (isEnoughInfantry || isAnotherBaseAndFreeMinerals) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// }
+		// }
 
 		if (UnitCounter.getNumberOfUnitsCompleted(TerranEngineeringBay.getBuildingType()) == 0
 				&& UnitCounter.getNumberOfUnits(TerranBunker.getBuildingType()) == 0) {
