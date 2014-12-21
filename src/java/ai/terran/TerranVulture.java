@@ -68,10 +68,11 @@ public class TerranVulture {
 
 		// ======== DEFINE NEXT MOVE =============================
 
+		// If it's quite late in the game, we can start harrassing the enemy
 		if (xvr.getTimeSeconds() > 350) {
-			harassTheEnemy(unit);
+			actOffensively(unit);
 		} else {
-			behaveDefensively(unit);
+			actDefensively(unit);
 		}
 
 		// =================================
@@ -91,47 +92,55 @@ public class TerranVulture {
 
 	// =========================================================
 
-	private static void behaveDefensively(Unit unit) {
-		MapPoint genericRendezvous = ArmyRendezvousManager.getRendezvousPointFor(unit);
+	private static void actDefensively(Unit unit) {
+		MapPoint genericRendezvous = ArmyRendezvousManager.getDefensivePoint(unit);
 		if (genericRendezvous != null && genericRendezvous.distanceTo(unit) > 6.5) {
 			UnitActions.attackTo(unit, genericRendezvous);
+			unit.setAiOrder("Go entrench");
 		} else {
+			UnitActions.holdPosition(unit);
 			unit.setAiOrder("Entrench");
 		}
 	}
 
-	private static void harassTheEnemy(Unit unit) {
+	private static void actOffensively(Unit unit) {
 
 		// Get base locations near enemy, or buildings and try to go there.
 		MapPoint pointToHarass = defineNeighborhoodToHarass(unit);
+		if (pointToHarass != null) {
 
-		ArrayList<MapPoint> pointForHarassmentNearEnemy = new ArrayList<>();
-		// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBasesDiscovered().values());
-		// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBuildingsDiscovered());
-		pointForHarassmentNearEnemy.addAll(MapExploration.getBaseLocationsNear(pointToHarass, 37));
-		// pointForHarassmentNearEnemy.addAll(MapExploration.getChokePointsNear(pointToHarass,
-		// 30));
+			ArrayList<MapPoint> pointForHarassmentNearEnemy = new ArrayList<>();
+			// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBasesDiscovered().values());
+			// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBuildingsDiscovered());
+			pointForHarassmentNearEnemy.addAll(MapExploration.getBaseLocationsNear(pointToHarass,
+					37));
+			// pointForHarassmentNearEnemy.addAll(MapExploration.getChokePointsNear(pointToHarass,
+			// 30));
 
-		MapPoint goTo = null;
-		if (!pointForHarassmentNearEnemy.isEmpty()) {
+			MapPoint goTo = null;
+			if (!pointForHarassmentNearEnemy.isEmpty()) {
 
-			// Randomly choose one of them.
-			goTo = (MapPoint) RUtilities.getRandomListElement(pointForHarassmentNearEnemy);
-		}
-
-		else {
-			goTo = MapExploration.getNearestUnknownPointFor(unit.getX(), unit.getY(), true);
-			if (goTo != null
-					&& xvr.getBwapi().getMap()
-							.isConnected(unit, goTo.getX() / 32, goTo.getY() / 32)) {
+				// Randomly choose one of them.
+				goTo = (MapPoint) RUtilities.getRandomListElement(pointForHarassmentNearEnemy);
 			}
+
+			else {
+				goTo = MapExploration.getNearestUnknownPointFor(unit.getX(), unit.getY(), true);
+				if (goTo != null
+						&& xvr.getBwapi().getMap()
+								.isConnected(unit, goTo.getX() / 32, goTo.getY() / 32)) {
+				}
+			}
+			UnitActions.attackTo(unit, goTo);
+			unit.setAiOrder("Harass");
+		} else {
+			UnitActions.spreadOutRandomly(unit);
+			unit.setAiOrder("Spread/harass");
 		}
 
-		unit.setAiOrder("Harass the enemy");
-
-		// Attack this randomly chosen base location.
-		UnitActions.attackTo(unit, goTo);
 	}
+
+	// =========================================================
 
 	private static boolean handleExplorerVulture(Unit unit) {
 
@@ -181,7 +190,7 @@ public class TerranVulture {
 			if (isSafePlaceForOurUnits) {
 				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit)
 						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
-				boolean isNoEnemyNear = xvr.countUnitsEnemyInRadius(unit, 9) == 0;
+				boolean isNoEnemyNear = xvr.countUnitsEnemyInRadius(unit, 10) == 0;
 				if (isNoEnemyNear && isPlaceInterestingChoiceForMine
 						&& minesArentStackedTooMuchNear(unit)) {
 					placeSpiderMine(unit, unit);
@@ -282,7 +291,7 @@ public class TerranVulture {
 
 		// If still nothing...
 		if (pointToHarass == null) {
-			pointToHarass = MapExploration.getRandomChokePoint();
+			// pointToHarass = MapExploration.getRandomChokePoint();
 		}
 
 		return pointToHarass;

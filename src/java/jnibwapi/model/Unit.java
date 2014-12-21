@@ -3,6 +3,7 @@ package jnibwapi.model;
 import jnibwapi.types.UnitCommandType.UnitCommandTypes;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
+import jnibwapi.types.WeaponType;
 import jnibwapi.types.WeaponType.WeaponTypes;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
@@ -922,6 +923,10 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		return !isTraining() && !isUpgrading() && !isConstructing();
 	}
 
+	public boolean isBuilding() {
+		return getType().isBuilding();
+	}
+
 	public CallForHelp getCallForHelpMission() {
 		return callForHelpMission;
 	}
@@ -1073,7 +1078,7 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		return aiOrderString;
 	}
 
-	public void setAiOrderString(String aiOrderString) {
+	private void setAiOrderString(String aiOrderString) {
 		this.aiOrderString = aiOrderString;
 	}
 
@@ -1167,6 +1172,215 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 
 	public boolean isExplorer() {
 		return isExplorer;
+	}
+
+	public int getHPPercent() {
+		return getHP() * 100 / getMaxHP();
+	}
+
+	public boolean isGathering() {
+		return gatheringGas || gatheringMinerals;
+	}
+
+	// =========================================================
+	// Duplicated auxiliary methods from UnitType
+
+	public boolean isBunker() {
+		return getType().getID() == UnitTypes.Terran_Bunker.ordinal();
+	}
+
+	public boolean isGhost() {
+		return getType().getID() == UnitTypes.Terran_Ghost.ordinal();
+	}
+
+	public boolean isGoliath() {
+		return getType().getID() == UnitTypes.Terran_Ghost.ordinal();
+	}
+
+	public boolean isArmy() {
+		return !getType().isBuilding() && !isWorker();
+	}
+
+	public boolean isBase() {
+		return (getType().getID() == UnitTypes.Terran_Command_Center.ordinal())
+				|| (getType().getID() == UnitTypes.Protoss_Nexus.ordinal())
+				|| (getType().getID() == UnitTypes.Zerg_Hatchery.ordinal())
+				|| (getType().getID() == UnitTypes.Zerg_Lair.ordinal())
+				|| (getType().getID() == UnitTypes.Zerg_Hive.ordinal());
+	}
+
+	public boolean isOnGeyser() {
+		return ID == UnitTypes.Terran_Refinery.ordinal()
+				|| ID == UnitTypes.Resource_Vespene_Geyser.ordinal()
+				|| ID == UnitTypes.Protoss_Assimilator.ordinal()
+				|| ID == UnitTypes.Zerg_Extractor.ordinal();
+	}
+
+	public boolean isPylon() {
+		return getType().getID() == UnitTypes.Protoss_Pylon.ordinal();
+	}
+
+	public boolean isPhotonCannon() {
+		return getType().getID() == UnitTypes.Protoss_Photon_Cannon.ordinal();
+	}
+
+	public boolean isBarracks() {
+		return getType().getID() == UnitTypes.Terran_Barracks.ordinal();
+	}
+
+	public boolean isFactory() {
+		return getType().getID() == UnitTypes.Terran_Factory.ordinal();
+	}
+
+	public boolean isGateway() {
+		return getType().getID() == UnitTypes.Protoss_Gateway.ordinal();
+	}
+
+	public boolean isDragoon() {
+		return getType().getID() == UnitTypes.Protoss_Dragoon.ordinal();
+	}
+
+	public boolean isSunkenColony() {
+		return getType().getID() == UnitTypes.Zerg_Sunken_Colony.ordinal();
+	}
+
+	public boolean isSporeColony() {
+		return getType().getID() == UnitTypes.Zerg_Spore_Colony.ordinal();
+	}
+
+	public boolean isLarvaOrEgg() {
+		return getType().getID() == UnitTypes.Zerg_Larva.ordinal()
+				|| getType().getID() == UnitTypes.Zerg_Egg.ordinal();
+	}
+
+	public boolean isLurker() {
+		return getType().getID() == UnitTypes.Zerg_Lurker.ordinal();
+	}
+
+	public boolean isMutalisk() {
+		return getType().getID() == UnitTypes.Zerg_Mutalisk.ordinal();
+	}
+
+	public boolean isTank() {
+		return getType().getID() == UnitTypes.Terran_Siege_Tank_Siege_Mode.ordinal()
+				|| getType().getID() == UnitTypes.Terran_Siege_Tank_Tank_Mode.ordinal();
+	}
+
+	public boolean isTankSieged() {
+		return getType().getID() == UnitTypes.Terran_Siege_Tank_Siege_Mode.ordinal();
+	}
+
+	public boolean isTerranInfantry() {
+		return getType().getID() == UnitTypes.Terran_Marine.ordinal()
+				|| getType().getID() == UnitTypes.Terran_Firebat.ordinal()
+				|| getType().getID() == UnitTypes.Terran_Medic.ordinal()
+				|| getType().getID() == UnitTypes.Terran_Ghost.ordinal();
+	}
+
+	public boolean canUseStimpacks() {
+		return getType().getID() == UnitTypes.Terran_Marine.ordinal()
+				|| getType().getID() == UnitTypes.Terran_Firebat.ordinal()
+				|| getType().getID() == UnitTypes.Terran_Ghost.ordinal();
+	}
+
+	public boolean isReaver() {
+		return getType().getID() == UnitTypes.Protoss_Reaver.ordinal();
+	}
+
+	public boolean isHighTemplar() {
+		return getType().getID() == UnitTypes.Protoss_High_Templar.ordinal();
+	}
+
+	public boolean isDarkTemplar() {
+		return getType().getID() == UnitTypes.Protoss_Dark_Templar.ordinal();
+	}
+
+	public boolean isZergling() {
+		return getType().getID() == UnitTypes.Zerg_Zergling.ordinal();
+	}
+
+	public boolean isMissileTurret() {
+		return getType().getID() == UnitTypes.Terran_Missile_Turret.ordinal();
+	}
+
+	public boolean isObserver() {
+		return getType().getID() == UnitTypes.Protoss_Observer.ordinal();
+	}
+
+	public boolean isScienceVessel() {
+		return getType().getID() == UnitTypes.Terran_Science_Vessel.ordinal();
+	}
+
+	public boolean isStarport() {
+		return getType().getID() == UnitTypes.Terran_Starport.ordinal();
+	}
+
+	public boolean isScienceFacility() {
+		return getType().getID() == UnitTypes.Terran_Science_Facility.ordinal();
+	}
+
+	public boolean isCarrier() {
+		return getType().getID() == UnitTypes.Protoss_Carrier.ordinal();
+	}
+
+	public boolean isInterceptor() {
+		return getType().getID() == UnitTypes.Protoss_Interceptor.ordinal();
+	}
+
+	public boolean isVulture() {
+		return getType().getID() == UnitTypes.Terran_Vulture.ordinal();
+	}
+
+	public boolean isWraith() {
+		return getType().getID() == UnitTypes.Terran_Wraith.ordinal();
+	}
+
+	public boolean isHydralisk() {
+		return getType().getID() == UnitTypes.Zerg_Hydralisk.ordinal();
+	}
+
+	public boolean isFirebat() {
+		return getType().getID() == UnitTypes.Terran_Firebat.ordinal();
+	}
+
+	public boolean isSpiderMine() {
+		return getType().getID() == UnitTypes.Terran_Vulture_Spider_Mine.ordinal();
+	}
+
+	public boolean isSCV() {
+		return getType().getID() == UnitTypes.Terran_SCV.ordinal();
+	}
+
+	public boolean isMarine() {
+		return getType().getID() == UnitTypes.Terran_Marine.ordinal();
+	}
+
+	public boolean isSupplyDepot() {
+		return getType().getID() == UnitTypes.Terran_Supply_Depot.ordinal();
+	}
+
+	public boolean isFleetBeacon() {
+		return getType().getID() == UnitTypes.Protoss_Fleet_Beacon.ordinal();
+	}
+
+	public boolean isMedic() {
+		return getType().getID() == UnitTypes.Terran_Medic.ordinal();
+	}
+
+	public WeaponType getGroundWeapon() {
+		return getType().getGroundWeapon();
+	}
+
+	public WeaponType getAirWeapon() {
+		return getType().getAirWeapon();
+	}
+
+	public boolean canAirAttack() {
+		return getType().canAirAttack();
+	}
+
+	public boolean canHaveAddOn() {
+		return isFactory() || isStarport() || isBase() || isScienceFacility();
 	}
 
 }

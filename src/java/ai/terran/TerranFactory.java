@@ -21,7 +21,6 @@ public class TerranFactory {
 
 	private static final int MAX_FACTORIES = 4;
 
-	private static final int MINIMUM_VULTURES = 3;
 	public static final int MINIMUM_TANKS = 2;
 	private static final int MINIMUM_GOLIATHS_EARLY = 2;
 	private static final int MINIMUM_GOLIATHS_LATER = 6;
@@ -41,13 +40,13 @@ public class TerranFactory {
 		}
 
 		int vultures = UnitCounter.getNumberOfUnits(VULTURE);
-		boolean isCriticallyFewVultures = vultures < 4;
+		boolean isCriticallyFewVultures = vultures < TerranVulture.CRITICALLY_FEW_VULTURES;
 
 		int[] buildingQueueDetails = Constructing.shouldBuildAnyBuilding();
 		int freeMinerals = xvr.getMinerals();
 		int freeGas = xvr.getGas();
 
-		if (facility.getAddOnID() == -1 && TerranMachineShop.shouldBuild()) {
+		if (!facility.hasAddOn() && TerranMachineShop.shouldBuild()) {
 			return;
 		}
 
@@ -65,9 +64,9 @@ public class TerranFactory {
 
 		// boolean isEnoughFreeResources = (freeMinerals >= 125 && freeGas >=
 		// 25);
-		boolean isEnoughFreeResources = freeMinerals >= 70;
+		boolean isEnoughFreeResources = freeMinerals >= 75;
 		if (buildingQueueDetails == null || isEnoughFreeResources || isCriticallyFewVultures) {
-			if (facility.getTrainingQueueSize() == 0) {
+			if (facility.getTrainingQueueSize() == 0 || facility.getRemainingTrainTime() <= 5) {
 				xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
 			}
 		}
@@ -185,7 +184,7 @@ public class TerranFactory {
 		int tanks = TerranSiegeTank.getNumberOfUnits();
 		int goliaths = UnitCounter.getNumberOfUnits(GOLIATH);
 
-		boolean notEnoughVultures = vultures < MINIMUM_VULTURES;
+		boolean notEnoughVultures = vultures < TerranVulture.CRITICALLY_FEW_VULTURES;
 		boolean notEnoughTanks = vultures < MINIMUM_TANKS;
 		boolean notEnoughGoliaths = xvr.getTimeSeconds() < 800 ? goliaths < MINIMUM_GOLIATHS_EARLY
 				: goliaths < MINIMUM_GOLIATHS_LATER;

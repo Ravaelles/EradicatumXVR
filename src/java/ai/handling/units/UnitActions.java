@@ -420,7 +420,7 @@ public class UnitActions {
 
 		boolean unitHasMovedItsAss = false;
 
-		MapPoint safePoint = ArmyRendezvousManager.getRendezvousPointFor(unit);
+		MapPoint safePoint = ArmyRendezvousManager.getDefensivePoint(unit);
 		double unitToSafePointDist = unit.distanceTo(safePoint);
 		double enemyToSafePointDist = moveAwayFrom.distanceTo(safePoint);
 

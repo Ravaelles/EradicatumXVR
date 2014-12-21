@@ -232,7 +232,7 @@ public class UnitManager {
 			return false;
 		}
 
-		if (unit.distanceTo(ArmyRendezvousManager.getRendezvousPointFor(unit)) > StrategyManager
+		if (unit.distanceTo(ArmyRendezvousManager.getDefensivePoint(unit)) > StrategyManager
 				.getAllowedDistanceFromSafePoint()) {
 			// ArmyPlacing.goToSafePlaceIfNotAlreadyThere(unit);
 			// UnitActions.attackTo(unit, unit.getX(), unit.getY());

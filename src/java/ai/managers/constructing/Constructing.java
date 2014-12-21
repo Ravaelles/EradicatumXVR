@@ -31,7 +31,7 @@ public class Constructing {
 
 	private static int _skipCheckingForTurns = 0;
 
-	// ============================
+	// =========================================================
 
 	public static void construct(XVR xvr, UnitTypes building) {
 
@@ -50,7 +50,104 @@ public class Constructing {
 		}
 	}
 
-	// ============================
+	// =========================================================
+
+	public static boolean canBuildHere(Unit builder, UnitType buildingType, int tx, int ty) {
+		boolean onlyExplored = !buildingType.isBase();
+		return xvr.getBwapi().canBuildHere(builder.getID(), tx, ty,
+				buildingType.getUnitTypes().ordinal(), onlyExplored);
+	}
+
+	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
+		boolean canProceed = false;
+
+		// Disallow multiple building of all buildings, except barracks,
+		// bunkers.
+		if (building.getType().isBarracks() || building.getType().isFactory()) {
+			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+			int numOfBuildings = TerranBarracks.getNumberOfUnits();
+			if (numOfBuildings != 1) {
+				canProceed = builders == 0;
+			}
+			if (numOfBuildings == 1) {
+				canProceed = builders <= 1;
+			}
+		} else {
+			canProceed = !weAreBuilding(building);
+		}
+
+		// If there aren't multiple orders to build one building given, we can
+		// proceed
+		if (canProceed) {
+			xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
+					building.ordinal());
+			ConstructingHelper.addInfoAboutConstruction(building, builder, buildTile);
+		}
+	}
+
+	public static MapPoint getLegitTileToBuildNear(int builderID, int buildingTypeID, int tileX,
+			int tileY, int minimumDist, int maximumDist) {
+		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
+		boolean isBase = type.isBase();
+		boolean isDepot = type.isSupplyDepot();
+
+		boolean skipCheckingIsFreeFromUnits = false;
+		boolean skipCheckingRegion = xvr.getTimeSeconds() > 250 || isBase || type.isBunker()
+				|| type.isMissileTurret() || type.isAddon();
+
+		// =========================================================
+		// Try to find possible place to build starting in given point and
+		// gradually increasing search radius
+		int currentDist = minimumDist;
+		while (currentDist <= maximumDist) {
+			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
+				if (isDepot && (i % 3 != 0 || i % 9 == 0)) {
+					continue;
+				}
+				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
+					if (isDepot && (j % 2 != 0 || j % 6 == 0)) {
+						continue;
+					}
+					int x = i * 32;
+					int y = j * 32;
+					MapPointInstance place = new MapPointInstance(x, y);
+
+					// Is it physically possibly to build here?
+					if (canBuildAt(place, type)) {
+
+						// If it's possible to build here, now check whether it
+						// makes sense. If it's not in stupid place or colliding
+						// etc.
+						Unit builderUnit = xvr.getRandomWorker();
+						if (builderUnit != null
+								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
+										builderUnit.getID(), i, j))) {
+
+							// We should avoid building place:
+							// - between workers and minerals
+							// - right next to other building
+							// - in the place where next base should be built
+							// - too close to a chokepoint (passage problem)
+							// - that are in other region (wrong neighborhood)
+							if ((isBase || !isTooNearMineralsOrGeyser(type, place))
+									&& (isBase || isEnoughPlaceToOtherBuildings(place, type))
+									&& (isBase || !isOverlappingNextBase(place, type))
+									&& (isBase || !isTooCloseToAnyChokePoint(place)
+											&& (isBase || skipCheckingRegion || isInAllowedRegions(place)))) {
+								return place;
+							}
+						}
+					}
+				}
+			}
+
+			currentDist++;
+		}
+
+		return null;
+	}
+
+	// =========================================================
 
 	public static MapPoint findTileForStandardBuilding(UnitTypes typeToBuild) {
 
@@ -230,66 +327,6 @@ public class Constructing {
 		}
 		return getLegitTileToBuildNear(worker.getID(), type.ordinal(), tileX, tileY, minimumDist,
 				maximumDist);
-	}
-
-	public static MapPoint getLegitTileToBuildNear(int builderID, int buildingTypeID, int tileX,
-			int tileY, int minimumDist, int maximumDist) {
-		// JNIBWAPI bwapi = XVR.getInstance().wgetBwapi();
-		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
-		boolean isBase = type.isBase();
-		boolean isDepot = type.isSupplyDepot();
-		// boolean checkExplored = type.isBunker();
-
-		// boolean skipCheckingIsFreeFromUnits = type.isBase();
-		boolean skipCheckingIsFreeFromUnits = false;
-		boolean skipCheckingRegion = xvr.getTimeSeconds() > 250 || isBase || type.isBunker()
-				|| type.isMissileTurret() || type.isAddon();
-
-		int currentDist = minimumDist;
-		while (currentDist <= maximumDist) {
-			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
-				if (isDepot && (i % 3 != 0 || i % 9 == 0)) {
-					continue;
-				}
-				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
-					if (isDepot && (j % 2 != 0 || j % 6 == 0)) {
-						continue;
-					}
-					int x = i * 32;
-					int y = j * 32;
-					MapPointInstance place = new MapPointInstance(x, y);
-					// bwapi.canBuildHere(builderID, i, j, buildingTypeID,
-					// false)
-					if (canBuildAt(place, type)) {
-						// && isBuildTileFullyBuildableFor(builderID, i, j,
-						// buildingTypeID)
-						Unit builderUnit = xvr.getRandomWorker();
-						if (builderUnit != null
-								&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
-										builderUnit.getID(), i, j))) {
-							if ((isBase || !isTooNearMineralsOrGeyser(type, place))
-									&& (isBase || isEnoughPlaceToOtherBuildings(place, type))
-									&& (isBase || !isOverlappingNextBase(place, type))
-									&& (isBase || !isTooCloseToAnyChokePoint(place)
-											&& (isBase || skipCheckingRegion || isInAllowedRegions(place)))) {
-
-								// if (type.isPhotonCannon()) {
-								// System.out.println("@@@@@@@ "
-								// + xvr.getDistanceBetween(choke, place) +
-								// "/"
-								// + choke.getRadius());
-								// }
-								return place;
-							}
-						}
-					}
-				}
-			}
-
-			currentDist++;
-		}
-
-		return null;
 	}
 
 	private static boolean isInAllowedRegions(MapPoint place) {
@@ -545,57 +582,8 @@ public class Constructing {
 		return ConstructingHelper.weAreBuilding(type);
 	}
 
-	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
-		boolean canProceed = false;
-
-		// Disallow multiple building of all buildings, except barracks,
-		// bunkers.
-		if (building.getType().isBarracks() || building.getType().isFactory()) {
-			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			int numOfBuildings = TerranBarracks.getNumberOfUnits();
-			if (numOfBuildings != 1) {
-				canProceed = builders == 0;
-			}
-			if (numOfBuildings == 1) {
-				canProceed = builders <= 1;
-			}
-			// } else if (building.getType().isBunker()) {
-			// int builders =
-			// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			// int bunkers = TerranBunker.getNumberOfUnits();
-			// if (bunkers != 1) {
-			// canProceed = builders == 0;
-			// }
-			// if (bunkers == 1) {
-			// canProceed = builders <= 1;
-			// }
-			// } else if (building.getType().isBase()) {
-			// int builders =
-			// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			// // int bases = TerranCommandCenter.getNumberOfUnits();
-			// canProceed = builders == 0;
-		} else {
-			// || building.getType().isBase()
-			canProceed = !weAreBuilding(building);
-		}
-
-		// If there aren't multiple orders to build one building given, we can
-		// proceed
-		if (canProceed) {
-			xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
-					building.ordinal());
-			ConstructingHelper.addInfoAboutConstruction(building, builder, buildTile);
-		}
-	}
-
 	public static Unit getRandomWorker() {
 		return xvr.getRandomWorker();
-	}
-
-	public static boolean canBuildHere(Unit builder, UnitType buildingType, int tx, int ty) {
-		return xvr.getBwapi().canBuildHere(builder.getID(), tx, ty,
-				buildingType.getUnitTypes().ordinal(), false);
-		// && isBuildTileFreeFromUnits(builder.getID(), tx, ty)
 	}
 
 	public static void constructAddOn(Unit buildingWithNoAddOn, UnitTypes buildingType) {

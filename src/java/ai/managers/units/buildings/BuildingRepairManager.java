@@ -30,28 +30,31 @@ public class BuildingRepairManager {
 		// =========================================================
 
 		int currentRepairers = -1;
+
+		// currentRepairers = handleSpecialCaseRepairs(building);
+		handleOrdinaryRepairs(building);
+	}
+
+	/**
+	 * Try repairing normal buildings if necessary.
+	 * 
+	 * @param building
+	 * @param currentRepairers
+	 */
+	private static void handleOrdinaryRepairs(Unit building) {
 		boolean isBuildingDamaged = building.isWounded();
-
-		int specialCaseRepairersNeeded = getSpecialCaseRepairers(building);
-		if (specialCaseRepairersNeeded > 0) {
-			if (currentRepairers == -1) {
-				currentRepairers = countNumberOfRepairersForBuilding(building);
-			}
-
-			for (int i = 0; i < specialCaseRepairersNeeded - currentRepairers; i++) {
-				Unit repairer = WorkerManager.findBestRepairerNear(building);
-				repairBuilding(repairer, building);
-			}
-		}
 
 		// Act only if building is not fully healthy
 		if (isBuildingDamaged && !building.isConstructing()) {
 
-			// Define number of repairers for this building
-			int numberOfRequiredRepairers = defineOptimalNumberOfRepairersFor(building);
-			if (currentRepairers == -1) {
-				currentRepairers = countNumberOfRepairersForBuilding(building);
+			// Ignore damages of non military buildings if not severe
+			if (shouldIgnoreBuildingDamage(building)) {
+				return;
 			}
+
+			// Define number of repairers for this building
+			int currentRepairers = countNumberOfRepairersForBuilding(building);
+			int numberOfRequiredRepairers = defineOptimalNumberOfRepairersFor(building);
 
 			for (int i = 0; i < numberOfRequiredRepairers - currentRepairers; i++) {
 				Unit repairer = WorkerManager.findBestRepairerNear(building);
@@ -61,6 +64,35 @@ public class BuildingRepairManager {
 			}
 		}
 	}
+
+	private static boolean shouldIgnoreBuildingDamage(Unit building) {
+		return !building.isBunker() && !building.isMissileTurret() && building.getHPPercent() > 50;
+	}
+
+	// private static int handleSpecialCaseRepairs(Unit building) {
+	// int currentRepairers = -1;
+	//
+	// // Define if building needs extra repairers (e.g. bunkers need more
+	// // than one repairer which is extra case as normally you'd use only 1)
+	// int specialCaseRepairersNeeded = getSpecialCaseRepairers(building);
+	// if (specialCaseRepairersNeeded > 0) {
+	//
+	// // Define how many repairers are already assign to this building
+	// if (currentRepairers == -1) {
+	// currentRepairers = countNumberOfRepairersForBuilding(building);
+	// }
+	//
+	// // If needed, find new repairers for this building
+	// int numberOfNewRepairersNeeded = specialCaseRepairersNeeded -
+	// currentRepairers;
+	// for (int i = 0; i < numberOfNewRepairersNeeded; i++) {
+	// Unit repairer = WorkerManager.findBestRepairerNear(building);
+	// repairBuilding(repairer, building);
+	// }
+	// }
+	//
+	// return currentRepairers;
+	// }
 
 	// =========================================================
 
@@ -114,14 +146,16 @@ public class BuildingRepairManager {
 	}
 
 	private static int defineOptimalNumberOfRepairersFor(Unit building) {
-		if (building.getType().isBunker()) {
-			int enemiesNearBunker = xvr.getNumberOfUnitsInRadius(building, 11,
-					xvr.getEnemyArmyUnits());
-			return (int) Math.min(5,
-					Math.max(2, enemiesNearBunker * defineBunkerRepairersPerEnemyRatio()));
-		} else {
-			return 2;
-		}
+		// if (building.getType().isBunker()) {
+		// int enemiesNearBunker = xvr.getNumberOfUnitsInRadius(building, 11,
+		// xvr.getEnemyArmyUnits());
+		// return (int) Math.min(5,
+		// Math.max(2, enemiesNearBunker *
+		// defineBunkerRepairersPerEnemyRatio()));
+		// } else {
+		// return 2;
+		// }
+		return 1;
 	}
 
 	private static double defineBunkerRepairersPerEnemyRatio() {

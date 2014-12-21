@@ -4,6 +4,7 @@ import jnibwapi.model.Unit;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.units.UnitActions;
+import ai.handling.units.UnitCounter;
 import ai.managers.units.army.FlyerManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.workers.RepairAndSons;
@@ -49,13 +50,20 @@ public class FlyingBuildingManager {
 		tryRepairingIfNeeded(flyingBuilding);
 	}
 
-	private static void tryRepairingIfNeeded(Unit flyingBuilding) {
-		if (flyingBuilding.isWounded()) {
-			RepairAndSons.issueTicketToRepairIfHasnt(flyingBuilding);
-		}
+	// =========================================================
+
+	private static boolean shouldHaveFlyingBuilding1() {
+		return (UnitCounter.getNumberOfInfantryUnitsCompleted() >= 4 || TerranSiegeTank
+				.getNumberOfUnitsCompleted() >= 1)
+				&& TerranBarracks.MAX_BARRACKS >= 1
+				&& TerranBarracks.getOneNotBusy() != null;
 	}
 
-	// ========================================
+	private static boolean shouldHaveFlyingBuilding2() {
+		return TerranEngineeringBay.getNumberOfUnitsCompleted() > 0;
+	}
+
+	// =========================================================
 
 	private static void moveBuildingToProperPlace(Unit flyingBuilding) {
 		Unit medianTank = ArmyRendezvousManager.getRendezvousTankForFlyers();
@@ -81,6 +89,14 @@ public class FlyingBuildingManager {
 		}
 	}
 
+	private static void tryRepairingIfNeeded(Unit flyingBuilding) {
+		if (flyingBuilding.isWounded()) {
+			RepairAndSons.issueTicketToRepairIfHasnt(flyingBuilding);
+		}
+	}
+
+	// ========================================
+
 	private static void defineFlyingBuilding1() {
 
 		// If we haven't decide yet which building should fly
@@ -104,14 +120,6 @@ public class FlyingBuildingManager {
 				xvr.getBwapi().lift(flyingBuilding2.getID());
 			}
 		}
-	}
-
-	private static boolean shouldHaveFlyingBuilding1() {
-		return TerranSiegeTank.getNumberOfUnits() >= 2 && TerranBarracks.MAX_BARRACKS > 1;
-	}
-
-	private static boolean shouldHaveFlyingBuilding2() {
-		return TerranEngineeringBay.getNumberOfUnitsCompleted() > 0;
 	}
 
 	public static Unit getFlyingBuilding1() {

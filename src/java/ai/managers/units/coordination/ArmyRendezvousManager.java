@@ -32,7 +32,33 @@ public class ArmyRendezvousManager {
 
 	// =========================================================
 
-	public static MapPoint getRendezvousPointFor(Unit unit) {
+	/**
+	 * 
+	 * @return Target for offensive operations e.g. closest known enemy
+	 *         building, or the expected base location if no building is known.
+	 */
+	public static MapPoint getOffensivePoint() {
+
+		// Try to target nearest enemy building that isn't destroyed
+		Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
+		if (nearestEnemyBuilding != null && nearestEnemyBuilding.isExists()
+				&& !nearestEnemyBuilding.isOnGeyser()) {
+			return nearestEnemyBuilding;
+		}
+
+		// We don't know any exact building location, just try to target the
+		// base
+		else {
+			Unit nearestEnemyBase = MapExploration.getNearestEnemyBase();
+			if (nearestEnemyBase != null) {
+				return nearestEnemyBase;
+			} else {
+				return null;
+			}
+		}
+	}
+
+	public static MapPoint getDefensivePoint(Unit unit) {
 		MapPoint secondBaseLocation = TerranCommandCenter.getSecondBaseLocation();
 
 		// Initially, go to the second base location
@@ -50,7 +76,7 @@ public class ArmyRendezvousManager {
 
 		// =====================================================
 		// If is infantry, try go to nearest medic with energy
-		if (unit.getType().isTerranInfantry() && unit.isWounded()) {
+		if (unit != null && unit.getType().isTerranInfantry() && unit.isWounded()) {
 			Unit medicThatCanHealUs = defineRendezvousMedicIfPossible(unit);
 			if (medicThatCanHealUs != null) {
 				runTo = medicThatCanHealUs;
@@ -59,7 +85,9 @@ public class ArmyRendezvousManager {
 
 		// =====================================================
 		// Tell the unit where to be
-		unit.setProperPlaceToBe(runTo);
+		if (unit != null) {
+			unit.setProperPlaceToBe(runTo);
+		}
 
 		if (runTo == null) {
 			return null;
@@ -76,7 +104,7 @@ public class ArmyRendezvousManager {
 		return TerranSiegeTank.getFrontTank();
 	}
 
-	public static MapPoint getRendezvousPointForTanks() {
+	public static MapPoint getDefensivePointForTanks() {
 		if (StrategyManager.isAnyAttackFormPending()) {
 			return getArmyMedianPoint();
 		} else {
@@ -180,7 +208,7 @@ public class ArmyRendezvousManager {
 		}
 
 		if (safePlace == null) {
-			safePlace = getRendezvousPointFor(unit);
+			safePlace = getDefensivePoint(unit);
 			if (safePlace == null) {
 				return null;
 			}

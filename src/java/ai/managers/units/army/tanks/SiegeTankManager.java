@@ -10,6 +10,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.units.TankTargeting;
 import ai.handling.units.UnitActions;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranBunker;
@@ -61,32 +62,6 @@ public class SiegeTankManager {
 
 	// =========================================================
 
-	// private static void updateProperPlaceToBeForTank(Unit unit) {
-	// Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit,
-	// xvr.getUnitsArmyNonTanks(), true,
-	// false);
-	// if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
-	// TargettingDetails._properPlace = nearestArmyUnit;
-	// }
-	//
-	// if (StrategyManager.isAnyAttackFormPending()) {
-	// TargettingDetails._properPlace = StrategyManager.getTargetPoint();
-	// }
-	// }
-
-	// private static void updateProperPlaceToBeForTank(Unit unit) {
-	// Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit,
-	// xvr.getUnitsArmyNonTanks(), true,
-	// false);
-	// if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
-	// TargettingDetails._properPlace = nearestArmyUnit;
-	// }
-	//
-	// if (StrategyManager.isAnyAttackFormPending()) {
-	// TargettingDetails._properPlace = StrategyManager.getTargetPoint();
-	// }
-	// }
-
 	private static void actWhenInNormalMode(Unit unit) {
 		if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
 			unit.siege();
@@ -107,26 +82,61 @@ public class SiegeTankManager {
 		}
 
 		if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 4) {
-			UnitActions.attackTo(unit, ArmyRendezvousManager.getRendezvousPointFor(unit));
+			actOffensively(unit);
 		} else {
-			UnitActions.attackTo(unit, ArmyRendezvousManager.getRendezvousPointForTanks());
+			actDefensively(unit);
 		}
 	}
 
-	private static boolean mustSiege(Unit unit) {
+	// =========================================================
 
-		// If there's enemy building in range, siege.
-		if (TargettingDetails._nearestEnemyBuilding != null
-				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
-			return true;
+	/**
+	 * Preferably, try going to the bunker in order to entrench there.
+	 * 
+	 * @param unit
+	 */
+	private static void actDefensively(Unit unit) {
+		MapPoint rendezvousPointForTanks = ArmyRendezvousManager.getDefensivePointForTanks();
+		if (unit.distanceTo(rendezvousPointForTanks) > 5) {
+			unit.setAiOrder("Entrench");
+			UnitActions.attackTo(unit, rendezvousPointForTanks);
+		}
+	}
+
+	private static void actOffensively(Unit unit) {
+		MapPoint offensivePoint = ArmyRendezvousManager.getOffensivePoint();
+
+		// If target is invalid or we're very close to target, spread out.
+		if (offensivePoint == null || offensivePoint.distanceTo(unit) < 4) {
+			UnitActions.spreadOutRandomly(unit);
 		}
 
-		return false;
+		// Target is valid, but it's still far. Proceed forward.
+		unit.setAiOrder("Forward!");
+		UnitActions.attackTo(unit, offensivePoint);
+
+		// =========================================================
+		// KEEP THE LINE, ADVANCE PROGRESSIVELY
+		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
+		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
+		double allowedMaxDistance = StrategyManager.getAllowedDistanceFromSafePoint();
+
+		// Unit has advanced, but is too far behind the front line.
+		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 10
+				&& unit.distanceTo(xvr.getFirstBase()) > 36) {
+
+			// If unit is way too far than allowed, go back
+			if (allowedMaxDistance - distanceToDefensivePoint > 4) {
+				UnitActions.moveToSafePlace(unit);
+				unit.setAiOrder("Back off");
+			} else {
+				UnitActions.holdPosition(unit);
+				unit.setAiOrder("Wait");
+			}
+		}
 	}
 
-	private static boolean didntJustUnsiege(Unit unit) {
-		return unit.getLastTimeSieged() + 5 <= xvr.getTimeSeconds();
-	}
+	// =========================================================
 
 	private static void actWhenSieged(Unit unit) {
 		unit.setLastTimeSieged(xvr.getTimeSeconds());
@@ -176,6 +186,49 @@ public class SiegeTankManager {
 				unit.unsiege();
 			}
 		}
+	}
+
+	// =========================================================
+
+	// private static void updateProperPlaceToBeForTank(Unit unit) {
+	// Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit,
+	// xvr.getUnitsArmyNonTanks(), true,
+	// false);
+	// if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
+	// TargettingDetails._properPlace = nearestArmyUnit;
+	// }
+	//
+	// if (StrategyManager.isAnyAttackFormPending()) {
+	// TargettingDetails._properPlace = StrategyManager.getTargetPoint();
+	// }
+	// }
+
+	// private static void updateProperPlaceToBeForTank(Unit unit) {
+	// Unit nearestArmyUnit = xvr.getUnitNearestFromList(unit,
+	// xvr.getUnitsArmyNonTanks(), true,
+	// false);
+	// if (nearestArmyUnit != null && !nearestArmyUnit.isLoaded()) {
+	// TargettingDetails._properPlace = nearestArmyUnit;
+	// }
+	//
+	// if (StrategyManager.isAnyAttackFormPending()) {
+	// TargettingDetails._properPlace = StrategyManager.getTargetPoint();
+	// }
+	// }
+
+	private static boolean mustSiege(Unit unit) {
+
+		// If there's enemy building in range, siege.
+		if (TargettingDetails._nearestEnemyBuilding != null
+				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private static boolean didntJustUnsiege(Unit unit) {
+		return unit.getLastTimeSieged() + 5 <= xvr.getTimeSeconds();
 	}
 
 	private static boolean isUnsiegingIdeaTimerExpired(Unit unit) {
@@ -234,7 +287,7 @@ public class SiegeTankManager {
 	}
 
 	private static boolean isTankWhereItShouldBe(Unit unit) {
-		MapPoint rendezvous = ArmyRendezvousManager.getRendezvousPointForTanks();
+		MapPoint rendezvous = ArmyRendezvousManager.getDefensivePointForTanks();
 		if (rendezvous != null) {
 			return unit.distanceTo(rendezvous) < 4.7;
 		} else {

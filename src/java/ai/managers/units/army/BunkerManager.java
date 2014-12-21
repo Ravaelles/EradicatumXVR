@@ -173,7 +173,7 @@ public class BunkerManager {
 		if (StrategyManager.isAnyAttackFormPending() || TerranSiegeTank.getNumberOfUnits() >= 2) {
 			// Unit bunker = unit.getBunkerThatsIsLoadedInto();
 			// if (bunker != null && bunker.getNumLoadedUnits() > 1) {
-			MapPoint safePoint = ArmyRendezvousManager.getRendezvousPointFor(unit);
+			MapPoint safePoint = ArmyRendezvousManager.getDefensivePoint(unit);
 			if (safePoint != null && safePoint.distanceTo(unit) >= MIN_DIST_TO_LEAVE_BUNKER) {
 				return true;
 			}

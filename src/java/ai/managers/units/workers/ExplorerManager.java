@@ -383,6 +383,16 @@ public class ExplorerManager {
 			scoutRandomBaseLocation();
 		}
 
+		// Explore place for the 3rd and later bases
+		if ((explorer.isGatheringGas() || explorer.isGatheringMinerals())
+				&& TerranCommandCenter.shouldBuild()) {
+			MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
+			if (nextBase != null) {
+				explorer.setAiOrder("Explore base");
+				UnitActions.moveTo(explorer, nextBase.translate(-1, -1));
+			}
+		}
+
 		// // Explore place for the 3rd and later bases
 		// if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
 		// MapPoint tileForNextBase =

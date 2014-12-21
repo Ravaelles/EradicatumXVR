@@ -153,6 +153,15 @@ public class TerranBarracks {
 		return xvr.getUnitsOfTypeCompleted(buildingType);
 	}
 
+	public static Unit getOneNotBusy() {
+		for (Unit unit : xvr.getUnitsOfType(buildingType)) {
+			if (unit.isCompleted() && unit.isBuildingNotBusy()) {
+				return unit;
+			}
+		}
+		return null;
+	}
+
 	public static void enemyIsProtoss() {
 	}
 

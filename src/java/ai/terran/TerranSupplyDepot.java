@@ -45,7 +45,7 @@ public class TerranSupplyDepot {
 		// Begin EASY-WAY
 
 		if (depots == 0) {
-			if (xvr.canAfford(90)) {
+			if (xvr.canAfford(92)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			} else {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);

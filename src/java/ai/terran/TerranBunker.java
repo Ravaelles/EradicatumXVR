@@ -33,6 +33,10 @@ public class TerranBunker {
 	public static boolean shouldBuild() {
 		int bunkers = UnitCounter.getNumberOfUnits(type);
 
+		if (bunkers >= GLOBAL_MAX_BUNKERS) {
+			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
+		}
+
 		if (_skipForTurns > 0 && xvr.getTimeSeconds() > 400) {
 			_skipForTurns--;
 			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
@@ -42,10 +46,6 @@ public class TerranBunker {
 		// UnitCounter.getNumberOfBattleUnits() < 7) {
 		// return false;
 		// }
-
-		if (bunkers >= GLOBAL_MAX_BUNKERS) {
-			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
-		}
 
 		// =========================================================
 

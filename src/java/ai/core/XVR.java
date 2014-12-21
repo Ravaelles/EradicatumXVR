@@ -59,7 +59,7 @@ public class XVR {
 	protected static boolean enemyZerg = false;
 	protected static boolean enemyProtoss = false;
 
-	private static boolean _gameSpeedChangeApplied = false;
+	// private static boolean _gameSpeedChangeApplied = false;
 
 	private XVRClient client;
 	private JNIBWAPI bwapi;
@@ -199,7 +199,7 @@ public class XVR {
 		if (unit == null) {
 			return;
 		}
-		UnitType type = unit.getType();
+		// UnitType type = unit.getType();
 		// if (unit.getTypeID() == UnitTypes.Protoss_Refinery.ordinal()) {
 		// TerranCommandCenter.sendSCVsToRefinery(unit);
 		// }
@@ -270,6 +270,27 @@ public class XVR {
 		}
 
 		getBwapi().train(building.getID(), type.ordinal());
+	}
+
+	public boolean canAfford(int minerals) {
+		return canAfford(minerals, 0, 0);
+	}
+
+	public boolean canAfford(int minerals, int gas) {
+		return canAfford(minerals, gas, 0);
+	}
+
+	public boolean canAfford(int minerals, int gas, int supply) {
+		if (minerals > 0 && getMinerals() < minerals) {
+			return false;
+		}
+		if (gas > 0 && getGas() < gas) {
+			return false;
+		}
+		if (supply > 0 && getSuppliesFree() < supply) {
+			return false;
+		}
+		return true;
 	}
 
 	public ArrayList<Unit> getUnitsOfType(UnitTypes unitType) {
@@ -527,27 +548,6 @@ public class XVR {
 		}
 
 		return nearestUnit;
-	}
-
-	public boolean canAfford(int minerals) {
-		return canAfford(minerals, 0, 0);
-	}
-
-	public boolean canAfford(int minerals, int gas) {
-		return canAfford(minerals, gas, 0);
-	}
-
-	public boolean canAfford(int minerals, int gas, int supply) {
-		if (minerals > 0 && getMinerals() < minerals) {
-			return false;
-		}
-		if (gas > 0 && getGas() < gas) {
-			return false;
-		}
-		if (supply > 0 && getSuppliesFree() < supply) {
-			return false;
-		}
-		return true;
 	}
 
 	public int countUnitsOfGivenTypeInRadius(UnitTypes type, double tileRadius, MapPoint point,
@@ -1009,7 +1009,9 @@ public class XVR {
 	public Unit getEnemyDefensiveGroundBuildingNear(Unit unit, int tileRadius) {
 		ArrayList<Unit> enemiesNearby = getUnitsInRadius(unit, tileRadius, getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
-			if (enemy.canAttackGroundUnits()
+			if (enemy.isCompleted()
+					&& enemy.isBuilding()
+					&& enemy.canAttackGroundUnits()
 					|| (enemy.getType().isBunker() && xvr.getDistanceBetween(xvr.getFirstBase(),
 							enemy) > 20)) {
 
@@ -1038,7 +1040,7 @@ public class XVR {
 		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y),
 				WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING, getEnemyBuildings());
 		for (Unit enemy : enemiesNearby) {
-			if (enemy.isCompleted() && enemy.getType().isAttackCapable()
+			if (enemy.isCompleted() && enemy.isBuilding() && enemy.getType().isAttackCapable()
 					&& enemy.canAttackAirUnits()) {
 				return enemy;
 			}

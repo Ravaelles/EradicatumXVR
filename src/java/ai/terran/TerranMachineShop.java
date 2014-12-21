@@ -20,13 +20,9 @@ public class TerranMachineShop {
 		// Begin EASY-WAY
 
 		int factories = TerranFactory.getNumberOfUnitsCompleted();
-		if (factories < 2) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		}
-
 		int vultures = TerranVulture.getNumberOfUnits();
-		if (vultures <= TerranVulture.CRITICALLY_FEW_VULTURES
-				&& TerranFactory.getOneNotBusy() == null) {
+
+		if (vultures < TerranVulture.CRITICALLY_FEW_VULTURES) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
@@ -36,8 +32,7 @@ public class TerranMachineShop {
 		if (factories > 0) {
 			int mashineShops = getNumberOfUnits();
 
-			if (xvr.canAfford(50, 50) && factories > mashineShops
-					&& TerranFactory.getOneNotBusy() != null) {
+			if (factories > mashineShops && TerranFactory.getOneNotBusy() != null) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}

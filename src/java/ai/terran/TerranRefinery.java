@@ -32,7 +32,7 @@ public class TerranRefinery {
 
 		int minSupply = 14;
 		if (XVR.isEnemyProtoss()) {
-			minSupply += 2;
+			minSupply += 1;
 		}
 
 		if (refineries == 0 && supplyUsed >= minSupply) {
