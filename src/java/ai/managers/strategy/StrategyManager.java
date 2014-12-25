@@ -75,7 +75,8 @@ public class StrategyManager {
 
 	private static double allowedDistanceFromSafePoint = 0;
 	private static int _lastTimeDistancePenalty = 0;
-	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.8;
+	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.73;
+	private static final int MINIMAL_DISTANCE_FROM_SAFE_POINT = 3;
 
 	// private static boolean pushedInitially = false;
 
@@ -229,8 +230,7 @@ public class StrategyManager {
 			if (base == null) {
 				return;
 			}
-			target = xvr.getUnitNearestFromList(base.getX(), base.getY(), enemyBuildings, true,
-					false);
+			target = xvr.getUnitNearestFromList(base.getX(), base.getY(), enemyBuildings, true, false);
 		}
 
 		// Update the target.
@@ -295,7 +295,7 @@ public class StrategyManager {
 	private static void armyIsNotReadyToAttack() {
 		_attackPoint = null;
 		_attackTargetUnit = null;
-		allowedDistanceFromSafePoint = 0;
+		allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
 	}
 
 	private static void defineInitialAttackTarget() {
@@ -334,7 +334,7 @@ public class StrategyManager {
 	}
 
 	private static void waitUntilMinBattleUnits() {
-		if (_minBattleUnits <= 3) {
+		if (_minBattleUnits <= MINIMAL_DISTANCE_FROM_SAFE_POINT) {
 			_minBattleUnits = 26;
 		}
 
@@ -357,7 +357,7 @@ public class StrategyManager {
 	}
 
 	public static void forcePeace() {
-		allowedDistanceFromSafePoint = 0;
+		allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
 		changeStateTo(STATE_PEACE);
 	}
 
@@ -373,11 +373,8 @@ public class StrategyManager {
 		int now = xvr.getTimeSeconds();
 		_lastTimeDistancePenalty = now;
 
-		if (now - _lastTimeDistancePenalty >= 4) {
-			allowedDistanceFromSafePoint *= 0.82;
-		}
-		// if (allowedDistanceFromSafePoint > 80) {
-		// allowedDistanceFromSafePoint = 80;
+		// if (now - _lastTimeDistancePenalty >= 4) {
+		// allowedDistanceFromSafePoint *= 0.82;
 		// }
 	}
 
@@ -387,8 +384,8 @@ public class StrategyManager {
 			_lastTimeDistancePenalty = now;
 
 			allowedDistanceFromSafePoint -= STEP_DISTANCE_WHEN_ATTACK_PENDING;
-			if (allowedDistanceFromSafePoint < 0) {
-				allowedDistanceFromSafePoint = 0;
+			if (allowedDistanceFromSafePoint < MINIMAL_DISTANCE_FROM_SAFE_POINT) {
+				allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
 			}
 		}
 	}

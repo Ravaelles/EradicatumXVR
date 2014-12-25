@@ -1,6 +1,7 @@
 package ai.managers.units.coordination;
 
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
@@ -55,8 +56,6 @@ public class FrontLineManager {
 
 		// =========================================================
 		// KEEP THE LINE, ADVANCE PROGRESSIVELY
-		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
-		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
 		double allowedMaxDistance = StrategyManager.getAllowedDistanceFromSafePoint();
 
 		// Include bonus to max distance for front guard.
@@ -64,47 +63,63 @@ public class FrontLineManager {
 
 		// =========================================================
 		// Unit has advanced, but is too far behind the front line.
-		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 10
-				&& unit.distanceTo(xvr.getFirstBase()) > 36) {
-			actionUnitTooFarBehindTheFrontLine(unit, mode, allowedMaxDistance,
-					distanceToDefensivePoint);
+		if (isUnitOutOfLine(unit, allowedMaxDistance)) {
+			actionUnitTooFarBehindTheFrontLine(unit, mode, allowedMaxDistance);
 		}
+	}
+
+	private static boolean isUnitOutOfLine(Unit unit, double allowedMaxDistance) {
+		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
+		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
+		return distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 10
+				&& isFarFromSafePoint(unit);
 	}
 
 	// =========================================================
 
-	private static void actionUnitTooFarBehindTheFrontLine(Unit unit, int mode,
-			double allowedMaxDistance, double distanceToDefensivePoint) {
+	private static boolean isFarFromSafePoint(Unit unit) {
+		return unit.distanceTo(xvr.getFirstBase()) > 36
+				|| xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 6, unit, true) == 0;
+	}
 
-		// If unit is way too far than allowed, go back
-		if (allowedMaxDistance - distanceToDefensivePoint > 4) {
-			actionKeepTheLine(unit);
-			unit.setAiOrder("Back off");
+	// =========================================================
+
+	private static void actionUnitTooFarBehindTheFrontLine(Unit unit, int mode, double allowedMaxDistance) {
+		if (unit.isSieged()) {
+			unit.unsiege();
 		}
 
-		// Unit isn't too far behind the line
-		else {
+		actionKeepTheLine(unit);
+		unit.setAiOrder("Back off");
 
-			// If this unit is in vanguard, make it wait
-			if (mode == MODE_VANGUARD) {
-				UnitActions.holdPosition(unit);
-				unit.setAiOrder("Wait");
-			}
-
-			// If unit is in front guard, it should back off a little bit
-			else {
-				if (unit.isSieged()) {
-					unit.unsiege();
-				}
-				UnitActions.moveToSafePlace(unit);
-				unit.setAiOrder(null);
-			}
-		}
+		// // If unit is way too far than allowed, go back
+		// if (allowedMaxDistance - distanceToDefensivePoint > 4) {
+		// actionKeepTheLine(unit);
+		// unit.setAiOrder("Back off");
+		// }
+		//
+		// // Unit isn't too far behind the line
+		// else {
+		//
+		// // If this unit is in vanguard, make it wait
+		// if (mode == MODE_VANGUARD) {
+		// UnitActions.holdPosition(unit);
+		// unit.setAiOrder("Wait");
+		// }
+		//
+		// // If unit is in front guard, it should back off a little bit
+		// else {
+		// if (unit.isSieged()) {
+		// unit.unsiege();
+		// }
+		// UnitActions.moveToSafePlace(unit);
+		// unit.setAiOrder(null);
+		// }
+		// }
 	}
 
 	private static void actionKeepTheLine(Unit unit) {
-		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
-				.getRendezvousTankForGroundUnits();
+		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager.getRendezvousTankForGroundUnits();
 
 		if (rendezvousTankForGroundUnits != null) {
 			UnitActions.attackTo(unit, rendezvousTankForGroundUnits);
