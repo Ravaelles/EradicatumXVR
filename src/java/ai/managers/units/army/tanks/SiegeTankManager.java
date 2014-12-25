@@ -162,8 +162,7 @@ public class SiegeTankManager {
 		}
 
 		// If tank from various reasons shouldn't be here, unsiege.
-		if (!enemyAlmostInSight && !unit.isStartingAttack() && !shouldSiege(unit)
-				&& !mustSiege(unit)) {
+		if (!enemyAlmostInSight && !unit.isStartingAttack() && !shouldSiege(unit) && !mustSiege(unit)) {
 			infoTankIsConsideringUnsieging(unit);
 		}
 
@@ -234,37 +233,6 @@ public class SiegeTankManager {
 	// }
 	// }
 
-	private static boolean mustSiege(Unit unit) {
-
-		// If there's enemy building in range, siege.
-		if (TargettingDetails._nearestEnemyBuilding != null
-				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
-			return true;
-		}
-
-		return false;
-	}
-
-	private static boolean didntJustUnsiege(Unit unit) {
-		return unit.getLastTimeSieged() + 5 <= xvr.getTimeSeconds();
-	}
-
-	private static boolean isUnsiegingIdeaTimerExpired(Unit unit) {
-		if (TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
-			if (xvr.getTimeSeconds() - TargettingDetails.unsiegeIdeasMap.get(unit) >= MIN_TIME_TO_UNSIEGE) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private static void infoTankIsConsideringUnsieging(Unit unit) {
-		if (!TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
-			unit.setAiOrder("Consider unsieging");
-			TargettingDetails.unsiegeIdeasMap.put(unit, xvr.getTimeSeconds());
-		}
-	}
-
 	private static boolean shouldSiege(Unit unit) {
 		boolean isEnemyNearShootRange = (TargettingDetails._nearestEnemyDist > 0 && TargettingDetails._nearestEnemyDist <= (TargettingDetails._nearestEnemy
 				.getType().isBuilding() ? 10.6 : 13));
@@ -287,12 +255,44 @@ public class SiegeTankManager {
 
 		// If there's enemy building in range, siege.
 		if (TargettingDetails._nearestEnemyBuilding != null
-				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5
-				&& oursNearby >= 2) {
+				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5 && oursNearby >= 2) {
 			return true;
 		}
 
 		return false;
+	}
+
+	private static boolean mustSiege(Unit unit) {
+
+		// If there's enemy building in range, siege.
+		if (TargettingDetails._nearestEnemyBuilding != null
+				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
+			return true;
+		}
+
+		return false;
+	}
+
+	// =========================================================
+
+	private static boolean didntJustUnsiege(Unit unit) {
+		return unit.getLastTimeSieged() + 5 <= xvr.getTimeSeconds();
+	}
+
+	private static boolean isUnsiegingIdeaTimerExpired(Unit unit) {
+		if (TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
+			if (xvr.getTimeSeconds() - TargettingDetails.unsiegeIdeasMap.get(unit) >= MIN_TIME_TO_UNSIEGE) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void infoTankIsConsideringUnsieging(Unit unit) {
+		if (!TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
+			unit.setAiOrder("Consider unsieging");
+			TargettingDetails.unsiegeIdeasMap.put(unit, xvr.getTimeSeconds());
+		}
 	}
 
 	private static boolean isNearMainBase(Unit unit) {
@@ -327,8 +327,7 @@ public class SiegeTankManager {
 		boolean isNearChoke = nearChoke != null && unit.distanceToChokePoint(nearChoke) <= 3;
 
 		if (isNearBuilding || isNearChoke) {
-			return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7,
-					unit, true) <= 2;
+			return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7, unit, true) <= 2;
 		} else {
 			return false;
 		}

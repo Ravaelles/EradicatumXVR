@@ -23,6 +23,7 @@ import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranCommandCenter;
+import ai.terran.TerranSupplyDepot;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
 
@@ -54,13 +55,11 @@ public class Painter {
 					relativeStrength,
 					130,
 					70,
-					new String[] { BWColor.getToStringHex(BWColor.RED),
-							BWColor.getToStringHex(BWColor.YELLOW),
+					new String[] { BWColor.getToStringHex(BWColor.RED), BWColor.getToStringHex(BWColor.YELLOW),
 							BWColor.getToStringHex(BWColor.GREEN) })
 					+ relativeStrength + "%";
 		} else {
-			armyRelativeStrenghString = BWColor.getToStringHex(BWColor.GREY)
-					+ "Enemy forces unknown";
+			armyRelativeStrenghString = BWColor.getToStringHex(BWColor.GREY) + "Enemy forces unknown";
 		}
 
 		paintDebugMessage(xvr, BWColor.getToStringHex(BWColor.WHITE) + "Our army vs. Enemy army: ",
@@ -70,8 +69,8 @@ public class Painter {
 
 		String supplyString = StrengthComparison.getOurSupply()
 				+ " / "
-				+ (StrengthComparison.getEnemySupply() == 0 ? "Enemy supply unknown"
-						: StrengthComparison.getEnemySupply());
+				+ (StrengthComparison.getEnemySupply() == 0 ? "Enemy supply unknown" : StrengthComparison
+						.getEnemySupply());
 		String supplyColor = BWColor.getToStringHex(BWColor.GREY);
 		if (StrengthComparison.getEnemySupply() != 0
 				&& StrengthComparison.getOurSupply() > StrengthComparison.getEnemySupply()) {
@@ -80,8 +79,8 @@ public class Painter {
 			supplyColor = BWColor.getToStringHex(BWColor.RED);
 		}
 
-		paintDebugMessage(xvr, BWColor.getToStringHex(BWColor.WHITE) + "Our & enemy supply used: ",
-				supplyColor + supplyString);
+		paintDebugMessage(xvr, BWColor.getToStringHex(BWColor.WHITE) + "Our & enemy supply used: ", supplyColor
+				+ supplyString);
 
 		// =========================================================
 		paintDebugMessage(xvr, BWColor.getToStringHex(BWColor.GREY) + "======================",
@@ -90,9 +89,8 @@ public class Painter {
 		paintDebugMessage(
 				xvr,
 				BWColor.getToStringHex(BWColor.WHITE) + "Known enemy buildings: ",
-				(MapExploration.getEnemyBuildingsDiscovered().isEmpty() ? (BWColor
-						.getToStringHex(BWColor.RED) + "None") : (BWColor
-						.getToStringHex(BWColor.GREEN) + "Yes")));
+				(MapExploration.getEnemyBuildingsDiscovered().isEmpty() ? (BWColor.getToStringHex(BWColor.RED) + "None")
+						: (BWColor.getToStringHex(BWColor.GREEN) + "Yes")));
 
 		// paintDebugMessage(
 		// xvr,
@@ -140,7 +138,7 @@ public class Painter {
 		// }
 
 		if (FULL_DEBUG) {
-			// paintTest();
+			paintTestConstructionPlaces();
 			paintTimeConsumption();
 			paintBuildingsToConstructPosition();
 			paintSpeculatedEnemyTanksPositions();
@@ -186,33 +184,41 @@ public class Painter {
 
 	// =========================================================
 
-	private static void paintTest() {
-		// if (TerranBunker.getNumberOfUnits() > 0) {
-		// ArrayList<Unit> bunkers =
-		// xvr.getUnitsOfType(UnitTypes.Terran_Bunker);
-		// if (!bunkers.isEmpty()) {
-		// Unit bunker = bunkers.get(0);
-		//
-		// bunker.getRegion()
-		// }
+	private static void paintTestConstructionPlaces() {
+		int baseTx = xvr.getFirstBase().getTileX();
+		int baseTy = xvr.getFirstBase().getTileY();
+		int deltaTile = 2;
+		for (int tx = baseTx - 20; tx <= baseTx + 20; tx += deltaTile) {
+			for (int ty = baseTy - 20; ty <= baseTy + 20; ty += deltaTile) {
+				if (tx < 1 || ty < 1) {
+					continue;
+				}
 
-		// xvr.getFirstBase().getRegion().;
-		// }
+				int tileWidth = 2;
+				int tileHeight = 2;
+
+				if (Constructing.canBuildHere(xvr.getRandomWorker(), TerranSupplyDepot.getBuildingType().getType(),
+						tileWidth, tileHeight)) {
+					xvr.getBwapi().drawBox(tx * 32, ty * 32, tx * 32 + tileWidth * 32, ty * 32 + tileHeight * 32,
+							BWColor.TEAL, false, false);
+				}
+			}
+		}
 	}
 
 	private static void paintRenzdezvousPoints() {
 		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
 		if (defensivePoint != null) {
-			xvr.getBwapi().drawCircle(defensivePoint.getX() - 2, defensivePoint.getY() + 1, 3,
-					BWColor.GREEN, true, false);
+			xvr.getBwapi().drawCircle(defensivePoint.getX() - 2, defensivePoint.getY() + 1, 3, BWColor.GREEN, true,
+					false);
 			xvr.getBwapi().drawText(defensivePoint.getX() - 8, defensivePoint.getY() - 10,
 					BWColor.getToStringHex(BWColor.GREEN) + "Tanks", false);
 		}
 
 		MapPoint offensivePoint = ArmyRendezvousManager.getOffensivePoint();
 		if (offensivePoint != null) {
-			xvr.getBwapi().drawCircle(offensivePoint.getX() - 1, offensivePoint.getY() + 1, 3,
-					BWColor.RED, true, false);
+			xvr.getBwapi()
+					.drawCircle(offensivePoint.getX() - 1, offensivePoint.getY() + 1, 3, BWColor.RED, true, false);
 			xvr.getBwapi().drawText(offensivePoint.getX() - 8, offensivePoint.getY() - 10,
 					BWColor.getToStringHex(BWColor.RED) + "Tanks", false);
 		}
@@ -237,8 +243,7 @@ public class Painter {
 		JNIBWAPI bwapi = xvr.getBwapi();
 
 		int counter = 0;
-		double maxValue = RUtilities.getMaxElement(CodeProfiler.getAspectsTimeConsumption()
-				.values());
+		double maxValue = RUtilities.getMaxElement(CodeProfiler.getAspectsTimeConsumption().values());
 
 		// System.out.println();
 		// for (double val : TimeMeasurer.getAspectsTimeConsumption().values())
@@ -263,10 +268,9 @@ public class Painter {
 			}
 			// System.out.println("   " + aspectTitle + " x:" + x + ", y:" + y +
 			// "  ## " + barWidth);
-			bwapi.drawBox(x, y, x + barWidth, y + timeConsumptionBarHeight, BWColor.WHITE, true,
+			bwapi.drawBox(x, y, x + barWidth, y + timeConsumptionBarHeight, BWColor.WHITE, true, true);
+			bwapi.drawBox(x, y, x + timeConsumptionBarMaxWidth, y + timeConsumptionBarHeight, BWColor.BLACK, false,
 					true);
-			bwapi.drawBox(x, y, x + timeConsumptionBarMaxWidth, y + timeConsumptionBarHeight,
-					BWColor.BLACK, false, true);
 
 			// Draw aspect label
 			bwapi.drawText(x + 2, y - 1, BWColor.getToStringHex(BWColor.YELLOW) + aspectTitle, true);
@@ -303,18 +307,17 @@ public class Painter {
 				int cooldownHeight = 4;
 				int cooldownLeft = unit.getX() - cooldownWidth / 2;
 				int cooldownTop = unit.getY() + 23;
-				cooldown = BWColor.getToStringHex(BWColor.YELLOW) + "("
-						+ unit.getGroundWeaponCooldown() + ")";
+				cooldown = BWColor.getToStringHex(BWColor.YELLOW) + "(" + unit.getGroundWeaponCooldown() + ")";
 
 				// Paint box
 				int cooldownProgress = cooldownWidth * unit.getGroundWeaponCooldown()
 						/ (unit.getType().getGroundWeapon().getDamageCooldown() + 1);
-				bwapi.drawBox(cooldownLeft, cooldownTop, cooldownLeft + cooldownProgress,
-						cooldownTop + cooldownHeight, BWColor.RED, true, false);
+				bwapi.drawBox(cooldownLeft, cooldownTop, cooldownLeft + cooldownProgress, cooldownTop + cooldownHeight,
+						BWColor.RED, true, false);
 
 				// Paint box borders
-				bwapi.drawBox(cooldownLeft, cooldownTop, cooldownLeft + cooldownWidth, cooldownTop
-						+ cooldownHeight, BWColor.BLACK, false, false);
+				bwapi.drawBox(cooldownLeft, cooldownTop, cooldownLeft + cooldownWidth, cooldownTop + cooldownHeight,
+						BWColor.BLACK, false, false);
 
 				// Paint label
 				bwapi.drawText(cooldownLeft + cooldownWidth - 4, cooldownTop, cooldown, false);
@@ -325,24 +328,20 @@ public class Painter {
 	private static void paintAttackLocation() {
 		JNIBWAPI bwapi = xvr.getBwapi();
 		if (StrategyManager.getTargetUnit() != null) {
-			bwapi.drawCircle(StrategyManager.getTargetUnit().getX(), StrategyManager
-					.getTargetUnit().getY(), 33, BWColor.RED, false, false);
-			bwapi.drawCircle(StrategyManager.getTargetUnit().getX(), StrategyManager
-					.getTargetUnit().getY(), 32, BWColor.RED, false, false);
-			bwapi.drawCircle(StrategyManager.getTargetUnit().getX(), StrategyManager
-					.getTargetUnit().getY(), 3, BWColor.RED, true, false);
+			bwapi.drawCircle(StrategyManager.getTargetUnit().getX(), StrategyManager.getTargetUnit().getY(), 33,
+					BWColor.RED, false, false);
+			bwapi.drawCircle(StrategyManager.getTargetUnit().getX(), StrategyManager.getTargetUnit().getY(), 32,
+					BWColor.RED, false, false);
+			bwapi.drawCircle(StrategyManager.getTargetUnit().getX(), StrategyManager.getTargetUnit().getY(), 3,
+					BWColor.RED, true, false);
 		}
 
 		if (NukeHandling.nuclearDetectionPoint != null) {
 			MapPoint nuclearPoint = NukeHandling.nuclearDetectionPoint;
-			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 20, BWColor.RED, false,
-					false);
-			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 18, BWColor.RED, false,
-					false);
-			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 16, BWColor.RED, false,
-					false);
-			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 14, BWColor.RED, false,
-					false);
+			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 20, BWColor.RED, false, false);
+			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 18, BWColor.RED, false, false);
+			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 16, BWColor.RED, false, false);
+			bwapi.drawCircle(nuclearPoint.getX(), nuclearPoint.getY(), 14, BWColor.RED, false, false);
 		}
 	}
 
@@ -380,17 +379,16 @@ public class Painter {
 		if (buildingPlace != null) {
 
 			// Draw base position as rectangle
-			xvr.getBwapi().drawBox(buildingPlace.getX(), buildingPlace.getY(),
-					buildingPlace.getX() + 4 * 32, buildingPlace.getY() + 3 * 32, BWColor.TEAL,
-					false, false);
+			xvr.getBwapi().drawBox(buildingPlace.getX(), buildingPlace.getY(), buildingPlace.getX() + 4 * 32,
+					buildingPlace.getY() + 3 * 32, BWColor.TEAL, false, false);
 
 			// Draw string "Base"
 			xvr.getBwapi().drawText(buildingPlace.getX() + 6, buildingPlace.getY() + 3,
 					BWColor.getToStringHex(BWColor.GREEN) + "Next base", false);
 
 			Unit baseBuilder = BuildingManager.getNextBaseBuilder();
-			String builder = baseBuilder != null ? (BWColor.getToStringHex(BWColor.WHITE) + "#" + baseBuilder
-					.getID()) : (BWColor.getToStringHex(BWColor.RED) + "Unassigned");
+			String builder = baseBuilder != null ? (BWColor.getToStringHex(BWColor.WHITE) + "#" + baseBuilder.getID())
+					: (BWColor.getToStringHex(BWColor.RED) + "Unassigned");
 
 			// Draw string with builder ID
 			xvr.getBwapi().drawText(buildingPlace.getX() + 6, buildingPlace.getY() + 15,
@@ -403,9 +401,8 @@ public class Painter {
 		if (buildingPlace != null) {
 
 			// Draw base position as rectangle
-			xvr.getBwapi().drawBox(buildingPlace.getX(), buildingPlace.getY(),
-					buildingPlace.getX() + 4 * 32, buildingPlace.getY() + 3 * 32, BWColor.GREY,
-					false, false);
+			xvr.getBwapi().drawBox(buildingPlace.getX(), buildingPlace.getY(), buildingPlace.getX() + 4 * 32,
+					buildingPlace.getY() + 3 * 32, BWColor.GREY, false, false);
 
 			// Draw string
 			xvr.getBwapi().drawText(buildingPlace.getX() + 6, buildingPlace.getY() + 3,
@@ -418,9 +415,8 @@ public class Painter {
 		if (buildingPlace != null) {
 
 			// Draw base position as rectangle
-			xvr.getBwapi().drawBox(buildingPlace.getX(), buildingPlace.getY(),
-					buildingPlace.getX() + 4 * 32, buildingPlace.getY() + 3 * 32, BWColor.GREY,
-					false, false);
+			xvr.getBwapi().drawBox(buildingPlace.getX(), buildingPlace.getY(), buildingPlace.getX() + 4 * 32,
+					buildingPlace.getY() + 3 * 32, BWColor.GREY, false, false);
 
 			// Draw string
 			xvr.getBwapi().drawText(buildingPlace.getX() + 6, buildingPlace.getY() + 3,
@@ -450,8 +446,8 @@ public class Painter {
 			// chokePoint.getFirstSideY(), 3, BWColor.RED, true, false);
 			// xvr.getBwapi().drawCircle(chokePoint.getSecondSideX(),
 			// chokePoint.getSecondSideY(), 3, BWColor.BLUE, true, false);
-			xvr.getBwapi().drawCircle(choke.getCenterX(), choke.getCenterY(),
-					(int) choke.getRadius(), BWColor.BLACK, false, false);
+			xvr.getBwapi().drawCircle(choke.getCenterX(), choke.getCenterY(), (int) choke.getRadius(), BWColor.BLACK,
+					false, false);
 			// xvr.getBwapi().drawText(
 			// chokePoint.getCenterX(),
 			// chokePoint.getCenterY(),
@@ -525,8 +521,7 @@ public class Painter {
 			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false, false);
 
 			if (xvr.getDistanceBetween(u, u.getTargetX(), u.getTargetY()) <= 15) {
-				bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(), BWColor.GREY,
-						false);
+				bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(), BWColor.GREY, false);
 			}
 		} else if (u.isRepairing()) {
 			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false, false);
@@ -551,25 +546,20 @@ public class Painter {
 
 		// HEALED unit, draw Red Cross on white background
 		else if (u.isBeingHealed() || u.isBeingRepaired()) {
-			bwapi.drawBox(u.getX() - 8, u.getY() - 8, u.getX() + 8, u.getY() + 8, BWColor.WHITE,
-					true, false);
-			bwapi.drawBox(u.getX() - 5, u.getY() - 2, u.getX() + 5, u.getY() + 2, BWColor.RED,
-					true, false);
-			bwapi.drawBox(u.getX() - 2, u.getY() - 5, u.getX() + 2, u.getY() + 5, BWColor.RED,
-					true, false);
+			bwapi.drawBox(u.getX() - 8, u.getY() - 8, u.getX() + 8, u.getY() + 8, BWColor.WHITE, true, false);
+			bwapi.drawBox(u.getX() - 5, u.getY() - 2, u.getX() + 5, u.getY() + 2, BWColor.RED, true, false);
+			bwapi.drawBox(u.getX() - 2, u.getY() - 5, u.getX() + 2, u.getY() + 5, BWColor.RED, true, false);
 		}
 
 		// IDLE unit, draw question mark
 		else if (u.isIdle() && !u.getType().isBuilding()) {
-			bwapi.drawText(u.getX() - 2, u.getY() - 2,
-					BWColor.getToStringHex(BWColor.YELLOW) + "?", false);
+			bwapi.drawText(u.getX() - 2, u.getY() - 2, BWColor.getToStringHex(BWColor.YELLOW) + "?", false);
 		}
 
 		// =========================================================
 		// Worker ID
 		if (u.getType().isWorker()) {
-			bwapi.drawText(u.getX() - 15, u.getY() - 10, BWColor.getToStringHex(BWColor.GREY) + "#"
-					+ u.getID(), false);
+			bwapi.drawText(u.getX() - 15, u.getY() - 10, BWColor.getToStringHex(BWColor.GREY) + "#" + u.getID(), false);
 		}
 
 		// =========================================================
@@ -593,11 +583,9 @@ public class Painter {
 		// =========================================================
 		// Paint unit connection which represent enemy unit that our unit is
 		// RUNNING from
-		if (u.getLastTimeRunFromEnemyUnit() != null
-				&& xvr.getTimeSeconds() + 2 <= u.getLastTimeRunFromEnemyTime()) {
+		if (u.getLastTimeRunFromEnemyUnit() != null && xvr.getTimeSeconds() + 2 <= u.getLastTimeRunFromEnemyTime()) {
 			Unit enemyUnit = u.getLastTimeRunFromEnemyUnit();
-			bwapi.drawLine(u.getX(), u.getY(), enemyUnit.getX(), enemyUnit.getY(), BWColor.BROWN,
-					false);
+			bwapi.drawLine(u.getX(), u.getY(), enemyUnit.getX(), enemyUnit.getY(), BWColor.BROWN, false);
 		}
 	}
 
@@ -621,8 +609,8 @@ public class Painter {
 		int enemiesNearby = xvr.countUnitsEnemyInRadius(u, 11);
 		if (enemiesNearby > 0) {
 			String string = enemiesNearby + " enemies";
-			bwapi.drawText(u.getX() - string.length() * 4, u.getY(),
-					BWColor.getToStringHex(BWColor.RED) + string, false);
+			bwapi.drawText(u.getX() - string.length() * 4, u.getY(), BWColor.getToStringHex(BWColor.RED) + string,
+					false);
 		}
 		// if (u.getType().isBunker()) {
 		// int repairers =
@@ -677,12 +665,12 @@ public class Painter {
 		}
 
 		// Paint box
-		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth * operationProgress / 100,
-				labelTop + labelHeight, BWColor.WHITE, true, false);
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth * operationProgress / 100, labelTop + labelHeight,
+				BWColor.WHITE, true, false);
 
 		// Paint box borders
-		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight,
-				BWColor.BLACK, false, false);
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight, BWColor.BLACK, false,
+				false);
 
 		// =========================================================
 		// Display label
@@ -709,12 +697,12 @@ public class Painter {
 		}
 
 		// Paint box
-		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth * hpProgress / 100, labelTop
-				+ labelHeight, color, true, false);
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth * hpProgress / 100, labelTop + labelHeight, color,
+				true, false);
 
 		// Paint box borders
-		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight,
-				BWColor.BLACK, false, false);
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight, BWColor.BLACK, false,
+				false);
 
 		// if (unit.getType().isBunker()) {
 		//
@@ -735,27 +723,24 @@ public class Painter {
 				progress,
 				1.0,
 				0.0,
-				new String[] { BWColor.getToStringHex(BWColor.RED),
-						BWColor.getToStringHex(BWColor.YELLOW),
+				new String[] { BWColor.getToStringHex(BWColor.RED), BWColor.getToStringHex(BWColor.YELLOW),
 						BWColor.getToStringHex(BWColor.GREEN) });
 		stringToDisplay = color + labelProgress + "%";
 
 		// Paint box
-		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth * labelProgress / 100,
-				labelTop + labelHeight, BWColor.BLUE, true, false);
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth * labelProgress / 100, labelTop + labelHeight,
+				BWColor.BLUE, true, false);
 
 		// Paint box borders
-		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight,
-				BWColor.BLACK, false, false);
+		bwapi.drawBox(labelLeft, labelTop, labelLeft + labelMaxWidth, labelTop + labelHeight, BWColor.BLACK, false,
+				false);
 
 		// Paint label
 		bwapi.drawText(labelLeft + labelMaxWidth / 2 - 8, labelTop - 3, stringToDisplay, false);
 
 		// Display name of unit
-		String name = (UnitType.getUnitTypesByID(unit.getBuildTypeID()) + "")
-				.replace("Terran_", "");
-		bwapi.drawText(unit.getX() - 25, unit.getY() - 4, BWColor.getToStringHex(BWColor.GREEN)
-				+ name, false);
+		String name = (UnitType.getUnitTypesByID(unit.getBuildTypeID()) + "").replace("Terran_", "");
+		bwapi.drawText(unit.getX() - 25, unit.getY() - 4, BWColor.getToStringHex(BWColor.GREEN) + name, false);
 	}
 
 	@SuppressWarnings("static-access")
@@ -770,9 +755,8 @@ public class Painter {
 		paintMainMessage(xvr, "Lost: " + ourDeaths);
 		if (StrategyManager.getTargetUnit() != null) {
 			Unit attack = StrategyManager.getTargetUnit();
-			paintMainMessage(xvr,
-					"Attack target: " + attack.getName() + " ## visible:" + attack.isVisible()
-							+ ", exists:" + attack.isExists() + ", HP:" + attack.getHP());
+			paintMainMessage(xvr, "Attack target: " + attack.getName() + " ## visible:" + attack.isVisible()
+					+ ", exists:" + attack.isExists() + ", HP:" + attack.getHP());
 		}
 
 		if (FULL_DEBUG) {
@@ -781,36 +765,21 @@ public class Painter {
 			paintMainMessage(xvr, "HQs: " + UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE));
 
 			if (UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE) > 0)
-				paintMainMessage(xvr,
-						"Barracks: " + UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE));
+				paintMainMessage(xvr, "Barracks: " + UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE));
 
 			if (UnitCounter.getNumberOfUnitsCompleted(UnitTypes.Terran_Bunker) > 0)
-				paintMainMessage(
-						xvr,
-						"Bunkers: "
-								+ UnitCounter.getNumberOfUnitsCompleted(UnitTypes.Terran_Bunker));
+				paintMainMessage(xvr, "Bunkers: " + UnitCounter.getNumberOfUnitsCompleted(UnitTypes.Terran_Bunker));
 
 			if (UnitCounter.getNumberOfUnitsCompleted(UnitTypes.Terran_Factory) > 0)
-				paintMainMessage(
-						xvr,
-						"Factories: "
-								+ UnitCounter.getNumberOfUnitsCompleted(UnitTypes.Terran_Factory));
+				paintMainMessage(xvr, "Factories: " + UnitCounter.getNumberOfUnitsCompleted(UnitTypes.Terran_Factory));
 
 			paintMainMessage(xvr, "--------------------");
 
-			paintMainMessage(
-					xvr,
-					"SCVs: ("
-							+ UnitCounter.getNumberOfUnitsCompleted(UnitManager.WORKER)
-							+ " / "
-							+ TerranCommandCenter.getOptimalMineralGatherersAtBase(xvr
-									.getFirstBase()) + ")");
+			paintMainMessage(xvr, "SCVs: (" + UnitCounter.getNumberOfUnitsCompleted(UnitManager.WORKER) + " / "
+					+ TerranCommandCenter.getOptimalMineralGatherersAtBase(xvr.getFirstBase()) + ")");
 
-			paintMainMessage(
-					xvr,
-					"Gath. gas: ("
-							+ TerranCommandCenter.getNumberOfGasGatherersForBase(xvr.getFirstBase())
-							+ ")");
+			paintMainMessage(xvr,
+					"Gath. gas: (" + TerranCommandCenter.getNumberOfGasGatherersForBase(xvr.getFirstBase()) + ")");
 
 			UnitTypes type;
 
@@ -851,8 +820,7 @@ public class Painter {
 			if (StrategyManager.getMinBattleUnits() > 0) {
 				minUnitsString += " (min. " + StrategyManager.getMinBattleUnits() + ")";
 			}
-			paintMainMessage(xvr, "Battle units: " + UnitCounter.getNumberOfBattleUnits()
-					+ minUnitsString);
+			paintMainMessage(xvr, "Battle units: " + UnitCounter.getNumberOfBattleUnits() + minUnitsString);
 
 			String buildArmy = "";
 			if (ArmyCreationManager.weShouldBuildBattleUnits()) {
@@ -866,10 +834,8 @@ public class Painter {
 			paintMainMessage(xvr, "Attack ready: " + (attackPending ? "YES" : "no"));
 
 			if (attackPending) {
-				paintMainMessage(
-						xvr,
-						"(distance allowed: "
-								+ (int) StrategyManager.getAllowedDistanceFromSafePoint() + ")");
+				paintMainMessage(xvr, "(distance allowed: " + (int) StrategyManager.getAllowedDistanceFromSafePoint()
+						+ ")");
 			}
 
 			paintMainMessage(xvr, "--------------------");
@@ -881,10 +847,9 @@ public class Painter {
 		}
 
 		for (UnitTypes type : ShouldBuildCache.getBuildingsThatShouldBeBuild()) {
-			paintMainMessage(xvr,
-					"-> "
-							+ type.name().substring(0, Math.min(17, type.name().length()))
-									.toUpperCase().replace("TERRAN_", "") + ": true");
+			paintMainMessage(xvr, "-> "
+					+ type.name().substring(0, Math.min(17, type.name().length())).toUpperCase().replace("TERRAN_", "")
+					+ ": true");
 		}
 	}
 
@@ -929,9 +894,7 @@ public class Painter {
 
 		message += ": " + valueString;
 
-		xvr.getBwapi().drawText(
-				new Point(318 - message.length() * 3, 3 + 10 * debugMessageCounter++), message,
-				true);
+		xvr.getBwapi().drawText(new Point(318 - message.length() * 3, 3 + 10 * debugMessageCounter++), message, true);
 	}
 
 }
