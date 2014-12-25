@@ -134,7 +134,7 @@ public class Painter {
 		// }
 
 		if (FULL_DEBUG) {
-			paintTest();
+			// paintTest();
 			paintTimeConsumption();
 			paintBuildingsToConstructPosition();
 			paintSpeculatedEnemyTanksPositions();
@@ -146,36 +146,8 @@ public class Painter {
 			paintValuesOverUnits();
 		}
 
-		// // Draw regions
-		// for (Region region : xvr.getBwapi().getMap().getRegions()) {
-		// int[] bounds = region.getCoordinates();
-		// xvr.getBwapi().drawBox(bounds[0] - bounds[2],
-		// bounds[1] - bounds[3], 2 * bounds[2], 2 * bounds[3],
-		// BWColor.TEAL, false, false);
-		// xvr.getBwapi()
-		// .drawText(
-		// region.getCenterX(),
-		// region.getCenterY(),
-		// String.format("Region [%d]", region
-		// .getChokePoints().size()), false);
-		// }
-
-		// // Draw next building place
-		// MapPoint buildTile = ProtossPylon.findTileNearPylonForNewBuilding();
-		// if (buildTile != null) {
-		// xvr.getBwapi().drawCircle(buildTile.getX() - 64,
-		// buildTile.getX() - 48, 50, BWColor.TEAL, false, false);
-		// }
-
-		// xvr.getBwapi()
-		// .drawText(
-		// region.getCenterX(),
-		// region.getCenterY(),
-		// String.format("Region [%d]", region
-		// .getChokePoints().size()), false);
-
 		// Draw choke points
-		paintChokePoints();
+		// paintChokePoints();
 
 		// Draw where to attack
 		paintAttackLocation();
@@ -209,17 +181,17 @@ public class Painter {
 	// =========================================================
 
 	private static void paintTest() {
-		if (TerranBunker.getNumberOfUnits() > 0) {
-			// ArrayList<Unit> bunkers =
-			// xvr.getUnitsOfType(UnitTypes.Terran_Bunker);
-			// if (!bunkers.isEmpty()) {
-			// Unit bunker = bunkers.get(0);
-			//
-			// bunker.getRegion()
-			// }
+		// if (TerranBunker.getNumberOfUnits() > 0) {
+		// ArrayList<Unit> bunkers =
+		// xvr.getUnitsOfType(UnitTypes.Terran_Bunker);
+		// if (!bunkers.isEmpty()) {
+		// Unit bunker = bunkers.get(0);
+		//
+		// bunker.getRegion()
+		// }
 
-			// xvr.getFirstBase().getRegion().;
-		}
+		// xvr.getFirstBase().getRegion().;
+		// }
 	}
 
 	private static void paintRenzdezvousPoints() {
