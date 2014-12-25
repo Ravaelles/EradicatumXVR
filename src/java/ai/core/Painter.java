@@ -21,9 +21,7 @@ import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.buildings.BuildingManager;
-import ai.managers.units.buildings.BuildingRepairManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
-import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
@@ -118,6 +116,14 @@ public class Painter {
 	}
 
 	public static void paintAll(XVR xvr) {
+
+		// SUPER-SPEED UP, turn of entire painting
+		// if (true) {
+		// return;
+		// }
+
+		// =========================================================
+
 		Painter.xvr = xvr;
 
 		CodeProfiler.startMeasuring("Painting");
@@ -140,11 +146,11 @@ public class Painter {
 			paintSpeculatedEnemyTanksPositions();
 			paintRenzdezvousPoints();
 		}
-		paintUnitsDetails();
-
-		if (FULL_DEBUG) {
-			paintValuesOverUnits();
-		}
+		// paintUnitsDetails();
+		//
+		// if (FULL_DEBUG) {
+		// paintValuesOverUnits();
+		// }
 
 		// Draw choke points
 		// paintChokePoints();
@@ -423,36 +429,16 @@ public class Painter {
 
 		// =========================================================
 		// Paint next BUNKER position
-		if (TerranBunker.getNumberOfUnits() == 0) {
-			MapPoint building = null;
-			building = TerranBunker.findTileForBunker();
-			if (building != null) {
-				xvr.getBwapi().drawBox(building.getX(), building.getY(), building.getX() + 2 * 32,
-						building.getY() + 2 * 32, BWColor.TEAL, false, false);
-				xvr.getBwapi().drawText(building.getX() + 10, building.getY() + 30,
-						BWColor.getToStringHex(BWColor.TEAL) + "Bunker", false);
-			}
-		}
-
-		// // Paint next PYLON position
-		// building = ProtossPylon.findTileForPylon();
+		// if (TerranBunker.getNumberOfUnits() == 0) {
+		// MapPoint building = null;
+		// building = TerranBunker.findTileForBunker();
 		// if (building != null) {
 		// xvr.getBwapi().drawBox(building.getX(), building.getY(),
-		// building.getX() + 2 * 32, building.getY() + 2 * 32,
-		// BWColor.TEAL, false, false);
+		// building.getX() + 2 * 32,
+		// building.getY() + 2 * 32, BWColor.TEAL, false, false);
 		// xvr.getBwapi().drawText(building.getX() + 10, building.getY() + 30,
-		// "Pylon", false);
+		// BWColor.getToStringHex(BWColor.TEAL) + "Bunker", false);
 		// }
-		//
-		// Paint GATEWAY position
-		// building = TerranBarracks
-		// .findTileNearPylonForNewBuilding(UnitTypes.Protoss_Gateway);
-		// if (building != null) {
-		// xvr.getBwapi().drawBox(building.getX(), building.getY(),
-		// building.getX() + 2 * 32, building.getY() + 2 * 32,
-		// BWColor.TEAL, false, false);
-		// xvr.getBwapi().drawText(building.getX() + 10, building.getY() + 30,
-		// "Gateway", false);
 		// }
 	}
 
@@ -638,21 +624,25 @@ public class Painter {
 			bwapi.drawText(u.getX() - string.length() * 4, u.getY(),
 					BWColor.getToStringHex(BWColor.RED) + string, false);
 		}
-		if (u.getType().isBunker()) {
-			int repairers = BuildingRepairManager.countNumberOfRepairersForBuilding(u);
-			if (repairers > 0) {
-				String repairersString = repairers + " repairers";
-				bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 10,
-						BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
-			}
-
-			int specialCaseRepairers = BuildingRepairManager.getSpecialCaseRepairers(u);
-			if (specialCaseRepairers > 0) {
-				String repairersString = specialCaseRepairers + " required";
-				bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() + 20,
-						BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
-			}
-		}
+		// if (u.getType().isBunker()) {
+		// int repairers =
+		// BuildingRepairManager.countNumberOfRepairersForBuilding(u);
+		// if (repairers > 0) {
+		// String repairersString = repairers + " repairers";
+		// bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() +
+		// 10,
+		// BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
+		// }
+		//
+		// int specialCaseRepairers =
+		// BuildingRepairManager.getSpecialCaseRepairers(u);
+		// if (specialCaseRepairers > 0) {
+		// String repairersString = specialCaseRepairers + " required";
+		// bwapi.drawText(u.getX() - repairersString.length() * 4, u.getY() +
+		// 20,
+		// BWColor.getToStringHex(BWColor.ORANGE) + repairersString, false);
+		// }
+		// }
 	}
 
 	private static void paintTraining(Unit unit) {

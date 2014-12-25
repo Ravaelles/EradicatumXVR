@@ -13,9 +13,11 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.RunManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
+import ai.managers.units.coordination.FrontLineManager;
 import ai.utils.RUtilities;
 
 public class TerranVulture {
@@ -104,6 +106,14 @@ public class TerranVulture {
 	}
 
 	private static void actOffensively(Unit unit) {
+		if (!StrategyManager.isAnyAttackFormPending()) {
+			actIndividually(unit);
+		} else {
+			FrontLineManager.actOffensively(unit, FrontLineManager.MODE_FRONT_GUARD);
+		}
+	}
+
+	private static void actIndividually(Unit unit) {
 
 		// Get base locations near enemy, or buildings and try to go there.
 		MapPoint pointToHarass = defineNeighborhoodToHarass(unit);
@@ -137,7 +147,6 @@ public class TerranVulture {
 			UnitActions.spreadOutRandomly(unit);
 			unit.setAiOrder("Spread/harass");
 		}
-
 	}
 
 	// =========================================================

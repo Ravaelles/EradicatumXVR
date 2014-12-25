@@ -78,9 +78,12 @@ public class FrontLineManager {
 
 		// If unit is way too far than allowed, go back
 		if (allowedMaxDistance - distanceToDefensivePoint > 4) {
-			UnitActions.moveToSafePlace(unit);
+			actionKeepTheLine(unit);
 			unit.setAiOrder("Back off");
-		} else {
+		}
+
+		// Unit isn't too far behind the line
+		else {
 
 			// If this unit is in vanguard, make it wait
 			if (mode == MODE_VANGUARD) {
@@ -96,6 +99,17 @@ public class FrontLineManager {
 				UnitActions.moveToSafePlace(unit);
 				unit.setAiOrder(null);
 			}
+		}
+	}
+
+	private static void actionKeepTheLine(Unit unit) {
+		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
+				.getRendezvousTankForGroundUnits();
+
+		if (rendezvousTankForGroundUnits != null) {
+			UnitActions.attackTo(unit, rendezvousTankForGroundUnits);
+		} else {
+			UnitActions.moveToSafePlace(unit);
 		}
 	}
 

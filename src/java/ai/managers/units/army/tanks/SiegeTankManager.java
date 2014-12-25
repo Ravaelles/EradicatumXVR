@@ -13,6 +13,7 @@ import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
+import ai.managers.units.coordination.FrontLineManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranSiegeTank;
 
@@ -104,36 +105,40 @@ public class SiegeTankManager {
 	}
 
 	private static void actOffensively(Unit unit) {
-		MapPoint offensivePoint = ArmyRendezvousManager.getOffensivePoint();
-
-		// If target is invalid or we're very close to target, spread out.
-		if (offensivePoint == null || offensivePoint.distanceTo(unit) < 4) {
-			UnitActions.spreadOutRandomly(unit);
-		}
-
-		// Target is valid, but it's still far. Proceed forward.
-		unit.setAiOrder("Forward!");
-		UnitActions.attackTo(unit, offensivePoint);
-
-		// =========================================================
-		// KEEP THE LINE, ADVANCE PROGRESSIVELY
-		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
-		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
-		double allowedMaxDistance = StrategyManager.getAllowedDistanceFromSafePoint();
-
-		// Unit has advanced, but is too far behind the front line.
-		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 10
-				&& unit.distanceTo(xvr.getFirstBase()) > 36) {
-
-			// If unit is way too far than allowed, go back
-			if (allowedMaxDistance - distanceToDefensivePoint > 4) {
-				UnitActions.moveToSafePlace(unit);
-				unit.setAiOrder("Back off");
-			} else {
-				UnitActions.holdPosition(unit);
-				unit.setAiOrder("Wait");
-			}
-		}
+		FrontLineManager.actOffensively(unit, FrontLineManager.MODE_VANGUARD);
+		// MapPoint offensivePoint = ArmyRendezvousManager.getOffensivePoint();
+		//
+		// // If target is invalid or we're very close to target, spread out.
+		// if (offensivePoint == null || offensivePoint.distanceTo(unit) < 4) {
+		// UnitActions.spreadOutRandomly(unit);
+		// }
+		//
+		// // Target is valid, but it's still far. Proceed forward.
+		// unit.setAiOrder("Forward!");
+		// UnitActions.attackTo(unit, offensivePoint);
+		//
+		// // =========================================================
+		// // KEEP THE LINE, ADVANCE PROGRESSIVELY
+		// MapPoint defensivePoint =
+		// ArmyRendezvousManager.getDefensivePointForTanks();
+		// double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
+		// double allowedMaxDistance =
+		// StrategyManager.getAllowedDistanceFromSafePoint();
+		//
+		// // Unit has advanced, but is too far behind the front line.
+		// if (distanceToDefensivePoint > allowedMaxDistance &&
+		// distanceToDefensivePoint > 10
+		// && unit.distanceTo(xvr.getFirstBase()) > 32) {
+		//
+		// // If unit is way too far than allowed, go back
+		// if (allowedMaxDistance - distanceToDefensivePoint > 4) {
+		// UnitActions.moveToSafePlace(unit);
+		// unit.setAiOrder("Back off");
+		// } else {
+		// UnitActions.holdPosition(unit);
+		// unit.setAiOrder("Wait");
+		// }
+		// }
 	}
 
 	// =========================================================
@@ -184,8 +189,21 @@ public class SiegeTankManager {
 			unit.setAiOrder("Unsiege: OK");
 			if (!mustSiege(unit) && !shouldSiege(unit)) {
 				unit.unsiege();
+				return;
 			}
 		}
+
+		// =========================================================
+		// Check if should unsiege because of pending attack
+		if (shouldUnsiegeBecauseOfPendingAttack(unit)) {
+			unit.unsiege();
+			return;
+		}
+	}
+
+	private static boolean shouldUnsiegeBecauseOfPendingAttack(Unit unit) {
+		return unit.isSieged() && StrategyManager.isAnyAttackFormPending()
+				&& unit.distanceTo(ArmyRendezvousManager.getDefensivePoint(unit)) < 7;
 	}
 
 	// =========================================================

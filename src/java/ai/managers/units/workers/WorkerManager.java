@@ -57,7 +57,7 @@ public class WorkerManager {
 	}
 
 	private static void handleProfessionalRepairer(Unit unit) {
-		unit.setAiOrder("Ima Repairer, boetch");
+		unit.setAiOrder("Bunker repairer");
 
 		Unit beHere = null;
 		// professionalRepairer = unit;

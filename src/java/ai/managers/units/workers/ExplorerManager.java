@@ -387,7 +387,7 @@ public class ExplorerManager {
 		if ((explorer.isGatheringGas() || explorer.isGatheringMinerals())
 				&& TerranCommandCenter.shouldBuild()) {
 			MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
-			if (nextBase != null) {
+			if (nextBase != null && !xvr.getBwapi().isVisible(nextBase)) {
 				explorer.setAiOrder("Explore base");
 				UnitActions.moveTo(explorer, nextBase.translate(-1, -1));
 			}

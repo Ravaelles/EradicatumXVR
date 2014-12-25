@@ -10,6 +10,7 @@ import ai.core.XVR;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
+import ai.handling.units.UnitAiOrders;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.BunkerManager;
@@ -124,7 +125,10 @@ public class UnitManager {
 
 		// Make sure unit will get repaired
 		if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
-			unit.setAiOrder("To repair!");
+			if (unit.isSieged()) {
+				unit.unsiege();
+			}
+			unit.setAiOrder(UnitAiOrders.ORDER_TO_REPAIR);
 			return;
 		}
 

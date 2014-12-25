@@ -100,7 +100,7 @@ public class ArmyRendezvousManager {
 		return TerranSiegeTank.getFrontTank();
 	}
 
-	private static MapPoint getRendezvousTankForGroundUnits() {
+	public static MapPoint getRendezvousTankForGroundUnits() {
 		return TerranSiegeTank.getFrontTank();
 	}
 
