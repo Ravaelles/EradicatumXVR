@@ -80,11 +80,14 @@ public class Constructing {
 		// gradually increasing search radius
 		int currentDist = minimumDist;
 		while (currentDist <= maximumDist) {
+			int step = Math.max(2 * currentDist, 1);
 			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
 				// if (isDepot && (i % 3 != 0 || i % 9 == 0)) {
 				// continue;
 				// }
-				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
+				// for (int j = tileY - currentDist; j <= tileY + currentDist;
+				// j++) {
+				for (int j = tileY - currentDist; j <= tileY + currentDist; j += step) {
 					MapPoint position = ConstructionPlaceFinder.shouldBuildHere(type, i, j);
 					if (position != null) {
 						return position;

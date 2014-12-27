@@ -143,7 +143,7 @@ public class Painter {
 		// if (FULL_DEBUG) {
 		// paintTestConstructionPlaces();
 		// paintTimeConsumption();
-		// paintBuildingsToConstructPosition();
+		paintBuildingsToConstructPosition();
 		// paintSpeculatedEnemyTanksPositions();
 		// paintRenzdezvousPoints();
 		// }

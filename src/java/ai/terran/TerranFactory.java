@@ -84,7 +84,7 @@ public class TerranFactory {
 		// =========================================================
 		// Begin EASY-WAY
 
-		if (factories < 2 && battleUnits >= 3 && xvr.canAfford(0, 1)) {
+		if (factories < 2 && (battleUnits >= 3 || xvr.canAfford(300, 100)) && xvr.canAfford(0, 1)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 

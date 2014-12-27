@@ -15,6 +15,7 @@ import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.RunManager;
+import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.managers.units.coordination.FrontLineManager;
@@ -44,6 +45,11 @@ public class TerranVulture {
 		// =========================
 		// Look out for enemy defensive buildings.
 		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+			return true;
+		}
+
+		// Avoid enemy tanks in Siege Mode
+		if (EnemyTanksManager.tryAvoidingEnemyTanks(unit)) {
 			return true;
 		}
 

@@ -526,7 +526,7 @@ public class WorkerManager {
 		while (nearestUnit == null && counter < 2) {
 			for (Unit otherUnit : xvr.getUnitsOfType(UnitManager.WORKER)) {
 				if (!otherUnit.isCompleted() || otherUnit.isRepairing()
-						|| otherUnit.isConstructing()) {
+						|| otherUnit.isConstructing() || otherUnit.getID() % 2 == 0) {
 					continue;
 				}
 

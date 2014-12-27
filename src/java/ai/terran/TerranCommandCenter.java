@@ -75,6 +75,10 @@ public class TerranCommandCenter {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
+		if (bases >= 4) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		// End EASY-WAY
 		// =========================================================
 

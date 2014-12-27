@@ -145,7 +145,7 @@ public class ConstructionPlaceFinder {
 		// For each building nearby define if it's not too close to this build
 		// tile. If so, reject this build tile.
 		for (Unit unit : buildingsNearby) {
-			if (unit.isLifted()) {
+			if (unit.isLifted() || unit.isSupplyDepot()) {
 				continue;
 			}
 
@@ -171,7 +171,7 @@ public class ConstructionPlaceFinder {
 			UnitType unitType = unit.getType();
 			if (type.canHaveAddOn() && !unit.hasAddOn()) {
 				// bonus++;
-				dx = 32;
+				dx = 64;
 			}
 			if (unitType.isBase()) {
 				dx += 32;

@@ -18,6 +18,9 @@ public class BuildingRepairManager {
 	// =========================================================
 
 	protected static void handleBuildingsNeedingRepair(Unit building) {
+		if (!building.isBunker() && !building.isMissileTurret()) {
+			return;
+		}
 
 		// =========================================================
 		// Do not repair buildings far from base other than bunker

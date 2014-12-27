@@ -24,7 +24,7 @@ public class RunManager {
 	}
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit, double safeDistance) {
-		if (unit.getGroundWeaponCooldown() == 0 && unit.getHPPercent() > 45) {
+		if (unit.getGroundWeaponCooldown() == 0 && unit.getHPPercent() > 65) {
 			return false;
 		}
 
@@ -41,7 +41,7 @@ public class RunManager {
 
 				// If close unit is strong and there're many of them, include
 				// enemy range.
-				if (enemy.getHP() >= 50 && enemyUnitsInRadius.size() >= 4) {
+				if (enemy.getHP() >= 50 && enemyUnitsInRadius.size() >= 2) {
 					int enemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles();
 					distToEnemy -= enemyRange;
 				}
