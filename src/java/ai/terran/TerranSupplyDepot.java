@@ -13,6 +13,7 @@ import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
+import ai.managers.constructing.ConstructionPlaceFinder;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
@@ -30,6 +31,7 @@ public class TerranSupplyDepot {
 	private static XVR xvr = XVR.getInstance();
 
 	// =========================================================
+	// Should build?
 
 	public static boolean shouldBuild() {
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
@@ -65,7 +67,7 @@ public class TerranSupplyDepot {
 		}
 
 		// ZERG RUSH
-		if (XVR.isEnemyZerg()) {
+		if (xvr.isEnemyZerg()) {
 			if (barracks == 0) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 				return false;
@@ -146,31 +148,51 @@ public class TerranSupplyDepot {
 	}
 
 	// =========================================================
+	// Find place for new building
 
-	public static void buildIfNecessary() {
-		if (xvr.canAfford(100)) {
+	private static MapPoint findLegitTileForDepot(MapPoint buildNearToHere, Unit builder) {
+		int tileX = buildNearToHere.getTx();
+		int tileY = buildNearToHere.getTy();
 
-			// It only makes sense to build Supply Depot if supplies less than
-			// X.
-			if (shouldBuild()) {
-				Constructing.construct(xvr, buildingType);
+		int currentDist = DEPOT_FROM_DEPOT_MIN_DISTANCE;
+		while (currentDist <= DEPOT_FROM_DEPOT_MAX_DISTANCE) {
+			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
+				if (i % 3 != 0 || i % 9 == 0) {
+					continue;
+				}
+				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
+					if (j % 2 != 0 || j % 6 == 0) {
+						continue;
+					}
+					int x = i * 32;
+					int y = j * 32;
+					if (Constructing.canBuildHere(builder, unitType, i, j)
+							&& xvr.getUnitsOfGivenTypeInRadius(buildingType,
+									DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true).isEmpty()) {
+						MapPointInstance point = new MapPointInstance(x, y);
+						if (!ConstructionPlaceFinder.isTooNearMineralsOrGeyser(
+								buildingType.getType(), point)) {
+
+							// Damn, try NOT to build in the middle of narrow
+							// choke point.
+							if (!ConstructionPlaceFinder.isTooCloseToAnyChokePoint(point)) {
+
+								// Distance to the base must be big enough
+								if (point.distanceTo(xvr.getFirstBase().translate(5, 2)) >= 3) {
+									return point;
+								}
+							}
+						}
+					}
+					if (j % 4 == 0) {
+						j += 2;
+					}
+				}
 			}
+
+			currentDist++;
 		}
-	}
-
-	private static Unit getRandomSupplyDepot() {
-		ArrayList<Unit> pylons = getSupplyDepots();
-		return (Unit) RUtilities.getRandomListElement(pylons);
-	}
-
-	public static double calculateExistingPylonsStrength() {
-		double result = 0;
-
-		for (Unit pylon : xvr.getUnitsOfType(buildingType)) {
-			result += (double) pylon.getHP() / 500;
-		}
-
-		return result;
+		return null;
 	}
 
 	public static MapPoint findTileForDepot() {
@@ -209,52 +231,36 @@ public class TerranSupplyDepot {
 
 	}
 
-	private static MapPoint findTileForSupplyDepotNearby(MapPoint point, int minDist, int maxDist) {
-		return findLegitTileForDepot(point, Constructing.getRandomWorker());
+	// =========================================================
+
+	public static void buildIfNecessary() {
+		if (xvr.canAfford(100)) {
+
+			// It only makes sense to build Supply Depot if supplies less than
+			// X.
+			if (shouldBuild()) {
+				Constructing.construct(xvr, buildingType);
+			}
+		}
 	}
 
-	private static MapPoint findLegitTileForDepot(MapPoint buildNearToHere, Unit builder) {
-		int tileX = buildNearToHere.getTx();
-		int tileY = buildNearToHere.getTy();
+	private static Unit getRandomSupplyDepot() {
+		ArrayList<Unit> pylons = getSupplyDepots();
+		return (Unit) RUtilities.getRandomListElement(pylons);
+	}
 
-		int currentDist = DEPOT_FROM_DEPOT_MIN_DISTANCE;
-		while (currentDist <= DEPOT_FROM_DEPOT_MAX_DISTANCE) {
-			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
-				if (i % 3 != 0 || i % 9 == 0) {
-					continue;
-				}
-				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
-					if (j % 2 != 0 || j % 6 == 0) {
-						continue;
-					}
-					int x = i * 32;
-					int y = j * 32;
-					if (Constructing.canBuildHere(builder, unitType, i, j)
-							&& xvr.getUnitsOfGivenTypeInRadius(buildingType,
-									DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true).isEmpty()) {
-						MapPointInstance point = new MapPointInstance(x, y);
-						if (!Constructing.isTooNearMineralsOrGeyser(buildingType.getType(), point)) {
+	public static double calculateExistingDepotsStrength() {
+		double result = 0;
 
-							// Damn, try NOT to build in the middle of narrow
-							// choke point.
-							if (!Constructing.isTooCloseToAnyChokePoint(point)) {
-
-								// Distance to the base must be big enough
-								if (point.distanceTo(xvr.getFirstBase().translate(5, 2)) >= 3) {
-									return point;
-								}
-							}
-						}
-					}
-					if (j % 4 == 0) {
-						j += 2;
-					}
-				}
-			}
-
-			currentDist++;
+		for (Unit pylon : xvr.getUnitsOfType(buildingType)) {
+			result += (double) pylon.getHP() / 500;
 		}
-		return null;
+
+		return result;
+	}
+
+	private static MapPoint findTileForSupplyDepotNearby(MapPoint point, int minDist, int maxDist) {
+		return findLegitTileForDepot(point, Constructing.getRandomWorker());
 	}
 
 	private static ArrayList<Unit> getSupplyDepots() {

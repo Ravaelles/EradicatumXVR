@@ -13,22 +13,18 @@ public class TerranArmory {
 	private static final UnitTypes buildingType = UnitTypes.Terran_Armory;
 	private static XVR xvr = XVR.getInstance();
 
-	public static void buildIfNecessary() {
-		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
-		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-	}
+	// =========================================================
 
 	public static boolean shouldBuild() {
 		int factories = UnitCounter.getNumberOfUnits(TerranFactory.getBuildingType());
 		int armories = getNumberOfUnits();
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 
-		if (armories == 0 && factories >= 2 && !weAreBuilding
-				&& !TechnologyManager.isSiegeModeResearchPossible()) {
-			if (UnitCounter.getNumberOfBattleUnits() >= 21) {
+		if (armories == 0
+				&& (factories >= 2 && !weAreBuilding
+						&& !TechnologyManager.isSiegeModeResearchPossible() || TerranFactory.FORCE_GOLIATHS_INSTEAD_VULTURES)) {
+			if (UnitCounter.getNumberOfBattleUnits() >= 12
+					|| TerranFactory.FORCE_GOLIATHS_INSTEAD_VULTURES) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}
@@ -36,6 +32,16 @@ public class TerranArmory {
 
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		return false;
+	}
+
+	// =========================================================
+
+	public static void buildIfNecessary() {
+		if (shouldBuild()) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			Constructing.construct(xvr, buildingType);
+		}
+		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static Unit getOneNotBusy() {

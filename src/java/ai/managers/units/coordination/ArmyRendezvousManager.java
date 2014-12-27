@@ -41,7 +41,8 @@ public class ArmyRendezvousManager {
 
 		// Try to target nearest enemy building that isn't destroyed
 		Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
-		if (nearestEnemyBuilding != null && nearestEnemyBuilding.isExists() && !nearestEnemyBuilding.isOnGeyser()) {
+		if (nearestEnemyBuilding != null && nearestEnemyBuilding.isExists()
+				&& !nearestEnemyBuilding.isOnGeyser()) {
 			return nearestEnemyBuilding;
 		}
 
@@ -145,6 +146,11 @@ public class ArmyRendezvousManager {
 		java.util.Collections.sort(yCoordinates);
 
 		int middleIndex = xCoordinates.size() / 2;
+
+		if (xCoordinates.isEmpty()) {
+			return null;
+		}
+
 		MapPointInstance medianPoint = new MapPointInstance(xCoordinates.get(middleIndex),
 				yCoordinates.get(middleIndex));
 
@@ -169,8 +175,8 @@ public class ArmyRendezvousManager {
 		}
 
 		Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
-		MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding : TerranCommandCenter
-				.getSecondBaseLocation();
+		MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding
+				: TerranCommandCenter.getSecondBaseLocation();
 
 		// Get the list of bunkers that are near to the specified point.
 		ArrayList<Unit> bunkersNearby = xvr.getUnitsInRadius(bunkersNearestTo, 300,
@@ -242,7 +248,8 @@ public class ArmyRendezvousManager {
 				break;
 			}
 		}
-		return new MapPointInstance((int) ((double) totalX / counter), (int) ((double) totalY / counter));
+		return new MapPointInstance((int) ((double) totalX / counter),
+				(int) ((double) totalY / counter));
 	}
 
 	public static MapPoint getArmyMedianPoint() {

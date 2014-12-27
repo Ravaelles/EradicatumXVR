@@ -23,7 +23,7 @@ public class TerranBunker {
 
 	private static final double MAX_DIST_FROM_CHOKE_POINT_MODIFIER = 1.8;
 	public static int GLOBAL_MAX_BUNKERS = 2;
-	public static int MAX_STACK = 2;
+	// public static int GLOBAL_MAX_BUNKERS = 2;
 
 	private static MapPoint _placeToReinforceWithBunker = null;
 	private static int _skipForTurns = 0;
@@ -32,6 +32,14 @@ public class TerranBunker {
 
 	public static boolean shouldBuild() {
 		int bunkers = UnitCounter.getNumberOfUnits(type);
+
+		if (bunkers == 0) {
+			if (TerranBarracks.getNumberOfUnitsCompleted() > 0) {
+				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
+			} else {
+				return ShouldBuildCache.cacheShouldBuildInfo(type, false);
+			}
+		}
 
 		if (bunkers >= GLOBAL_MAX_BUNKERS) {
 			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
@@ -60,11 +68,11 @@ public class TerranBunker {
 				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
 
-			if (bunkers < MAX_STACK && infantryUnits >= bunkers * 3) {
+			if (bunkers < GLOBAL_MAX_BUNKERS && infantryUnits >= bunkers * 3) {
 				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
 
-			if (bunkers >= TerranCommandCenter.getNumberOfUnits() * MAX_STACK) {
+			if (bunkers >= TerranCommandCenter.getNumberOfUnits() * GLOBAL_MAX_BUNKERS) {
 				return ShouldBuildCache.cacheShouldBuildInfo(type, false);
 			}
 
@@ -79,7 +87,7 @@ public class TerranBunker {
 			// return true;
 			// }
 
-			if (bunkers <= maxStack && TerranSupplyDepot.calculateExistingPylonsStrength() >= 1.35
+			if (bunkers <= maxStack && TerranSupplyDepot.calculateExistingDepotsStrength() >= 1.35
 					&& calculateExistingBunkersStrength() < maxStack) {
 				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
@@ -219,10 +227,11 @@ public class TerranBunker {
 	}
 
 	public static int calculateMaxBunkerStack() {
-		return MAX_STACK;
-		// return BotStrategyManager.isExpandWithBunkers() ? MAX_STACK :
+		return GLOBAL_MAX_BUNKERS;
+		// return BotStrategyManager.isExpandWithBunkers() ? GLOBAL_MAX_BUNKERS
+		// :
 		// (UnitCounter
-		// .getNumberOfBattleUnits() >= 8 ? 1 : MAX_STACK);
+		// .getNumberOfBattleUnits() >= 8 ? 1 : GLOBAL_MAX_BUNKERS);
 	}
 
 	private static int calculateBunkersNearby(MapPoint mapPoint) {
@@ -298,8 +307,8 @@ public class TerranBunker {
 		// if (shouldBuildNearMainBase()) {
 		// tileForCannon = findBuildTileNearMainBase();
 		// } else {
-		if (getNumberOfUnits() < MAX_STACK) {
-			if (XVR.isEnemyZerg() && getNumberOfUnits() == 0) {
+		if (getNumberOfUnits() < GLOBAL_MAX_BUNKERS) {
+			if (xvr.isEnemyZerg() && getNumberOfUnits() == 0) {
 				tileForBunker = findTileAtBase(xvr.getFirstBase());
 			} else {
 				tileForBunker = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());

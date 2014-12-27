@@ -24,7 +24,7 @@ public class RunManager {
 	}
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit, double safeDistance) {
-		if (unit.getGroundWeaponCooldown() == 0) {
+		if (unit.getGroundWeaponCooldown() == 0 && unit.getHPPercent() > 45) {
 			return false;
 		}
 

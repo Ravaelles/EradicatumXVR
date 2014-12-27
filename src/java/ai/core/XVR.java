@@ -11,7 +11,7 @@ import jnibwapi.model.Player;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
-import ai.handling.enemy.AdaptStrategyToEnemy;
+import ai.handling.enemy.AdaptStrategy;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
@@ -237,15 +237,15 @@ public class XVR {
 		return bwapi.getMap();
 	}
 
-	public static boolean isEnemyTerran() {
+	public boolean isEnemyTerran() {
 		return enemyTerran;
 	}
 
-	public static boolean isEnemyZerg() {
+	public boolean isEnemyZerg() {
 		return enemyZerg;
 	}
 
-	public static boolean isEnemyProtoss() {
+	public boolean isEnemyProtoss() {
 		return enemyProtoss;
 	}
 
@@ -887,39 +887,25 @@ public class XVR {
 	public static void setEnemyRace(String enemyRaceString) {
 		xvr.ENEMY_RACE = enemyRaceString;
 
-		// String enemyBotName = ENEMY.getName().toLowerCase();
-		// System.out.println("BOT: " + ENEMY.getName());
-
-		// if (MapExploration.getNumberOfStartLocations(lastInstance.getBwapi()
-		// .getMap().getStartLocations()) - 1 > 1) {
-		// BotStrategyManager.setExpandWithCannons(true);
-		// }
-
-		// ============
+		// =========================================================
 		// Protoss
 		if ("Protoss".equals(xvr.ENEMY_RACE)) {
 			enemyProtoss = true;
-			AdaptStrategyToEnemy.setEnemyIsProtoss();
-
-			// boolean shouldExpandWithCannons =
-			// enemyBotName.contains("alberta");
-			// boolean shouldExpandWithCannons = true;
-			// BotStrategyManager.setExpandWithCannons(true);
 		}
 
-		// ============
+		// =========================================================
 		// Zerg
 		else if ("Zerg".equals(xvr.ENEMY_RACE)) {
 			enemyZerg = true;
-			AdaptStrategyToEnemy.setEnemyIsZerg();
 		}
 
-		// ============
+		// =========================================================
 		// Terran
 		else if ("Terran".equals(xvr.ENEMY_RACE)) {
 			enemyTerran = true;
-			AdaptStrategyToEnemy.setEnemyIsTerran();
 		}
+
+		AdaptStrategy.adaptToOpponent();
 	}
 
 	public Unit getRandomWorker() {

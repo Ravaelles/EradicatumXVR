@@ -128,7 +128,7 @@ public class BuildingRepairManager {
 			// + enemiesNearBunker);
 			if (enemiesNearBunker >= 2) {
 				int oursNearBunker = xvr.countUnitsOursInRadius(building, 9);
-				if (XVR.isEnemyProtoss()) {
+				if (xvr.isEnemyProtoss()) {
 					oursNearBunker /= 2;
 				}
 
@@ -159,7 +159,7 @@ public class BuildingRepairManager {
 	}
 
 	private static double defineBunkerRepairersPerEnemyRatio() {
-		if (XVR.isEnemyProtoss()) {
+		if (xvr.isEnemyProtoss()) {
 			return 1;
 		} else {
 			return 0.6;

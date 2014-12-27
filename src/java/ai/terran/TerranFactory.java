@@ -17,6 +17,7 @@ public class TerranFactory {
 	public static UnitTypes VULTURE = UnitTypes.Terran_Vulture;
 	public static UnitTypes GOLIATH = UnitTypes.Terran_Goliath;
 
+	public static boolean FORCE_GOLIATHS_INSTEAD_VULTURES = false;
 	public static boolean FORCE_FACTORY_BEFORE_SECOND_BASE = false;
 
 	private static final int MAX_FACTORIES = 4;
@@ -25,8 +26,8 @@ public class TerranFactory {
 	private static final int MINIMUM_GOLIATHS_EARLY = 2;
 	private static final int MINIMUM_GOLIATHS_LATER = 6;
 
-	private static final int tanksPercentage = 30;
-	private static final int vulturesPercentage = 40;
+	private static final int tanksPercentage = 25;
+	private static final int vulturesPercentage = 50;
 	private static final int goliathsPercentage = 30;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Factory;
@@ -106,11 +107,13 @@ public class TerranFactory {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
-		if (TerranBunker.GLOBAL_MAX_BUNKERS >= 2 && xvr.getTimeSeconds() < 500) {
-			if (!xvr.canAfford(250) && TerranBunker.getNumberOfUnits() < TerranBunker.MAX_STACK) {
-				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			}
-		}
+		// if (TerranBunker.GLOBAL_MAX_BUNKERS >= 2 && xvr.getTimeSeconds() <
+		// 500) {
+		// if (!xvr.canAfford(250) && TerranBunker.getNumberOfUnits() <
+		// TerranBunker.GLOBAL_MAX_BUNKERS) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
+		// }
 
 		if (factories >= 1 && !xvr.canAfford(550) && xvr.getTimeSeconds() < 800
 				&& TerranCommandCenter.shouldBuild()) {
@@ -187,7 +190,7 @@ public class TerranFactory {
 		boolean notEnoughVultures = vultures < TerranVulture.CRITICALLY_FEW_VULTURES;
 		boolean notEnoughTanks = vultures < MINIMUM_TANKS;
 		boolean notEnoughGoliaths = xvr.getTimeSeconds() < 800 ? goliaths < MINIMUM_GOLIATHS_EARLY
-				: goliaths < MINIMUM_GOLIATHS_LATER;
+				: (goliaths - 1) < vultures;
 
 		// ==================
 		// If very little units, below critical limit
@@ -198,7 +201,11 @@ public class TerranFactory {
 		}
 
 		// GOLIATH
-		if (freeGas >= 50 && goliathsAllowed && notEnoughGoliaths) {
+		if (freeGas >= 200 && goliathsAllowed && notEnoughGoliaths
+				|| FORCE_GOLIATHS_INSTEAD_VULTURES) {
+			if (UnitCounter.getNumberOfUnits(TerranArmory.getBuildingType()) == 0) {
+				TerranArmory.buildIfNecessary();
+			}
 			return GOLIATH;
 		}
 

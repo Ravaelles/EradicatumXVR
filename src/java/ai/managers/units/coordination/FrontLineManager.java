@@ -54,6 +54,10 @@ public class FrontLineManager {
 			unit.unsiege();
 		}
 
+		if (StrategyManager.FORCE_CRAZY_ATTACK) {
+			return;
+		}
+
 		// =========================================================
 		// KEEP THE LINE, ADVANCE PROGRESSIVELY
 		double allowedMaxDistance = StrategyManager.getAllowedDistanceFromSafePoint();
@@ -84,7 +88,8 @@ public class FrontLineManager {
 
 	// =========================================================
 
-	private static void actionUnitTooFarBehindTheFrontLine(Unit unit, int mode, double allowedMaxDistance) {
+	private static void actionUnitTooFarBehindTheFrontLine(Unit unit, int mode,
+			double allowedMaxDistance) {
 		if (unit.isSieged()) {
 			unit.unsiege();
 		}
@@ -119,7 +124,8 @@ public class FrontLineManager {
 	}
 
 	private static void actionKeepTheLine(Unit unit) {
-		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager.getRendezvousTankForGroundUnits();
+		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
+				.getRendezvousTankForGroundUnits();
 
 		if (rendezvousTankForGroundUnits != null) {
 			UnitActions.attackTo(unit, rendezvousTankForGroundUnits);

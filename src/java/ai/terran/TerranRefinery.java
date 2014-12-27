@@ -31,7 +31,7 @@ public class TerranRefinery {
 		// Begin EASY-WAY
 
 		int minSupply = 14;
-		if (XVR.isEnemyProtoss()) {
+		if (xvr.isEnemyProtoss()) {
 			minSupply += 1;
 		}
 

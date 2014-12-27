@@ -329,7 +329,7 @@ public class StrengthRatio {
 			total += calculateAttackValueOf(unit, forEnemy);
 		}
 
-		if (_defensiveBuildings >= 2 && _ourUnits.size() < 7 && XVR.isEnemyProtoss()) {
+		if (_defensiveBuildings >= 2 && _ourUnits.size() < 7 && xvr.isEnemyProtoss()) {
 			StrategyManager.waitForMoreUnits();
 			total = 99999;
 		}

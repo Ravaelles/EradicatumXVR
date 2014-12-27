@@ -15,6 +15,10 @@ import ai.terran.TerranSiegeTank;
 
 public class StrategyManager {
 
+	public static boolean FORCE_CRAZY_ATTACK = false;
+
+	// =========================================================
+
 	private static XVR xvr = XVR.getInstance();
 
 	// private static final int MINIMUM_INITIAL_ARMY_TO_PUSH_ONE_TIME = 5;
@@ -75,6 +79,7 @@ public class StrategyManager {
 
 	private static double allowedDistanceFromSafePoint = 0;
 	private static int _lastTimeDistancePenalty = 0;
+
 	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.73;
 	private static final int MINIMAL_DISTANCE_FROM_SAFE_POINT = 3;
 
@@ -87,6 +92,13 @@ public class StrategyManager {
 	 * whether to retreat, continue attack or to change target.
 	 */
 	public static void evaluateMassiveAttackOptions() {
+
+		// Always attack?
+		if (FORCE_CRAZY_ATTACK) {
+			currentState = STATE_ATTACK_PENDING;
+			allowedDistanceFromSafePoint = 999;
+			return;
+		}
 
 		// Currently we are nor attacking, nor retreating.
 		if (!isAnyAttackFormPending()) {
@@ -230,7 +242,8 @@ public class StrategyManager {
 			if (base == null) {
 				return;
 			}
-			target = xvr.getUnitNearestFromList(base.getX(), base.getY(), enemyBuildings, true, false);
+			target = xvr.getUnitNearestFromList(base.getX(), base.getY(), enemyBuildings, true,
+					false);
 		}
 
 		// Update the target.

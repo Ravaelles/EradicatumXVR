@@ -29,13 +29,13 @@ public class ConstructingManager {
 
 	public static void act() {
 		_actCounter++;
-		if (_actCounter >= 3) {
+		if (_actCounter >= 9) {
 			_actCounter = 0;
 		}
 
 		// Store info about constructing given building for 3 acts, then
 		// remove all data
-		if (ConstructingHelper._recentConstructionsCounter++ >= 3) {
+		if (ConstructingHelper._recentConstructionsCounter++ >= 9) {
 			ConstructingHelper.resetInfoAboutConstructions();
 		}
 
@@ -43,13 +43,13 @@ public class ConstructingManager {
 		boolean shouldBuildHQ = TerranCommandCenter.shouldBuild();
 		boolean canBuildOtherThingThanHQ = !shouldBuildHQ || xvr.canAfford(550);
 
-		if (_actCounter == 0 && (shouldBuildHQ && !xvr.canAfford(550))) {
+		if (_actCounter == 0 && xvr.getFrames() % 60 == 0 && (shouldBuildHQ && !xvr.canAfford(550))) {
 			TerranCommandCenter.buildIfNecessary();
 		} else if (_actCounter == 1 && canBuildOtherThingThanHQ) {
+			TerranBarracks.buildIfNecessary();
 			TerranAcademy.buildIfNecessary();
 			TerranBunker.buildIfNecessary();
 			TerranFactory.buildIfNecessary();
-			TerranBarracks.buildIfNecessary();
 			TerranComsatStation.buildIfNecessary();
 			TerranControlTower.buildIfNecessary();
 			TerranEngineeringBay.buildIfNecessary();
@@ -71,7 +71,6 @@ public class ConstructingManager {
 		// _lastCheckedForProlongated = xvr.getTimeSeconds();
 		// }
 	}
-
 	// private static void checkForProlongatedConstructions() {
 	// int now = xvr.getFrames();
 	// for (Unit builder : _recentConstructionsTimes.keySet()) {

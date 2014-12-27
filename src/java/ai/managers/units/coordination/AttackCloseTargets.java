@@ -166,7 +166,8 @@ public class AttackCloseTargets {
 
 			enemyToAttack = makeSureItsNotEnemyWorkerAroundTheBase(enemyToAttack);
 
-			if (nearestEnemy != null && isStrengthRatioFavorable && nearestEnemy.isDetected()) {
+			if (nearestEnemy != null && isStrengthRatioFavorable && nearestEnemy.isDetected()
+					&& nearestEnemy.distanceTo(unit) < 14) {
 				attackCloseTarget(unit, nearestEnemy);
 				return true;
 			}

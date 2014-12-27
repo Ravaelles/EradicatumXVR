@@ -23,11 +23,12 @@ public class TerranBarracks {
 
 	private static boolean isPlanAntiAirActive = false;
 
-	public static int MIN_UNITS_FOR_DIFF_BUILDING = TerranBunker.MAX_STACK * 4;
+	public static int MIN_UNITS_FOR_DIFF_BUILDING = TerranBunker.GLOBAL_MAX_BUNKERS * 4;
 	public static int MIN_MEDICS = 2;
 	public static int MAX_BARRACKS = 1;
 
 	public static boolean LIMIT_MARINES = false;
+	public static boolean DONT_USE_INFANTRY = false;
 
 	private static int marinesBuildRatio = 65;
 	private static int firebatBuildRatio = 0;
@@ -39,17 +40,12 @@ public class TerranBarracks {
 		int barracks = UnitCounter.getNumberOfUnits(buildingType);
 		int bases = UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE);
 
-		boolean enoughBarracks = barracks >= MAX_BARRACKS;
-		if (enoughBarracks) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		}
-
 		// =========================================================
 		// ANTI-ZERGLING RUSH
 
 		// If enemy is Zerg make sure you build one barracks, one bunker.
 		// Normally it would be: 2 x Barracks, only then bunker.
-		if (XVR.isEnemyZerg()) {
+		if (xvr.isEnemyZerg()) {
 			if (barracks == 0 && !Constructing.weAreBuilding(buildingType)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
@@ -64,6 +60,18 @@ public class TerranBarracks {
 		}
 
 		// =========================================================
+		// EASY-WAY
+
+		if (barracks == 0 && xvr.getSuppliesUsed() >= 8) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		// =========================================================
+
+		boolean enoughBarracks = barracks >= MAX_BARRACKS;
+		if (enoughBarracks) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
 
 		if (TerranCommandCenter.shouldBuild() && barracks >= (2 * bases)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -81,6 +89,11 @@ public class TerranBarracks {
 	}
 
 	public static void act(Unit barracks) {
+
+		// Disallow production of any infantry
+		if (DONT_USE_INFANTRY) {
+			return;
+		}
 
 		// Disallow making units if there's no bunker early
 		if (TerranBunker.getNumberOfUnits() == 0 && TerranBunker.shouldBuild()
@@ -221,9 +234,9 @@ public class TerranBarracks {
 
 		// FIREBATS
 		// Don't build firebats at all against Terran
-		if (!XVR.isEnemyTerran()) {
+		if (!xvr.isEnemyTerran()) {
 			if (firebatAllowed) {
-				int minFirebats = XVR.isEnemyProtoss() ? 3 : 1;
+				int minFirebats = xvr.isEnemyProtoss() ? 3 : 1;
 				if (firebats < minFirebats && xvr.canAfford(50, 25)) {
 					return FIREBAT;
 				}
@@ -255,7 +268,7 @@ public class TerranBarracks {
 					return MEDIC;
 				}
 			} else {
-				int marinesMinusBunkers = marines - TerranBunker.MAX_STACK * 3;
+				int marinesMinusBunkers = marines - TerranBunker.GLOBAL_MAX_BUNKERS * 3;
 				if (medics < marinesMinusBunkers / 4) {
 					return MEDIC;
 				}

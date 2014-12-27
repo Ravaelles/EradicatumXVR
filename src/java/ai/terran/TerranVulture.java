@@ -22,7 +22,7 @@ import ai.utils.RUtilities;
 
 public class TerranVulture {
 
-	public static final int CRITICALLY_FEW_VULTURES = 4;
+	public static int CRITICALLY_FEW_VULTURES = 2;
 	public static final int SAFE_DISTANCE_FROM_ENEMY_DEFENSIVE_BUILDING = 12;
 	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.85;
 	private static final int MINIMUM_VULTURES_TO_DO_SCOUTING = 5;
@@ -141,8 +141,17 @@ public class TerranVulture {
 								.isConnected(unit, goTo.getX() / 32, goTo.getY() / 32)) {
 				}
 			}
-			UnitActions.attackTo(unit, goTo);
-			unit.setAiOrder("Harass");
+
+			MapPoint safePoint = ArmyRendezvousManager.getDefensivePoint(unit);
+
+			if (safePoint == null
+					|| (safePoint.distanceTo(unit) < 25 && xvr.countUnitsInRadius(unit, 10, true) > 0)) {
+				UnitActions.attackTo(unit, goTo);
+				unit.setAiOrder("Harass");
+			} else if (safePoint != null) {
+				UnitActions.attackTo(unit, safePoint);
+				unit.setAiOrder("Back");
+			}
 		} else {
 			UnitActions.spreadOutRandomly(unit);
 			unit.setAiOrder("Spread/harass");

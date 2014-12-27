@@ -23,7 +23,12 @@ public class TechnologyManager {
 	public static final UpgradeTypes ION_THRUSTERS = UpgradeTypes.Ion_Thrusters;
 	public static final UpgradeTypes VEHICLE_PLATING = UpgradeTypes.Terran_Vehicle_Plating;
 
+	// =========================================================
+
+	public static boolean DISABLE_MINES = false;
 	private static final boolean PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE = true;
+
+	// =========================================================
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -61,8 +66,8 @@ public class TechnologyManager {
 		// Tank Siege Mode
 		technology = TANK_SIEGE_MODE;
 		if (isPossibleSiegeResearch
-				&& (PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE && !isPossibleSpiderResearch || TerranSiegeTank
-						.getNumberOfUnits() >= 2)) {
+				&& (PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE && !isPossibleSpiderResearch
+						|| TerranSiegeTank.getNumberOfUnits() >= 2 || DISABLE_MINES)) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 

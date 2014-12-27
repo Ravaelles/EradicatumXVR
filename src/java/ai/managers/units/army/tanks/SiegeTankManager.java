@@ -16,6 +16,7 @@ import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.coordination.FrontLineManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranSiegeTank;
+import ai.utils.RUtilities;
 
 public class SiegeTankManager {
 
@@ -106,39 +107,10 @@ public class SiegeTankManager {
 
 	private static void actOffensively(Unit unit) {
 		FrontLineManager.actOffensively(unit, FrontLineManager.MODE_VANGUARD);
-		// MapPoint offensivePoint = ArmyRendezvousManager.getOffensivePoint();
-		//
-		// // If target is invalid or we're very close to target, spread out.
-		// if (offensivePoint == null || offensivePoint.distanceTo(unit) < 4) {
-		// UnitActions.spreadOutRandomly(unit);
-		// }
-		//
-		// // Target is valid, but it's still far. Proceed forward.
-		// unit.setAiOrder("Forward!");
-		// UnitActions.attackTo(unit, offensivePoint);
-		//
-		// // =========================================================
-		// // KEEP THE LINE, ADVANCE PROGRESSIVELY
-		// MapPoint defensivePoint =
-		// ArmyRendezvousManager.getDefensivePointForTanks();
-		// double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
-		// double allowedMaxDistance =
-		// StrategyManager.getAllowedDistanceFromSafePoint();
-		//
-		// // Unit has advanced, but is too far behind the front line.
-		// if (distanceToDefensivePoint > allowedMaxDistance &&
-		// distanceToDefensivePoint > 10
-		// && unit.distanceTo(xvr.getFirstBase()) > 32) {
-		//
-		// // If unit is way too far than allowed, go back
-		// if (allowedMaxDistance - distanceToDefensivePoint > 4) {
-		// UnitActions.moveToSafePlace(unit);
-		// unit.setAiOrder("Back off");
-		// } else {
-		// UnitActions.holdPosition(unit);
-		// unit.setAiOrder("Wait");
-		// }
-		// }
+
+		if (!StrategyManager.FORCE_CRAZY_ATTACK && tryGoingBackToMedianTankIfNeeded(unit)) {
+			return;
+		}
 	}
 
 	// =========================================================
@@ -162,7 +134,8 @@ public class SiegeTankManager {
 		}
 
 		// If tank from various reasons shouldn't be here, unsiege.
-		if (!enemyAlmostInSight && !unit.isStartingAttack() && !shouldSiege(unit) && !mustSiege(unit)) {
+		if (!enemyAlmostInSight && !unit.isStartingAttack() && !shouldSiege(unit)
+				&& !mustSiege(unit)) {
 			infoTankIsConsideringUnsieging(unit);
 		}
 
@@ -194,7 +167,7 @@ public class SiegeTankManager {
 
 		// =========================================================
 		// Check if should unsiege because of pending attack
-		if (shouldUnsiegeBecauseOfPendingAttack(unit)) {
+		if (shouldUnsiegeBecauseOfPendingAttack(unit) && !mustSiege(unit)) {
 			unit.unsiege();
 			return;
 		}
@@ -203,6 +176,26 @@ public class SiegeTankManager {
 	private static boolean shouldUnsiegeBecauseOfPendingAttack(Unit unit) {
 		return unit.isSieged() && StrategyManager.isAnyAttackFormPending()
 				&& unit.distanceTo(ArmyRendezvousManager.getDefensivePoint(unit)) < 7;
+	}
+
+	private static boolean tryGoingBackToMedianTankIfNeeded(Unit unit) {
+		if (TerranSiegeTank.getNumberOfUnitsCompleted() <= 1) {
+			return false;
+		}
+
+		// Define tank that is "in the center"
+		Unit medianTank = TerranSiegeTank.getMedianTank();
+
+		// If unit is too far from "median" tank, go back to it.
+		if (medianTank != null && medianTank.distanceTo(unit) > 7) {
+			UnitActions.attackTo(unit,
+					medianTank.translate(-3 + RUtilities.rand(0, 6), -3 + RUtilities.rand(0, 6)));
+
+			return true;
+		}
+
+		// Didn't doo anything, return false
+		return false;
 	}
 
 	// =========================================================
@@ -255,7 +248,8 @@ public class SiegeTankManager {
 
 		// If there's enemy building in range, siege.
 		if (TargettingDetails._nearestEnemyBuilding != null
-				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5 && oursNearby >= 2) {
+				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5
+				&& oursNearby >= 2) {
 			return true;
 		}
 
@@ -327,7 +321,8 @@ public class SiegeTankManager {
 		boolean isNearChoke = nearChoke != null && unit.distanceToChokePoint(nearChoke) <= 3;
 
 		if (isNearBuilding || isNearChoke) {
-			return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7, unit, true) <= 2;
+			return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7,
+					unit, true) <= 2;
 		} else {
 			return false;
 		}

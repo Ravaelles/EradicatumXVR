@@ -251,7 +251,7 @@ public class ExplorerManager {
 		// }
 
 		// Enemy is TERRAN
-		if (XVR.isEnemyTerran()) {
+		if (xvr.isEnemyTerran()) {
 			enemyUnit = xvr.getEnemyWorkerConstructingInRadius(20, explorer);
 		}
 		if (enemyUnit == null) {
