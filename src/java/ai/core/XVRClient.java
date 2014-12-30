@@ -54,7 +54,7 @@ public class XVRClient implements BWAPIEventListener {
 	public void gameStarted() {
 
 		// Game settings
-		bwapi.enableUserInput();
+		// bwapi.enableUserInput();
 		bwapi.setGameSpeed(XVR.GAME_SPEED);
 		bwapi.loadMapData(true);
 

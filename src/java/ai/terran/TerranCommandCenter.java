@@ -384,9 +384,20 @@ public class TerranCommandCenter {
 			return;
 		}
 
+		int maxGasGatherers = WORKERS_PER_GEYSER;
+
+		// =========================================================
+		// Limit gas gatherers if too many gas or gas not needed
+		if (xvr.canAfford(0, 100)
+				&& (TerranVulture.getNumberOfUnits() == 0 || xvr.canAfford(0, 350))) {
+			maxGasGatherers = 1;
+		}
+
+		// =========================================================
+
 		int gasGatherersForBase = getNumberOfGasGatherersForBase(base);
-		if (gasGatherersForBase > WORKERS_PER_GEYSER) {
-			int overLimitWorkers = gasGatherersForBase - WORKERS_PER_GEYSER;
+		if (gasGatherersForBase > maxGasGatherers) {
+			int overLimitWorkers = gasGatherersForBase - maxGasGatherers;
 
 			// Check whether the geyser isn't depleted
 			if (xvr.getUnitOfTypeNearestTo(TerranRefinery.getBuildingType(), base).getResources() < 40) {
@@ -398,9 +409,9 @@ public class TerranCommandCenter {
 				haveOverLimitGasWorkers(base, overLimitWorkers);
 			}
 		} else {
-			int numRequiredWorkers = WORKERS_PER_GEYSER - gasGatherersForBase;
+			int numRequiredWorkers = maxGasGatherers - gasGatherersForBase;
 			int optimalMineralWorkersAtBase = getOptimalMineralGatherersAtBase(base)
-					- WORKERS_PER_GEYSER;
+					- maxGasGatherers;
 			double mineralWorkersToOptimalRatio = (double) getNumberOfMineralGatherersForBase(base)
 					/ optimalMineralWorkersAtBase;
 			if (mineralWorkersToOptimalRatio < 0.5) {

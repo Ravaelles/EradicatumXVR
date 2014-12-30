@@ -94,8 +94,8 @@ public class ExplorerManager {
 		// ===========================
 		// Explorer ACTIONS
 
-		// If we need to scout next base location (Nexus construction can screw
-		// it)
+		// If we need to scout next base location
+		// (new base construction can screw things)
 		if (tryScoutingNextBaseLocation()) {
 			return;
 		}

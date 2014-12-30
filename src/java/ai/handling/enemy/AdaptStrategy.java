@@ -15,9 +15,16 @@ public class AdaptStrategy {
 
 	// =========================================================
 
+	private static boolean _adapted = false;
+
+	// =========================================================
+
 	public static void adaptToOpponent() {
-		adaptToRace();
-		adaptToBot();
+		if (!_adapted) {
+			adaptToRace();
+			adaptToBot();
+			_adapted = true;
+		}
 	}
 
 	// =========================================================

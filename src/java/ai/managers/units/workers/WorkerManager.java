@@ -129,7 +129,7 @@ public class WorkerManager {
 		// return;
 		// }
 
-		if (unit.isIdle()) {
+		if (unit.isIdle() && !unit.equals(ExplorerManager.getExplorer())) {
 			gatherResources(unit, xvr.getFirstBase());
 		}
 
