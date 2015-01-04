@@ -21,17 +21,19 @@ public class TerranScienceFacility {
 	}
 
 	public static boolean shouldBuild() {
-		int starports = UnitCounter.getNumberOfUnits(TerranStarport.getBuildingType());
-		int scienceFacilities = getNumberOfUnits();
-		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
-
-		if (scienceFacilities == 0 && starports >= 2 && !weAreBuilding) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
-		}
-
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
+		// int starports =
+		// UnitCounter.getNumberOfUnits(TerranStarport.getBuildingType());
+		// int scienceFacilities = getNumberOfUnits();
+		// boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
+		//
+		// if (scienceFacilities == 0 && starports >= 2 && !weAreBuilding) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// return true;
+		// }
+		//
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static Unit getOneNotBusy() {

@@ -20,6 +20,7 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
+import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranCommandCenter;
@@ -143,8 +144,8 @@ public class Painter {
 		// if (FULL_DEBUG) {
 		// paintTestConstructionPlaces();
 		// paintTimeConsumption();
-		paintBuildingsToConstructPosition();
-		// paintSpeculatedEnemyTanksPositions();
+		// paintBuildingsToConstructPosition();
+		paintSpeculatedEnemyTanksPositions();
 		// paintRenzdezvousPoints();
 		// }
 		// paintUnitsDetails();
@@ -157,7 +158,7 @@ public class Painter {
 		// paintChokePoints();
 
 		// Draw where to attack
-		// paintAttackLocation();
+		paintAttackLocation();
 
 		// Statistics
 		// paintStatistics();
@@ -230,18 +231,16 @@ public class Painter {
 	}
 
 	private static void paintSpeculatedEnemyTanksPositions() {
-		// for (MapPointInstance enemyTank :
-		// EnemyTanksManager.getSpeculatedTankPositions()) {
-		//
-		// // Draw base position as rectangle
-		// xvr.getBwapi().drawBox(enemyTank.getX() - 12, enemyTank.getY() - 12,
-		// enemyTank.getX() + 25, enemyTank.getY() + 25, BWColor.RED, false,
-		// false);
-		//
-		// // Draw string "Base"
-		// xvr.getBwapi().drawText(enemyTank.getX() - 11, enemyTank.getY() - 6,
-		// BWColor.getToStringHex(BWColor.RED) + "Tank", false);
-		// }
+		for (Unit enemyTank : EnemyTanksManager.getEnemyTanks()) {
+
+			// Draw base position as rectangle
+			xvr.getBwapi().drawBox(enemyTank.getX() - 12, enemyTank.getY() - 12,
+					enemyTank.getX() + 25, enemyTank.getY() + 25, BWColor.RED, false, false);
+
+			// Draw string "Base"
+			xvr.getBwapi().drawText(enemyTank.getX() - 11, enemyTank.getY() - 6,
+					BWColor.getToStringHex(BWColor.RED) + "Tank", false);
+		}
 	}
 
 	private static void paintTimeConsumption() {

@@ -151,7 +151,7 @@ public class WorkerManager {
 			return;
 		}
 
-		// ==================================
+		// =========================================================
 
 		if (isProfessionalRepairer(unit) && TerranBunker.getNumberOfUnits() > 0) {
 			handleProfessionalRepairer(unit);
@@ -163,7 +163,7 @@ public class WorkerManager {
 			return;
 		}
 
-		// ==================================
+		// =========================================================
 
 		// If we should destroy this unit
 		// if (unit.isShouldScrapUnit()) {
@@ -183,6 +183,7 @@ public class WorkerManager {
 			return;
 		}
 
+		// =========================================================
 		// Act with worker that is under attack
 		if (unit.isUnderAttack()) {
 
@@ -220,8 +221,10 @@ public class WorkerManager {
 		}
 
 		// Act with idle worker
-		if (unit.isIdle() && !unit.isGatheringGas() && !unit.isGatheringMinerals()
-				&& !unit.isAttacking()) {
+		if (unit.isIdle()
+				|| (!unit.isMoving() && !unit.isConstructing() && !unit.isGatheringGas()
+						&& !unit.isGatheringMinerals() && !unit.isAttacking() && !unit
+							.isRepairing())) {
 
 			// Find the nearest base for this SCV
 			Unit nearestBase = TerranCommandCenter.getNearestBaseForUnit(unit);
@@ -380,7 +383,7 @@ public class WorkerManager {
 		}
 	}
 
-	private static void gatherMinerals(Unit gathererToAssign, Unit nearestBase) {
+	public static void gatherMinerals(Unit gathererToAssign, Unit nearestBase) {
 		Unit mineral = getOptimalMineralForGatherer(gathererToAssign, nearestBase);
 		if (mineral != null) {
 			xvr.getBwapi().rightClick(gathererToAssign.getID(), mineral.getID());

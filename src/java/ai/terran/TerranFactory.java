@@ -57,10 +57,10 @@ public class TerranFactory {
 				freeGas -= buildingQueueDetails[1];
 			}
 
-			if (TerranControlTower.getNumberOfUnits() >= 1
-					&& UnitCounter.getNumberOfShipUnits() <= 1) {
-				freeGas -= 150;
-			}
+			// if (TerranControlTower.getNumberOfUnits() >= 1
+			// && UnitCounter.getNumberOfShipUnits() <= 1) {
+			// freeGas -= 150;
+			// }
 		}
 
 		// boolean isEnoughFreeResources = (freeMinerals >= 125 && freeGas >=
@@ -106,14 +106,6 @@ public class TerranFactory {
 		if (battleUnits <= 4 && battleUnits < ArmyCreationManager.MINIMUM_MARINES) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
-
-		// if (TerranBunker.GLOBAL_MAX_BUNKERS >= 2 && xvr.getTimeSeconds() <
-		// 500) {
-		// if (!xvr.canAfford(250) && TerranBunker.getNumberOfUnits() <
-		// TerranBunker.GLOBAL_MAX_BUNKERS) {
-		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		// }
-		// }
 
 		if (factories >= 1 && !xvr.canAfford(550) && xvr.getTimeSeconds() < 800
 				&& TerranCommandCenter.shouldBuild()) {
@@ -201,8 +193,11 @@ public class TerranFactory {
 		}
 
 		// GOLIATH
-		if (freeGas >= 200 && goliathsAllowed && notEnoughGoliaths
-				|| FORCE_GOLIATHS_INSTEAD_VULTURES) {
+		boolean preferGoliathsOverVultures = xvr.getTimeSeconds() > 700 && goliaths < vultures;
+		boolean goliathsIfFewOfTanks = (freeGas >= 200 && tanks < 6);
+		boolean goliathsIfLotOfTanks = (freeGas >= 50 && tanks >= 6);
+		if (FORCE_GOLIATHS_INSTEAD_VULTURES
+				|| ((goliathsIfFewOfTanks || goliathsIfLotOfTanks) && goliathsAllowed && (notEnoughGoliaths || preferGoliathsOverVultures))) {
 			if (UnitCounter.getNumberOfUnits(TerranArmory.getBuildingType()) == 0) {
 				TerranArmory.buildIfNecessary();
 			}

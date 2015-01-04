@@ -24,7 +24,7 @@ public class TerranSupplyDepot {
 	// private static int INITIAL_DEPOT_MIN_DIST_FROM_BASE = 6;
 	// private static int INITIAL_DEPOT_MAX_DIST_FROM_BASE = 18;
 	private static int DEPOT_FROM_DEPOT_MIN_DISTANCE = 0;
-	private static int DEPOT_FROM_DEPOT_MAX_DISTANCE = 7;
+	private static int DEPOT_FROM_DEPOT_MAX_DISTANCE = 15;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Supply_Depot;
 	private static final UnitType unitType = UnitTypes.Terran_Supply_Depot.getType();
@@ -57,8 +57,10 @@ public class TerranSupplyDepot {
 		// End EASY-WAY
 		// =========================================================
 
-		if (total > 0 && total < 200 && free <= 3) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		if (total > 0 && total < 200) {
+			if (free <= 3 || (total >= 39 && free < 10)) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
 		}
 
 		if (TerranBunker.getNumberOfUnits() < TerranBunker.GLOBAL_MAX_BUNKERS
@@ -157,11 +159,17 @@ public class TerranSupplyDepot {
 		int currentDist = DEPOT_FROM_DEPOT_MIN_DISTANCE;
 		while (currentDist <= DEPOT_FROM_DEPOT_MAX_DISTANCE) {
 			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
-				if (i % 3 != 0 || i % 9 == 0) {
+				// if (i % 3 != 0 || i % 9 == 0) {
+				// continue;
+				// }
+				if (i % 5 != 0) {
 					continue;
 				}
 				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
-					if (j % 2 != 0 || j % 6 == 0) {
+					// if (j % 2 != 0 || j % 6 == 0) {
+					// continue;
+					// }
+					if (j % 5 == 0) {
 						continue;
 					}
 					int x = i * 32;
@@ -184,9 +192,9 @@ public class TerranSupplyDepot {
 							}
 						}
 					}
-					if (j % 4 == 0) {
-						j += 2;
-					}
+					// if (j % 4 == 0) {
+					// j += 2;
+					// }
 				}
 			}
 
@@ -212,7 +220,7 @@ public class TerranSupplyDepot {
 
 		// Or build near random depot.
 		Unit supplyDepot = null;
-		ArrayList<Unit> depotsNearMainBase = xvr.getUnitsOfGivenTypeInRadius(buildingType, 14,
+		ArrayList<Unit> depotsNearMainBase = xvr.getUnitsOfGivenTypeInRadius(buildingType, 23,
 				xvr.getFirstBase(), true);
 		if (!depotsNearMainBase.isEmpty()) {
 			supplyDepot = (Unit) RUtilities.getRandomElement(depotsNearMainBase);
@@ -246,6 +254,9 @@ public class TerranSupplyDepot {
 
 	private static Unit getRandomSupplyDepot() {
 		ArrayList<Unit> pylons = getSupplyDepots();
+		if (pylons.isEmpty()) {
+			return null;
+		}
 		return (Unit) RUtilities.getRandomListElement(pylons);
 	}
 

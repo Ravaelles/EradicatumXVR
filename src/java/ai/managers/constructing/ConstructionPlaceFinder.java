@@ -108,7 +108,8 @@ public class ConstructionPlaceFinder {
 			if (nextBase == null) {
 				return false;
 			} else {
-				return xvr.getDistanceSimple(place, nextBase.translate(62, 48)) <= 6;
+				int minDistance = type.isBunker() ? 5 : 8;
+				return xvr.getDistanceSimple(place, nextBase.translate(64, 48)) <= minDistance;
 			}
 		} else {
 			return false;
@@ -119,11 +120,11 @@ public class ConstructionPlaceFinder {
 		if (type.isBase() || type.isOnGeyser()) {
 			return true;
 		}
-		boolean isDepot = type.isSupplyDepot();
+		// boolean isDepot = type.isSupplyDepot();
 
 		// ==============================
 		// Define building dimensions
-		int wHalf = type.getTileWidth() + (type.canHaveAddOn() ? 2 : 0);
+		int wHalf = type.getTileWidth();
 		int hHalf = type.getTileHeight();
 		int maxDimension = wHalf > hHalf ? wHalf : hHalf;
 
@@ -145,7 +146,7 @@ public class ConstructionPlaceFinder {
 		// For each building nearby define if it's not too close to this build
 		// tile. If so, reject this build tile.
 		for (Unit unit : buildingsNearby) {
-			if (unit.isLifted() || unit.isSupplyDepot()) {
+			if (unit.isLifted() || unit.isSupplyDepot() || !unit.isExists()) {
 				continue;
 			}
 
@@ -174,14 +175,14 @@ public class ConstructionPlaceFinder {
 				dx = 64;
 			}
 			if (unitType.isBase()) {
-				dx += 32;
+				dx += 16;
 				bonus += 4;
 			}
 
 			// If this building is too close to our build tile, indicate this
 			// fact.
 			if (type.isBuilding() && !unit.isLifted()
-					&& unit.translate(dx, 0).distanceTo(center) <= maxDimension + 0.5 + bonus) {
+					&& unit.translate(dx, 0).distanceTo(center) <= maxDimension + bonus) {
 				return false;
 			}
 		}
@@ -225,7 +226,7 @@ public class ConstructionPlaceFinder {
 
 	public static boolean isBuildTileFreeFromUnits(int builderID, int tileX, int tileY) {
 		JNIBWAPI bwapi = XVR.getInstance().getBwapi();
-		MapPointInstance point = new MapPointInstance(tileX * 32, tileY * 32);
+		MapPointInstance point = new MapPointInstance((int) (tileX + 1.5) * 32, (tileY + 1) * 32);
 
 		// Check if units are blocking this tile
 		boolean unitsInWay = false;
@@ -233,7 +234,7 @@ public class ConstructionPlaceFinder {
 			if (u.getID() == builderID) {
 				continue;
 			}
-			if (xvr.getDistanceBetween(u, point) <= 3) {
+			if (xvr.getDistanceBetween(u, point) <= 2.12) {
 				// for (Unit unit : xvr.getUnitsInRadius(point, 4,
 				// xvr.getBwapi().getMyUnits())) {
 				// UnitActions.moveAwayFromUnitIfPossible(unit, point, 6);

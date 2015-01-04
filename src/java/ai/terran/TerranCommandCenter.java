@@ -67,7 +67,7 @@ public class TerranCommandCenter {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		if (factories < 2) {
+		if (factories < 2 && !xvr.canAfford(450)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
@@ -168,11 +168,24 @@ public class TerranCommandCenter {
 	}
 
 	public static void buildIfNecessary() {
-		if (shouldBuild()) {
+		boolean shouldBuild = shouldBuild();
+
+		if (shouldBuild) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			Constructing.construct(xvr, buildingType);
+		} else {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+
+		// =========================================================
+		// Ensure base is being build
+		if (shouldBuild && xvr.getFrames() % 30 == 0
+				&& BuildingManager.getNextBaseBuilder() == null) {
+			Constructing.construct(xvr, buildingType);
+			// System.out.println("Base build fix #69 (builder: "
+			// + BuildingManager.getNextBaseBuilder() + ")");
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
 	}
 
 	// =========================================================
@@ -321,19 +334,7 @@ public class TerranCommandCenter {
 	}
 
 	// =========================================================
-
-	private static void checkNumberOfWorkersOverallAtBase(Unit base) {
-		if (shouldBuildWorkers(base)) {
-			if (base.getTrainingQueueSize() == 0) {
-				xvr.buildUnit(base, UnitManager.WORKER);
-			}
-		}
-
-		// We have more than optimal number workers at base
-		else {
-			trySendingWorkersToOtherBaseFrom(base);
-		}
-	}
+	// Migrate workers between bases
 
 	private static void trySendingWorkersToOtherBaseFrom(Unit base) {
 		double mineralWorkersToOptimalRatio = defineNumberOfWorkersToOptimalNumberRatioFor(base);
@@ -348,10 +349,27 @@ public class TerranCommandCenter {
 				// + " / "
 				// + otherBaseRatio);
 				if (mineralWorkersToOptimalRatio - 0.13 >= otherBaseRatio) {
-					sendOneWorkerFromTo(base, otherBase);
-					return;
+					if (xvr.getFrames() % 20 == 0) {
+						sendOneWorkerFromTo(base, otherBase);
+						return;
+					}
 				}
 			}
+		}
+	}
+
+	// =========================================================
+
+	private static void checkNumberOfWorkersOverallAtBase(Unit base) {
+		if (shouldBuildWorkers(base)) {
+			if (base.getTrainingQueueSize() == 0) {
+				xvr.buildUnit(base, UnitManager.WORKER);
+			}
+		}
+
+		// We have more than optimal number workers at base
+		else {
+			trySendingWorkersToOtherBaseFrom(base);
 		}
 	}
 
@@ -388,10 +406,11 @@ public class TerranCommandCenter {
 
 		// =========================================================
 		// Limit gas gatherers if too many gas or gas not needed
-		if (xvr.canAfford(0, 100)
-				&& (TerranVulture.getNumberOfUnits() == 0 || xvr.canAfford(0, 350))) {
-			maxGasGatherers = 1;
-		}
+		// if (xvr.canAfford(0, 100)
+		// && (TerranVulture.getNumberOfUnits() == 0 || xvr.canAfford(0, 350)))
+		// {
+		// maxGasGatherers = 1;
+		// }
 
 		// =========================================================
 
@@ -441,16 +460,22 @@ public class TerranCommandCenter {
 		// i++) {
 		// UnitActions.moveTo(gatherers.get(i), base);
 		// }
-		ArrayList<Unit> mineralsInNeihgborhood = xvr.getUnitsOfGivenTypeInRadius(
-				UnitTypes.Resource_Mineral_Field, 25, base, false);
-		if (!mineralsInNeihgborhood.isEmpty()) {
+		// ArrayList<Unit> mineralsInNeihgborhood =
+		// xvr.getUnitsOfGivenTypeInRadius(
+		// UnitTypes.Resource_Mineral_Field, 25, base, false);
+		int counter = 0;
+		if (!gatherers.isEmpty()) {
 			for (Unit worker : gatherers) {
 				// WorkerManager
 				// .forceGatherMinerals(
 				// worker,
 				// (Unit) RUtilities
 				// .getRandomListElement(mineralsInNeihgborhood));
-				WorkerManager.gatherResources(worker, base);
+				WorkerManager.gatherMinerals(worker, base);
+
+				if (counter++ >= overLimitWorkers) {
+					break;
+				}
 			}
 		}
 	}

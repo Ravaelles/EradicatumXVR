@@ -6,13 +6,14 @@ import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
+import ai.utils.RUtilities;
 
 public class FrontLineManager {
 
 	public static final int MODE_FRONT_GUARD = 8;
 	public static final int MODE_VANGUARD = 15;
 
-	private static final int VANGUARD_SEPARATION_DISTANCE = 4;
+	private static final int VANGUARD_SEPARATION_DISTANCE = 3;
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -42,7 +43,7 @@ public class FrontLineManager {
 		MapPoint offensivePoint = ArmyRendezvousManager.getOffensivePoint();
 
 		// If target is invalid or we're very close to target, spread out.
-		if (offensivePoint == null || offensivePoint.distanceTo(unit) < 5) {
+		if (offensivePoint == null || offensivePoint.distanceTo(unit) < 4.5) {
 			UnitActions.spreadOutRandomly(unit);
 		}
 
@@ -127,11 +128,32 @@ public class FrontLineManager {
 		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
 				.getRendezvousTankForGroundUnits();
 
+		int maxDistToTanks = 4;
+		int tanksNear = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
+				maxDistToTanks, unit, true)
+				+ xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
+						maxDistToTanks, unit, true);
+
 		if (rendezvousTankForGroundUnits != null) {
-			UnitActions.attackTo(unit, rendezvousTankForGroundUnits);
+			if (tanksNear < 1 || (unit.isTank() && tanksNear < 2)) {
+				int ourUnitsAround = xvr.countUnitsOursInRadius(unit, 4);
+				if (ourUnitsAround <= 4 && !isLuckyLibero(unit)
+						&& unit.distanceTo(rendezvousTankForGroundUnits) > 5) {
+					MapPoint location = rendezvousTankForGroundUnits.translate(
+							-130 + RUtilities.rand(0, 260), -130 + RUtilities.rand(0, 260));
+					UnitActions.attackTo(unit, location);
+				} else if (!unit.isMoving() && !unit.isAttacking() && !unit.isBeingRepaired()) {
+					UnitActions.spreadOutRandomly(unit);
+				}
+			}
 		} else {
-			UnitActions.moveToSafePlace(unit);
+			UnitActions.spreadOutRandomly(unit);
 		}
 	}
 
+	// =========================================================
+
+	private static boolean isLuckyLibero(Unit unit) {
+		return unit.getID() % 7 == 0;
+	}
 }

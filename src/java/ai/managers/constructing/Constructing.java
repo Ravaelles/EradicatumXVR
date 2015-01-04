@@ -119,7 +119,7 @@ public class Constructing {
 		}
 
 		MapPoint tile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), typeToBuild,
-				base.translate(5, 2), 5, MAX_RANGE);
+				base.translate(48, 16), 5, MAX_RANGE);
 
 		return tile;
 	}

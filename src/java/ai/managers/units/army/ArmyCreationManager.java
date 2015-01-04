@@ -14,7 +14,6 @@ import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranFactory;
 import ai.terran.TerranMachineShop;
-import ai.terran.TerranStarport;
 import ai.terran.TerranVulture;
 
 public class ArmyCreationManager {
@@ -35,12 +34,12 @@ public class ArmyCreationManager {
 			// =========================================================
 
 			// STARPORTS
-			ArrayList<Unit> starports = TerranStarport.getAllObjects();
-			if (!starports.isEmpty()) {
-				for (Unit stargate : starports) {
-					TerranStarport.act(stargate);
-				}
-			}
+			// ArrayList<Unit> starports = TerranStarport.getAllObjects();
+			// if (!starports.isEmpty()) {
+			// for (Unit stargate : starports) {
+			// TerranStarport.act(stargate);
+			// }
+			// }
 
 			// FACTORIES
 			ArrayList<Unit> factories = TerranFactory.getAllObjects();

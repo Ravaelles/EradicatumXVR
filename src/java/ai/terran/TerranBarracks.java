@@ -131,9 +131,10 @@ public class TerranBarracks {
 		}
 
 		// boolean shouldSpareGasForOtherUnits = false;
-		if (TerranControlTower.getNumberOfUnits() >= 1 && UnitCounter.getNumberOfShipUnits() <= 1) {
-			freeGas -= 150;
-		}
+		// if (TerranControlTower.getNumberOfUnits() >= 1 &&
+		// UnitCounter.getNumberOfShipUnits() <= 1) {
+		// freeGas -= 150;
+		// }
 
 		// =====================================================
 		boolean criticallyFewInfantry = battleUnits < 4;

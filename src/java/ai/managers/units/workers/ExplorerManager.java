@@ -389,7 +389,7 @@ public class ExplorerManager {
 			MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
 			if (nextBase != null && !xvr.getBwapi().isVisible(nextBase)) {
 				explorer.setAiOrder("Explore base");
-				UnitActions.moveTo(explorer, nextBase.translate(-1, -1));
+				UnitActions.moveTo(explorer, nextBase.translate(-96, -96));
 			}
 		}
 

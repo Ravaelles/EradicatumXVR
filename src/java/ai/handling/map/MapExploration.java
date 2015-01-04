@@ -643,7 +643,20 @@ public class MapExploration {
 
 	public static void disableChokePointsNearFirstBase() {
 		if (!_disabledChokePointsNearMainBase) {
-			Region baseRegion = xvr.getBwapi().getMap().getRegion(xvr.getFirstBase());
+			_disabledChokePointsNearMainBase = true;
+
+			Unit firstBase = xvr.getFirstBase();
+			if (firstBase == null) {
+				System.out.println("Error #821493a");
+				return;
+			}
+
+			Region baseRegion = xvr.getBwapi().getMap().getRegion(firstBase);
+			if (baseRegion == null) {
+				System.out.println("Error #821493b");
+				return;
+			}
+
 			Collection<ChokePoint> chokes = baseRegion.getChokePoints();
 			for (ChokePoint choke : chokes) {
 				if (baseRegion.getChokePoints().contains(choke)) {
@@ -668,7 +681,6 @@ public class MapExploration {
 			// choke.setDisabled(true);
 			// }
 			// }
-			_disabledChokePointsNearMainBase = true;
 		}
 	}
 

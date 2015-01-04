@@ -83,7 +83,7 @@ public class SiegeTankManager {
 			return;
 		}
 
-		if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 4) {
+		if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 7) {
 			actOffensively(unit);
 		} else {
 			actDefensively(unit);
@@ -188,8 +188,10 @@ public class SiegeTankManager {
 
 		// If unit is too far from "median" tank, go back to it.
 		if (medianTank != null && medianTank.distanceTo(unit) > 7) {
-			UnitActions.attackTo(unit,
-					medianTank.translate(-3 + RUtilities.rand(0, 6), -3 + RUtilities.rand(0, 6)));
+			UnitActions.attackTo(
+					unit,
+					medianTank.translate(-64 + RUtilities.rand(0, 128),
+							-64 + RUtilities.rand(0, 128)));
 
 			return true;
 		}
@@ -227,6 +229,10 @@ public class SiegeTankManager {
 	// }
 
 	private static boolean shouldSiege(Unit unit) {
+		if (!canSiegeInThisPlace(unit)) {
+			return false;
+		}
+
 		boolean isEnemyNearShootRange = (TargettingDetails._nearestEnemyDist > 0 && TargettingDetails._nearestEnemyDist <= (TargettingDetails._nearestEnemy
 				.getType().isBuilding() ? 10.6 : 13));
 
@@ -257,10 +263,13 @@ public class SiegeTankManager {
 	}
 
 	private static boolean mustSiege(Unit unit) {
+		if (!canSiegeInThisPlace(unit)) {
+			return false;
+		}
 
 		// If there's enemy building in range, siege.
 		if (TargettingDetails._nearestEnemyBuilding != null
-				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.4) {
+				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.1) {
 			return true;
 		}
 
@@ -339,7 +348,8 @@ public class SiegeTankManager {
 		ChokePoint nearestChoke = MapExploration.getNearestChokePointFor(unit);
 
 		// Don't siege in the choke point near base, or you'll... lose.
-		if (nearestChoke.getRadiusInTiles() <= 3 && unit.distanceToChokePoint(nearestChoke) <= 3) {
+		if (nearestChoke.getRadiusInTiles() <= 3.5
+				&& unit.distanceToChokePoint(nearestChoke) <= 3.5) {
 			Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, unit);
 			if (nearestBase != null && nearestBase.distanceTo(unit) <= 20) {
 				return false;

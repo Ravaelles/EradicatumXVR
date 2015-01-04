@@ -7,14 +7,12 @@ import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranComsatStation;
-import ai.terran.TerranControlTower;
 import ai.terran.TerranEngineeringBay;
 import ai.terran.TerranFactory;
 import ai.terran.TerranMachineShop;
 import ai.terran.TerranMissileTurret;
 import ai.terran.TerranRefinery;
 import ai.terran.TerranScienceFacility;
-import ai.terran.TerranStarport;
 import ai.terran.TerranSupplyDepot;
 
 public class ConstructingManager {
@@ -51,7 +49,7 @@ public class ConstructingManager {
 			TerranBunker.buildIfNecessary();
 			TerranFactory.buildIfNecessary();
 			TerranComsatStation.buildIfNecessary();
-			TerranControlTower.buildIfNecessary();
+			// TerranControlTower.buildIfNecessary();
 			TerranEngineeringBay.buildIfNecessary();
 			TerranRefinery.buildIfNecessary();
 		} else if (canBuildOtherThingThanHQ) {
@@ -59,7 +57,7 @@ public class ConstructingManager {
 			TerranBunker.buildIfNecessary();
 			TerranMissileTurret.buildIfNecessary();
 			TerranSupplyDepot.buildIfNecessary();
-			TerranStarport.buildIfNecessary();
+			// TerranStarport.buildIfNecessary();
 			TerranMachineShop.buildIfNecessary();
 			TerranArmory.buildIfNecessary();
 			TerranScienceFacility.buildIfNecessary();

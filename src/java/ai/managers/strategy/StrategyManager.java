@@ -72,7 +72,7 @@ public class StrategyManager {
 	@SuppressWarnings("unused")
 	private static final int EXTRA_UNITS_PER_RETREAT = 1;
 	private static final int MIN_MEDICS = 3;
-	private static final int MIN_TANKS = 6;
+	private static final int MIN_TANKS = 11;
 
 	private static int _minBattleUnits = INITIAL_MIN_UNITS;
 	private static int _lastTimeWaitCalled = 0;
@@ -80,7 +80,7 @@ public class StrategyManager {
 	private static double allowedDistanceFromSafePoint = 0;
 	private static int _lastTimeDistancePenalty = 0;
 
-	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.73;
+	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.21;
 	private static final int MINIMAL_DISTANCE_FROM_SAFE_POINT = 3;
 
 	// private static boolean pushedInitially = false;

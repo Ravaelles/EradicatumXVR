@@ -63,7 +63,11 @@ public class BuildingRepairManager {
 				Unit repairer = WorkerManager.findBestRepairerNear(building);
 				// System.out.println("    repairer: "
 				// + (repairer != null ? repairer.getID() : "null"));
-				repairBuilding(repairer, building);
+
+				// UGLY FIX, only 1/3 workers can repair
+				if (repairer.getID() % 3 == 0) {
+					repairBuilding(repairer, building);
+				}
 			}
 		}
 	}
