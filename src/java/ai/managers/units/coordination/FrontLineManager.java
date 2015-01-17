@@ -4,8 +4,10 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
+import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
+import ai.managers.units.UnitManager;
 import ai.utils.RUtilities;
 
 public class FrontLineManager {
@@ -76,8 +78,20 @@ public class FrontLineManager {
 	private static boolean isUnitOutOfLine(Unit unit, double allowedMaxDistance) {
 		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
 		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
-		return distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 10
-				&& isFarFromSafePoint(unit);
+		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 10
+				&& isFarFromSafePoint(unit)) {
+			int maxDistToTanks = 6;
+			int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
+					UnitTypes.Terran_Siege_Tank_Siege_Mode, maxDistToTanks, unit, true)
+					+ xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
+							maxDistToTanks, unit, true);
+			if (tanksNear == 0 && StrengthComparison.getEnemySupply() >= 35
+					&& xvr.getSuppliesFree() <= 20) {
+				return false;
+			}
+		}
+
+		return false;
 	}
 
 	// =========================================================
@@ -95,7 +109,10 @@ public class FrontLineManager {
 			unit.unsiege();
 		}
 
-		actionKeepTheLine(unit);
+		if (!UnitManager._forceSpreadOut) {
+			actionKeepTheLine(unit);
+		}
+
 		unit.setAiOrder("Back off");
 
 		// // If unit is way too far than allowed, go back
@@ -125,6 +142,10 @@ public class FrontLineManager {
 	}
 
 	private static void actionKeepTheLine(Unit unit) {
+		if (StrengthComparison.getEnemySupply() < 40) {
+			return;
+		}
+
 		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
 				.getRendezvousTankForGroundUnits();
 

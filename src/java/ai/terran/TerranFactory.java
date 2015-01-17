@@ -26,8 +26,8 @@ public class TerranFactory {
 	private static final int MINIMUM_GOLIATHS_EARLY = 2;
 	private static final int MINIMUM_GOLIATHS_LATER = 6;
 
-	private static final int tanksPercentage = 25;
-	private static final int vulturesPercentage = 50;
+	private static final int tanksPercentage = 20;
+	private static final int vulturesPercentage = 55;
 	private static final int goliathsPercentage = 30;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Factory;
@@ -176,16 +176,28 @@ public class TerranFactory {
 		// ==================
 
 		int vultures = UnitCounter.getNumberOfUnits(VULTURE);
+		int vulturesCompleted = UnitCounter.getNumberOfUnitsCompleted(VULTURE);
 		int tanks = TerranSiegeTank.getNumberOfUnits();
 		int goliaths = UnitCounter.getNumberOfUnits(GOLIATH);
 
-		boolean notEnoughVultures = vultures < TerranVulture.CRITICALLY_FEW_VULTURES;
+		boolean notEnoughVultures = vultures < TerranVulture.CRITICALLY_FEW_VULTURES
+				|| (vulturesCompleted + 1 <= tanks);
 		boolean notEnoughTanks = vultures < MINIMUM_TANKS;
-		boolean notEnoughGoliaths = xvr.getTimeSeconds() < 800 ? goliaths < MINIMUM_GOLIATHS_EARLY
-				: (goliaths - 1) < vultures;
+		boolean notEnoughGoliaths = false;
+
+		if (xvr.getTimeSeconds() < 750) {
+			notEnoughGoliaths = goliaths < MINIMUM_GOLIATHS_EARLY;
+		} else {
+			notEnoughGoliaths = goliaths < MINIMUM_GOLIATHS_LATER || (goliaths - 1) < vultures;
+		}
 
 		// ==================
 		// If very little units, below critical limit
+
+		// VULTURE
+		if (notEnoughVultures) {
+			return VULTURE;
+		}
 
 		// TANK
 		if (freeGas >= 150 && tanksAllowed && notEnoughTanks) {
@@ -202,11 +214,6 @@ public class TerranFactory {
 				TerranArmory.buildIfNecessary();
 			}
 			return GOLIATH;
-		}
-
-		// VULTURE
-		if (notEnoughVultures) {
-			return VULTURE;
 		}
 
 		// =================

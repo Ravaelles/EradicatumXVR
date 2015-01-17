@@ -83,6 +83,12 @@ public class TechnologyManager {
 			tryToUpgrade(TerranAcademy.getOneNotBusy(), upgrade);
 		}
 
+		// Charon Boosters
+		upgrade = UpgradeTypes.Charon_Boosters;
+		if (UnitCounter.getNumberOfUnits(UnitTypes.Terran_Goliath) >= 5 && xvr.canAfford(150, 100)) {
+			tryToUpgrade(TerranArmory.getOneNotBusy(), upgrade);
+		}
+
 		// // Stim Packs
 		// technology = STIMPACKS;
 		// if (!isPossibleSiegeResearch && marines >= 9 &&

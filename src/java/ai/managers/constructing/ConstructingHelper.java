@@ -40,6 +40,10 @@ public class ConstructingHelper {
 
 	protected static void addInfoAboutConstruction(UnitTypes building, Unit builder,
 			MapPoint buildTile) {
+		if (building.getType().isBase()) {
+			System.out.println("BASE: " + builder);
+		}
+
 		_recentConstructionsCounter = 0;
 		_recentConstructionsInfo.put(building, builder);
 		_recentConstructionsPlaces.put(building, buildTile);

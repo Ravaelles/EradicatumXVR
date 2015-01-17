@@ -28,6 +28,8 @@ public class ExplorerManager {
 	private static boolean _exploredBackOfMainBase = false;
 	private static boolean _isDiscoveringEnemyBase = false;
 
+	private static Unit _explorerForBackOfBase = null;
+
 	// =========================================================
 
 	public static void explore(Unit explorer) {
@@ -145,6 +147,84 @@ public class ExplorerManager {
 		} else {
 			return false;
 		}
+	}
+
+	// =========================================================
+
+	private static boolean tryScoutingNextBaseLocation() {
+
+		// Explore place behind our minerals
+		if (!_exploredBackOfMainBase) {
+			explorer.setAiOrder("Explore back of base");
+			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
+			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
+				_explorerForBackOfBase = xvr.getOptimalBuilder(backOfTheBasePoint);
+				if (xvr.getDistanceBetween(_explorerForBackOfBase, backOfTheBasePoint) <= 30) {
+					UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
+				}
+			}
+			if (backOfTheBasePoint == null) {
+				_exploredBackOfMainBase = true;
+			}
+			if (_explorerForBackOfBase == null
+					|| _explorerForBackOfBase.distanceTo(backOfTheBasePoint) <= 1.5) {
+				_exploredBackOfMainBase = true;
+				MapPoint nearBaseLoc = MapExploration
+						.getNearestBaseLocation(_explorerForBackOfBase);
+				if (xvr.getDistanceBetween(_explorerForBackOfBase, nearBaseLoc) <= 30) {
+					UnitActions.moveTo(_explorerForBackOfBase, nearBaseLoc);
+				}
+			}
+			// return true;
+		}
+
+		// Explore the place where the second base will be built
+		if (!_exploredSecondBase) {
+			explorer.setAiOrder("Explore second base");
+			MapPoint secondBase = TerranCommandCenter.getSecondBaseLocation();
+			UnitActions.moveTo(explorer, secondBase);
+			_exploredSecondBase = true;
+			return true;
+		}
+
+		// Explore random base location
+		if (!explorer.isMoving() && RUtilities.rand(0, 1) == 0) {
+			explorer.setAiOrder("Scout random base");
+			scoutRandomBaseLocation();
+		}
+
+		// Explore place for the 3rd and later bases
+		if ((explorer.isGatheringGas() || explorer.isGatheringMinerals())
+				&& TerranCommandCenter.shouldBuild()) {
+			MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
+			if (nextBase != null && !xvr.getBwapi().isVisible(nextBase)) {
+				explorer.setAiOrder("Explore base");
+				UnitActions.moveTo(explorer, nextBase.translate(-96, -96));
+			}
+		}
+
+		// // Explore place for the 3rd and later bases
+		// if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
+		// MapPoint tileForNextBase =
+		// TerranCommandCenter.findTileForNextBase(false);
+		// if (!xvr.getBwapi().isVisible(tileForNextBase.getTx(),
+		// tileForNextBase.getTy())) {
+		// explorer.setAiOrder("Scout 3rd base");
+		// UnitActions.moveTo(explorer, tileForNextBase);
+		// return true;
+		// } else {
+		// if (!explorer.isMoving()) {
+		// explorer.setAiOrder("Explore unknown");
+		// UnitActions.moveTo(
+		// explorer,
+		// MapExploration.getNearestUnknownPointFor(explorer.getX(),
+		// explorer.getY(), true));
+		// return true;
+		// }
+		// }
+		// }
+
+		return false;
 	}
 
 	// =========================================================
@@ -336,84 +416,6 @@ public class ExplorerManager {
 				return true;
 			}
 		}
-		return false;
-	}
-
-	private static Unit _explorerForBackOfBase = null;
-
-	private static boolean tryScoutingNextBaseLocation() {
-
-		// Explore place behind our minerals
-		if (!_exploredBackOfMainBase) {
-			explorer.setAiOrder("Explore back of base");
-			MapPoint backOfTheBasePoint = scoutBackOfMainBase();
-			if (backOfTheBasePoint != null && _explorerForBackOfBase == null) {
-				_explorerForBackOfBase = xvr.getOptimalBuilder(backOfTheBasePoint);
-				if (xvr.getDistanceBetween(_explorerForBackOfBase, backOfTheBasePoint) <= 30) {
-					UnitActions.moveTo(_explorerForBackOfBase, backOfTheBasePoint);
-				}
-			}
-			if (backOfTheBasePoint == null) {
-				_exploredBackOfMainBase = true;
-			}
-			if (_explorerForBackOfBase == null
-					|| _explorerForBackOfBase.distanceTo(backOfTheBasePoint) <= 1.5) {
-				_exploredBackOfMainBase = true;
-				MapPoint nearBaseLoc = MapExploration
-						.getNearestBaseLocation(_explorerForBackOfBase);
-				if (xvr.getDistanceBetween(_explorerForBackOfBase, nearBaseLoc) <= 30) {
-					UnitActions.moveTo(_explorerForBackOfBase, nearBaseLoc);
-				}
-			}
-			// return true;
-		}
-
-		// Explore the place where the second base will be built
-		if (!_exploredSecondBase) {
-			explorer.setAiOrder("Explore second base");
-			MapPoint secondBase = TerranCommandCenter.getSecondBaseLocation();
-			UnitActions.moveTo(explorer, secondBase);
-			_exploredSecondBase = true;
-			return true;
-		}
-
-		// Explore random base location
-		if (!explorer.isMoving() && RUtilities.rand(0, 1) == 0) {
-			explorer.setAiOrder("Scout random base");
-			scoutRandomBaseLocation();
-		}
-
-		// Explore place for the 3rd and later bases
-		if ((explorer.isGatheringGas() || explorer.isGatheringMinerals())
-				&& TerranCommandCenter.shouldBuild()) {
-			MapPoint nextBase = TerranCommandCenter.findTileForNextBase(false);
-			if (nextBase != null && !xvr.getBwapi().isVisible(nextBase)) {
-				explorer.setAiOrder("Explore base");
-				UnitActions.moveTo(explorer, nextBase.translate(-96, -96));
-			}
-		}
-
-		// // Explore place for the 3rd and later bases
-		// if (UnitCounter.getNumberOfUnits(UnitManager.BASE) >= 2) {
-		// MapPoint tileForNextBase =
-		// TerranCommandCenter.findTileForNextBase(false);
-		// if (!xvr.getBwapi().isVisible(tileForNextBase.getTx(),
-		// tileForNextBase.getTy())) {
-		// explorer.setAiOrder("Scout 3rd base");
-		// UnitActions.moveTo(explorer, tileForNextBase);
-		// return true;
-		// } else {
-		// if (!explorer.isMoving()) {
-		// explorer.setAiOrder("Explore unknown");
-		// UnitActions.moveTo(
-		// explorer,
-		// MapExploration.getNearestUnknownPointFor(explorer.getX(),
-		// explorer.getY(), true));
-		// return true;
-		// }
-		// }
-		// }
-
 		return false;
 	}
 

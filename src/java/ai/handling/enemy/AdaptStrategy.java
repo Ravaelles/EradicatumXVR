@@ -83,7 +83,7 @@ public class AdaptStrategy {
 
 		// BUNKER
 		// TerranBunker.MAX_STACK = 3;
-		// TerranBunker.GLOBAL_MAX_BUNKERS = 2;
+		TerranBunker.GLOBAL_MAX_BUNKERS = 3;
 
 		// BARRACKS
 		TerranBarracks.enemyIsProtoss();

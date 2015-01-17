@@ -7,6 +7,8 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
+import ai.handling.map.MapPoint;
+import ai.handling.strength.StrengthComparison;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
@@ -33,6 +35,8 @@ public class UnitManager {
 	private static XVR xvr = XVR.getInstance();
 
 	private static int _unitCounter = 0;
+	public static int _lastTimeSpreadOut = -1;
+	public static boolean _forceSpreadOut = false;
 
 	// ===========================================================
 
@@ -107,6 +111,12 @@ public class UnitManager {
 			return;
 		}
 
+		// Spread out if enemy is beaten and we're very strong
+		if (shouldSpreadOut(unit)) {
+			UnitActions.spreadOutRandomly(unit);
+			return;
+		}
+
 		// *UPDATE* value of strength ratio.
 		StrengthRatio.recalculateFor(unit);
 
@@ -119,7 +129,7 @@ public class UnitManager {
 		}
 
 		// Disallow units to move close to the defensive buildings
-		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+		if (!_forceSpreadOut && ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
 			return;
 		}
 
@@ -184,6 +194,32 @@ public class UnitManager {
 		if (AttackCloseTargets.tryAttackingCloseTargets(unit)) {
 			unit.setAiOrder("Attack close targets");
 		}
+	}
+
+	private static boolean shouldSpreadOut(Unit unit) {
+		_forceSpreadOut = false;
+
+		if (unit.isAttacking() || unit.isUnderAttack()) {
+			return false;
+		}
+
+		if (xvr.getSuppliesTotal() > 150 && xvr.getSuppliesFree() < 10
+				&& StrengthComparison.getEnemySupply() < 40
+				&& xvr.countUnitsOursInRadius(unit, 10) >= 15) {
+
+			MapPoint targetPoint = StrategyManager.getTargetPoint();
+			if (targetPoint != null && targetPoint.distanceTo(unit) > 5.5
+					&& xvr.getTimeSeconds() <= _lastTimeSpreadOut + 10) {
+				_lastTimeSpreadOut = xvr.getTimeSeconds();
+				_forceSpreadOut = true;
+				return true;
+			} else {
+				_forceSpreadOut = true;
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// =========================================================

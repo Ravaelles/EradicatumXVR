@@ -53,7 +53,7 @@ public class TerranCommandCenter {
 		// =========================================================
 		// Begin EASY-WAY
 
-		if (bases == 1 && xvr.getTimeSeconds() >= 500) {
+		if (bases <= 1 && (xvr.getTimeSeconds() >= 290 || xvr.canAfford(350))) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
@@ -522,12 +522,13 @@ public class TerranCommandCenter {
 		}
 
 		// Try to get cached value
-		if (_cachedNextBaseTile != null && !forceNewSolution) {
+		boolean isVeryOldSolution = _lastTimeCalculatedTileForBase + 5 <= xvr.getTimeSeconds();
+		if (_cachedNextBaseTile != null && !forceNewSolution && !isVeryOldSolution) {
 			return _cachedNextBaseTile;
 		}
 
 		// Make sure you're not calculating base location all the time
-		if (forceNewSolution) {
+		if (forceNewSolution || isVeryOldSolution) {
 			int now = xvr.getTimeSeconds();
 			if (_lastTimeCalculatedTileForBase != -1 && now - _lastTimeCalculatedTileForBase <= 3) {
 				return _cachedNextBaseTile;

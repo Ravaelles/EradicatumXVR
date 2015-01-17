@@ -6,6 +6,7 @@ import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
+import ai.handling.units.UnitCounter;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
@@ -49,9 +50,10 @@ public class Constructing {
 
 		// Disallow multiple building of all buildings, except barracks,
 		// bunkers.
-		if (building.getType().isBarracks() || building.getType().isFactory()) {
+		if (building.getType().isBarracks() || building.getType().isFactory()
+				|| building.getType().isBase()) {
 			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			int numOfBuildings = TerranBarracks.getNumberOfUnits();
+			int numOfBuildings = UnitCounter.getNumberOfUnits(building.getType().getUnitTypes());
 			if (numOfBuildings != 1) {
 				canProceed = builders == 0;
 			}
@@ -113,7 +115,8 @@ public class Constructing {
 			MAX_RANGE = 20;
 		}
 
-		Unit base = xvr.getFirstBase();
+		// Unit base = xvr.getFirstBase();
+		Unit base = xvr.getRandomBase();
 		if (base == null) {
 			return null;
 		}

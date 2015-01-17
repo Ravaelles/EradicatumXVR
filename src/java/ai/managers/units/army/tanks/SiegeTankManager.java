@@ -118,6 +118,10 @@ public class SiegeTankManager {
 	private static void actWhenSieged(Unit unit) {
 		unit.setLastTimeSieged(xvr.getTimeSeconds());
 
+		if (unit.getGroundWeaponCooldown() > 0) {
+			return;
+		}
+
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
 		double nearestEnemyDist = nearestEnemy != null ? nearestEnemy.distanceTo(unit) : -1;
 

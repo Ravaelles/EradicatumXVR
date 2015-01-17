@@ -47,6 +47,12 @@ public class TerranSupplyDepot {
 		// Begin EASY-WAY
 
 		if (depots == 0) {
+			if (xvr.isEnemyProtoss()) {
+				if (TerranBarracks.getNumberOfUnits() <= 0 && !xvr.canAfford(250)) {
+					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				}
+			}
+
 			if (xvr.canAfford(92)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			} else {
@@ -58,7 +64,7 @@ public class TerranSupplyDepot {
 		// =========================================================
 
 		if (total > 0 && total < 200) {
-			if (free <= 3 || (total >= 39 && free < 10)) {
+			if (free <= 3 || (total >= 39 && free <= 18)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 		}
@@ -169,7 +175,7 @@ public class TerranSupplyDepot {
 					// if (j % 2 != 0 || j % 6 == 0) {
 					// continue;
 					// }
-					if (j % 5 == 0) {
+					if (j % 5 == 0 || i % 5 == 0) {
 						continue;
 					}
 					int x = i * 32;

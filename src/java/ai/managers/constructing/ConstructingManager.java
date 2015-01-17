@@ -33,7 +33,7 @@ public class ConstructingManager {
 
 		// Store info about constructing given building for 3 acts, then
 		// remove all data
-		if (ConstructingHelper._recentConstructionsCounter++ >= 9) {
+		if (ConstructingHelper._recentConstructionsCounter++ >= 6) {
 			ConstructingHelper.resetInfoAboutConstructions();
 		}
 

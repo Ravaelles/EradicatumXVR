@@ -23,7 +23,7 @@ import ai.utils.RUtilities;
 
 public class TerranVulture {
 
-	public static int CRITICALLY_FEW_VULTURES = 2;
+	public static int CRITICALLY_FEW_VULTURES = 3;
 	public static final int SAFE_DISTANCE_FROM_ENEMY_DEFENSIVE_BUILDING = 12;
 	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.85;
 	private static final int MINIMUM_VULTURES_TO_DO_SCOUTING = 5;

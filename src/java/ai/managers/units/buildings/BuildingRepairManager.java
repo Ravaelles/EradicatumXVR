@@ -65,7 +65,9 @@ public class BuildingRepairManager {
 				// + (repairer != null ? repairer.getID() : "null"));
 
 				// UGLY FIX, only 1/3 workers can repair
-				if (repairer.getID() % 3 == 0) {
+				if (repairer != null
+						&& (repairer.getID() % 3 == 0 || WorkerManager
+								.isProfessionalRepairer(repairer))) {
 					repairBuilding(repairer, building);
 				}
 			}

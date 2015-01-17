@@ -48,10 +48,13 @@ public class WorkerManager {
 
 		private ProfessionalRepairersSettings() {
 			professionalRepairersIndices.clear();
-			professionalRepairersIndices.add(19);
+
+			if (xvr.isEnemyProtoss()) {
+				professionalRepairersIndices.add(15);
+			}
 
 			if (!xvr.isEnemyTerran()) {
-				professionalRepairersIndices.add(20);
+				professionalRepairersIndices.add(18);
 			}
 		}
 
@@ -354,7 +357,8 @@ public class WorkerManager {
 
 	public static boolean isProfessionalRepairer(Unit unit) {
 		return professionalRepairersIndices.contains(_counter)
-				|| lastProfessionalRepairers.contains(unit);
+				|| lastProfessionalRepairers.contains(unit)
+				|| professionalRepairersIndices.contains(unit);
 		// return _counter == WORKER_INDEX_PROFESSIONAL_REPAIRER
 		// || (EXTRA_PROFESSIONAL_REPAIRERERS.contains(_counter));
 	}

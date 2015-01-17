@@ -171,7 +171,7 @@ public class ConstructionPlaceFinder {
 			int bonus = spaceBonus;
 			UnitType unitType = unit.getType();
 			if (type.canHaveAddOn() && !unit.hasAddOn()) {
-				// bonus++;
+				bonus++;
 				dx = 64;
 			}
 			if (unitType.isBase()) {

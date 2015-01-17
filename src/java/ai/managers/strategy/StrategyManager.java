@@ -72,7 +72,7 @@ public class StrategyManager {
 	@SuppressWarnings("unused")
 	private static final int EXTRA_UNITS_PER_RETREAT = 1;
 	private static final int MIN_MEDICS = 3;
-	private static final int MIN_TANKS = 11;
+	private static final int MIN_TANKS = 12;
 
 	private static int _minBattleUnits = INITIAL_MIN_UNITS;
 	private static int _lastTimeWaitCalled = 0;
@@ -308,7 +308,7 @@ public class StrategyManager {
 	private static void armyIsNotReadyToAttack() {
 		_attackPoint = null;
 		_attackTargetUnit = null;
-		allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
+		// allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
 	}
 
 	private static void defineInitialAttackTarget() {
@@ -370,7 +370,7 @@ public class StrategyManager {
 	}
 
 	public static void forcePeace() {
-		allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
+		// allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
 		changeStateTo(STATE_PEACE);
 	}
 

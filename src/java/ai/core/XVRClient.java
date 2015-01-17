@@ -28,28 +28,6 @@ public class XVRClient implements BWAPIEventListener {
 
 	// =========================================
 
-	public JNIBWAPI getBwapi() {
-		return bwapi;
-	}
-
-	public static void main(String[] args) {
-		new XVRClient();
-	}
-
-	public XVRClient() {
-		bwapi = new JNIBWAPI(this);
-		xvr = new XVR(this);
-
-		bwapi.start();
-	}
-
-	// =========================================
-
-	@Override
-	public void connected() {
-		bwapi.loadTypeData();
-	}
-
 	@Override
 	public void gameStarted() {
 
@@ -98,6 +76,30 @@ public class XVRClient implements BWAPIEventListener {
 		// ==========
 		// HotFix
 		TerranCommandCenter.initialMineralGathering();
+	}
+
+	// =========================================
+
+	public JNIBWAPI getBwapi() {
+		return bwapi;
+	}
+
+	public static void main(String[] args) {
+		new XVRClient();
+	}
+
+	public XVRClient() {
+		bwapi = new JNIBWAPI(this);
+		xvr = new XVR(this);
+
+		bwapi.start();
+	}
+
+	// =========================================
+
+	@Override
+	public void connected() {
+		bwapi.loadTypeData();
 	}
 
 	@Override

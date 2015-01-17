@@ -489,6 +489,11 @@ public class XVR {
 		}
 	}
 
+	public Unit getRandomBase() {
+		ArrayList<Unit> bases = getUnitsOfType(UnitManager.BASE.ordinal());
+		return (Unit) RUtilities.randomElement(bases);
+	}
+
 	public Unit getSecondBase() {
 		ArrayList<Unit> bases = getUnitsOfType(UnitManager.BASE.ordinal());
 		if (!bases.isEmpty()) {
