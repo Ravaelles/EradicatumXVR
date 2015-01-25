@@ -65,23 +65,32 @@ public class SiegeTankManager {
 	// =========================================================
 
 	private static void actWhenInNormalMode(Unit unit) {
-		if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
-			unit.siege();
-			return;
+
+		// =========================================================
+		// Check if should siege
+
+		if (canSiegeInThisPlace(unit)) {
+			if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
+				unit.siege();
+				return;
+			}
+
+			if (mustSiege(unit)) {
+				unit.siege();
+				return;
+			}
+
+			int enemiesVeryClose = xvr.countUnitsEnemyInRadius(unit, 4);
+			int enemiesInSight = xvr.countUnitsEnemyInRadius(unit, 13);
+
+			if (enemiesInSight >= 2 && enemiesVeryClose == 0) {
+				unit.siege();
+				return;
+			}
 		}
 
-		if (mustSiege(unit)) {
-			unit.siege();
-			return;
-		}
-
-		int enemiesVeryClose = xvr.countUnitsEnemyInRadius(unit, 4);
-		int enemiesInSight = xvr.countUnitsEnemyInRadius(unit, 13);
-
-		if (enemiesInSight >= 2 && enemiesVeryClose == 0) {
-			unit.siege();
-			return;
-		}
+		// =========================================================
+		// Define hi-level behaviour
 
 		if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 7) {
 			actOffensively(unit);
@@ -352,8 +361,7 @@ public class SiegeTankManager {
 		ChokePoint nearestChoke = MapExploration.getNearestChokePointFor(unit);
 
 		// Don't siege in the choke point near base, or you'll... lose.
-		if (nearestChoke.getRadiusInTiles() <= 3.5
-				&& unit.distanceToChokePoint(nearestChoke) <= 3.5) {
+		if (nearestChoke.getRadiusInTiles() <= 3.8 && unit.distanceToChokePoint(nearestChoke) <= 4) {
 			Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, unit);
 			if (nearestBase != null && nearestBase.distanceTo(unit) <= 20) {
 				return false;

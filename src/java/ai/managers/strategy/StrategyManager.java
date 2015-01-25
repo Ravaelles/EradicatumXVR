@@ -80,7 +80,7 @@ public class StrategyManager {
 	private static double allowedDistanceFromSafePoint = 0;
 	private static int _lastTimeDistancePenalty = 0;
 
-	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.21;
+	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.14;
 	private static final int MINIMAL_DISTANCE_FROM_SAFE_POINT = 3;
 
 	// private static boolean pushedInitially = false;

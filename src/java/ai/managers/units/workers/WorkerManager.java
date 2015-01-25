@@ -49,13 +49,15 @@ public class WorkerManager {
 		private ProfessionalRepairersSettings() {
 			professionalRepairersIndices.clear();
 
-			if (xvr.isEnemyProtoss()) {
-				professionalRepairersIndices.add(15);
-			}
+			// if (xvr.isEnemyProtoss()) {
+			// professionalRepairersIndices.add(15);
+			// }
+			//
+			// if (!xvr.isEnemyTerran()) {
+			// professionalRepairersIndices.add(18);
+			// }
 
-			if (!xvr.isEnemyTerran()) {
-				professionalRepairersIndices.add(18);
-			}
+			professionalRepairersIndices.add(25);
 		}
 
 	}

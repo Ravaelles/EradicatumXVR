@@ -13,7 +13,6 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.RunManager;
 import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
@@ -70,18 +69,18 @@ public class TerranVulture {
 		}
 
 		// Scout bases near the enemy
-		if (handleExplorerVulture(unit)) {
-			return false;
-		}
+		// if (handleExplorerVulture(unit)) {
+		// return false;
+		// }
 
 		// ======== DEFINE NEXT MOVE =============================
 
 		// If it's quite late in the game, we can start harrassing the enemy
-		if (xvr.getTimeSeconds() > 350) {
-			actOffensively(unit);
-		} else {
-			actDefensively(unit);
-		}
+		// if (xvr.getTimeSeconds() > 350) {
+		// actOffensively(unit);
+		// } else {
+		// actDefensively(unit);
+		// }
 
 		// =================================
 		// Use mines if possible
@@ -112,11 +111,14 @@ public class TerranVulture {
 	}
 
 	private static void actOffensively(Unit unit) {
-		if (!StrategyManager.isAnyAttackFormPending()) {
-			actIndividually(unit);
-		} else {
-			FrontLineManager.actOffensively(unit, FrontLineManager.MODE_FRONT_GUARD);
-		}
+		// if (!StrategyManager.isAnyAttackFormPending()) {
+		// actIndividually(unit);
+		// } else {
+		// FrontLineManager.actOffensively(unit,
+		// FrontLineManager.MODE_FRONT_GUARD);
+		// }
+
+		FrontLineManager.actOffensively(unit, FrontLineManager.MODE_FRONT_GUARD);
 	}
 
 	private static void actIndividually(Unit unit) {

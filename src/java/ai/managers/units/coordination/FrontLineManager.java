@@ -8,7 +8,6 @@ import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
-import ai.utils.RUtilities;
 
 public class FrontLineManager {
 
@@ -50,10 +49,10 @@ public class FrontLineManager {
 		}
 
 		// Target is valid, but it's still far. Proceed forward.
-		unit.setAiOrder("Forward!");
+		unit.setAiOrder("Proceed");
 		UnitActions.attackTo(unit, offensivePoint);
 
-		if (unit.isTank()) {
+		if (unit.isTank() && unit.getGroundWeaponCooldown() < 1) {
 			unit.unsiege();
 		}
 
@@ -76,19 +75,25 @@ public class FrontLineManager {
 	}
 
 	private static boolean isUnitOutOfLine(Unit unit, double allowedMaxDistance) {
+		int maxDistToTanks = 4;
+
 		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
 		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
 		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 10
 				&& isFarFromSafePoint(unit)) {
-			int maxDistToTanks = 6;
 			int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
 					UnitTypes.Terran_Siege_Tank_Siege_Mode, maxDistToTanks, unit, true)
 					+ xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
 							maxDistToTanks, unit, true);
 			if (tanksNear == 0 && StrengthComparison.getEnemySupply() >= 35
 					&& xvr.getSuppliesFree() <= 20) {
-				return false;
+				return true;
 			}
+		}
+
+		Unit nearestTank = xvr.getNearestTankTo(unit);
+		if (nearestTank != null && nearestTank.distanceTo(unit) >= maxDistToTanks) {
+			return true;
 		}
 
 		return false;
@@ -149,32 +154,50 @@ public class FrontLineManager {
 		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
 				.getRendezvousTankForGroundUnits();
 
-		int maxDistToTanks = 4;
-		int tanksNear = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
-				maxDistToTanks, unit, true)
-				+ xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
-						maxDistToTanks, unit, true);
+		double minDistToTanks = 1.5;
+		double maxDistToTanks = 4.5;
+		// int tanksNear =
+		// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
+		// maxDistToTanks, unit, true)
+		// +
+		// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
+		// maxDistToTanks, unit, true);
 
 		if (rendezvousTankForGroundUnits != null) {
-			if (tanksNear < 1 || (unit.isTank() && tanksNear < 2)) {
-				int ourUnitsAround = xvr.countUnitsOursInRadius(unit, 4);
-				if (ourUnitsAround <= 4 && !isLuckyLibero(unit)
-						&& unit.distanceTo(rendezvousTankForGroundUnits) > 5) {
-					MapPoint location = rendezvousTankForGroundUnits.translate(
-							-130 + RUtilities.rand(0, 260), -130 + RUtilities.rand(0, 260));
-					UnitActions.attackTo(unit, location);
-				} else if (!unit.isMoving() && !unit.isAttacking() && !unit.isBeingRepaired()) {
-					UnitActions.spreadOutRandomly(unit);
-				}
+
+			// Check if we're too far
+			if (unit.distanceTo(rendezvousTankForGroundUnits) > maxDistToTanks) {
+				UnitActions.attackTo(unit, rendezvousTankForGroundUnits);
 			}
-		} else {
-			UnitActions.spreadOutRandomly(unit);
+
+			// Check if we're too close
+			else if (unit.distanceTo(rendezvousTankForGroundUnits) < minDistToTanks) {
+				UnitActions.attackTo(unit, rendezvousTankForGroundUnits);
+			}
 		}
 	}
 
+	// if (rendezvousTankForGroundUnits != null) {
+	// if (tanksNear < 1 || (unit.isTank() && tanksNear < 2)) {
+	// int ourUnitsAround = xvr.countUnitsOursInRadius(unit, 4);
+	// if (ourUnitsAround <= 4 && !isLuckyLibero(unit)
+	// && unit.distanceTo(rendezvousTankForGroundUnits) > 5) {
+	// MapPoint location = rendezvousTankForGroundUnits.translate(
+	// -130 + RUtilities.rand(0, 260), -130 + RUtilities.rand(0, 260));
+	// UnitActions.attackTo(unit, location);
+	// } else if (!unit.isMoving() && !unit.isAttacking() &&
+	// !unit.isBeingRepaired()) {
+	// UnitActions.spreadOutRandomly(unit);
+	// }
+	// }
+	// } else {
+	// UnitActions.spreadOutRandomly(unit);
+	// }
+	// }
+
 	// =========================================================
 
-	private static boolean isLuckyLibero(Unit unit) {
-		return unit.getID() % 7 == 0;
-	}
+	// private static boolean isLuckyLibero(Unit unit) {
+	// return unit.getID() % 7 == 0;
+	// }
 }

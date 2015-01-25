@@ -12,13 +12,7 @@ public class TerranAcademy {
 	private static final UnitTypes buildingType = UnitTypes.Terran_Academy;
 	private static XVR xvr = XVR.getInstance();
 
-	public static void buildIfNecessary() {
-		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
-		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-	}
+	// =========================================================
 
 	public static boolean shouldBuild() {
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
@@ -39,9 +33,23 @@ public class TerranAcademy {
 					|| TerranFactory.getNumberOfUnits() == 1) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
+
+			if (xvr.canAfford(50, 50)) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
 		}
 
 		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+	}
+
+	// =========================================================
+
+	public static void buildIfNecessary() {
+		if (shouldBuild()) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			Constructing.construct(xvr, buildingType);
+		}
+		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static Unit getOneNotBusy() {

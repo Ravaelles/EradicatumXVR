@@ -142,16 +142,16 @@ public class Painter {
 		// }
 
 		// if (FULL_DEBUG) {
-		// paintTestConstructionPlaces();
-		// paintTimeConsumption();
+		paintTestConstructionPlaces();
+		paintTimeConsumption();
 		paintBuildingsToConstructPosition();
 		paintSpeculatedEnemyTanksPositions();
-		// paintRenzdezvousPoints();
+		paintRenzdezvousPoints();
 		// }
-		// paintUnitsDetails();
+		paintUnitsDetails();
 		//
 		// if (FULL_DEBUG) {
-		// paintValuesOverUnits();
+		paintValuesOverUnits();
 		// }
 
 		// Draw choke points
@@ -161,7 +161,7 @@ public class Painter {
 		paintAttackLocation();
 
 		// Statistics
-		// paintStatistics();
+		paintStatistics();
 
 		// Aditional messages for debug purpose
 		paintDebugMessages();
