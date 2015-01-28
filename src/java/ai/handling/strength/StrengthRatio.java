@@ -73,7 +73,7 @@ public class StrengthRatio {
 			return 10;
 		}
 
-		if (!noTanksYet && !canAttackLonely && StrategyManager.isAnyAttackFormPending()) {
+		if (!noTanksYet && !canAttackLonely && StrategyManager.isGlobalAttackInProgress()) {
 			MapPoint properPlace = unit.getProperPlaceToBe();
 			if (properPlace != null
 					&& properPlace.distanceTo(unit) > StrategyManager
@@ -166,7 +166,7 @@ public class StrengthRatio {
 		ratio += ourStrength / enemyStrength;
 
 		// Include info about choke points near
-		if (StrategyManager.isAnyAttackFormPending()) {
+		if (StrategyManager.isGlobalAttackInProgress()) {
 			if (isCriticallyCloseToChokePoint(unit)) {
 				ratio -= RATIO_PENALTY_FOR_CLOSE_CHOKE_POINT;
 			}
@@ -342,7 +342,7 @@ public class StrengthRatio {
 		}
 
 		if (forEnemy) {
-			if (StrategyManager.getMinBattleUnits() <= StrategyManager.INITIAL_MIN_UNITS
+			if (StrategyManager.getMinBattleUnits() <= StrategyManager.MIN_BATTLE_UNITS_TO_ATTACK
 					&& _defensiveBuildings >= 2 && TerranSiegeTank.getNumberOfUnitsCompleted() <= 1) {
 				StrategyManager.waitForMoreUnits();
 				// TerranBarracks.LIMIT_MARINES = true;

@@ -26,6 +26,43 @@ public class ArmyRendezvousManager {
 		goToSafePlaceIfNotAlreadyThere(unit);
 	}
 
+	/**
+	 * @param unit
+	 * @return safe point
+	 */
+	public static MapPoint goToSafePlaceIfNotAlreadyThere(Unit unit) {
+		MapPoint safePlace = null;
+
+		if (unit.shouldFollowTanks()) {
+			if (TerranSiegeTank.getNumberOfUnits() > 1) {
+				// safePlace = TerranSiegeTank.getMedianTank();
+				safePlace = getRendezvousTankForGroundUnits();
+			}
+		}
+
+		if (safePlace == null) {
+			safePlace = getDefensivePoint(unit);
+			if (safePlace == null) {
+				return null;
+			}
+		}
+
+		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
+			UnitActions.moveTo(unit, safePlace);
+			return safePlace;
+			// } else {
+			// UnitActions.moveAwayFromNearestEnemy(unit);
+			// UnitActions.moveTo(unit, safePlace);
+		}
+		// else {
+		// UnitActions.moveToMainBase(unit);
+		// }
+
+		return null;
+	}
+
+	// =========================================================
+
 	public static void updateRendezvousPoints() {
 		_armyMedianPoint = defineArmyMedianPoint();
 	}
@@ -105,7 +142,7 @@ public class ArmyRendezvousManager {
 	}
 
 	public static MapPoint getDefensivePointForTanks() {
-		if (StrategyManager.isAnyAttackFormPending()) {
+		if (StrategyManager.isGlobalAttackActive()) {
 			return getArmyMedianPoint();
 		} else {
 			if (TerranBunker.getNumberOfUnitsCompleted() > 0) {
@@ -199,41 +236,6 @@ public class ArmyRendezvousManager {
 		// } else {
 		// return null;
 		// }
-	}
-
-	/**
-	 * @param unit
-	 * @return safe point
-	 */
-	public static MapPoint goToSafePlaceIfNotAlreadyThere(Unit unit) {
-		MapPoint safePlace = null;
-
-		if (unit.shouldFollowTanks()) {
-			if (TerranSiegeTank.getNumberOfUnits() > 1) {
-				// safePlace = TerranSiegeTank.getMedianTank();
-				safePlace = getRendezvousTankForGroundUnits();
-			}
-		}
-
-		if (safePlace == null) {
-			safePlace = getDefensivePoint(unit);
-			if (safePlace == null) {
-				return null;
-			}
-		}
-
-		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
-			UnitActions.moveTo(unit, safePlace);
-			return safePlace;
-			// } else {
-			// UnitActions.moveAwayFromNearestEnemy(unit);
-			// UnitActions.moveTo(unit, safePlace);
-		}
-		// else {
-		// UnitActions.moveToMainBase(unit);
-		// }
-
-		return null;
 	}
 
 	public static MapPoint getArmyCenterPoint() {

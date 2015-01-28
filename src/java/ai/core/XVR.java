@@ -491,7 +491,11 @@ public class XVR {
 
 	public Unit getRandomBase() {
 		ArrayList<Unit> bases = getUnitsOfType(UnitManager.BASE.ordinal());
-		return (Unit) RUtilities.randomElement(bases);
+		if (bases.isEmpty()) {
+			return null;
+		} else {
+			return (Unit) RUtilities.randomElement(bases);
+		}
 	}
 
 	public Unit getSecondBase() {
@@ -617,6 +621,10 @@ public class XVR {
 
 	public int countUnitsInRadius(MapPoint point, int tileRadius, boolean onlyMyUnits) {
 		return countUnitsInRadius(point.getX(), point.getY(), tileRadius, onlyMyUnits);
+	}
+
+	public int countTanksOurInRadius(MapPoint point, double tileRadius) {
+		return countUnitsInRadius(point, tileRadius, TerranSiegeTank.getAllCompletedTanks());
 	}
 
 	public int countUnitsOursInRadius(MapPoint point, int tileRadius) {

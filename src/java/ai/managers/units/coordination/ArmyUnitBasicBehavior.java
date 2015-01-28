@@ -6,10 +6,9 @@ import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.WeaponType;
 import ai.core.XVR;
 import ai.handling.strength.StrengthRatio;
-import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.UnitManager;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.tanks.SiegeTankManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBunker;
@@ -30,6 +29,39 @@ public class ArmyUnitBasicBehavior {
 		}
 
 		// ======================================
+		// STANDARD ARMY UNIT COMMANDS
+		else {
+			// // Go a little further and help attacked unit
+			// if (tryConsideringCallForHelpMission(unit)) {
+			// UnitManager.actWhenOnCallForHelpMission(unit);
+			// }
+			//
+			// // Go to PLACE WHERE UNIT SHOULD BE
+			// else {
+			// ArmyRendezvousManager.act(unit);
+			// }
+
+			// GLOBAL ATTACK is active
+			if (StrategyManager.isGlobalAttackActive()) {
+				FrontLineManager.actOffensively(unit);
+			}
+
+			// DEFENSIVE STANCE is active
+			else {
+				ArmyRendezvousManager.act(unit);
+			}
+		}
+
+		// ======================================
+		// SPECIFIC ACTIONS for units, but DON'T FULLY OVERRIDE standard
+		// behavior
+
+		// Tank
+		if (unitType.isTank()) {
+			SiegeTankManager.act(unit);
+		}
+
+		// ======================================
 		// OVERRIDE COMMANDS FOR SPECIFIC UNITS
 
 		// Vulture
@@ -43,56 +75,43 @@ public class ArmyUnitBasicBehavior {
 			TerranMedic.act(unit);
 			return;
 		}
-
-		// ======================================
-		// STANDARD ARMY UNIT COMMANDS
-		else {
-			if (tryConsideringCallForHelpMission(unit)) {
-				UnitManager.actWhenOnCallForHelpMission(unit);
-			} else {
-				ArmyRendezvousManager.act(unit);
-			}
-		}
-
-		// ======================================
-		// SPECIFIC ACTIONS for units, but DON'T FULLY OVERRIDE standard
-		// behavior
-
-		// Tank
-		if (unitType.isTank()) {
-			SiegeTankManager.act(unit);
-		}
 	}
 
 	// =========================================================
 
-	private static boolean tryConsideringCallForHelpMission(Unit unit) {
-
-		// If any call for help has been issued, decide whether to help or not
-		if (CallForHelp.isAnyCallForHelp()) {
-			UnitManager.decideWhetherToHelpSomeoneCalledForHelp(unit);
-		}
-
-		// =========================================================
-		// If unit has personalized order
-		if (unit.isOnCallForHelpMission()) {
-			return true;
-		}
-
-		return false;
-	}
+	// private static boolean tryConsideringCallForHelpMission(Unit unit) {
+	//
+	// // If any call for help has been issued, decide whether to help or not
+	// if (CallForHelp.isAnyCallForHelp()) {
+	// UnitManager.decideWhetherToHelpSomeoneCalledForHelp(unit);
+	// }
+	//
+	// // =========================================================
+	// // If unit has personalized order
+	// if (unit.isOnCallForHelpMission()) {
+	// return true;
+	// }
+	//
+	// return false;
+	// }
 
 	public static boolean tryRunningFromCloseDefensiveBuilding(Unit unit) {
 		Unit defensiveBuilding = xvr.getEnemyDefensiveGroundBuildingNear(unit);
 		if (defensiveBuilding != null) {
+
+			// Handle TANKS
 			if (unit.getType().isTank()) {
 				if (unit.distanceTo(defensiveBuilding) <= 10.8) {
 					unit.siege();
-					unit.setAiOrder("Siege because building");
+					unit.setAiOrder("Building siege");
 				}
 				return false;
-			} else {
-				UnitActions.moveAwayFrom(unit, defensiveBuilding);
+			}
+
+			// Non-tanks
+			else {
+				// UnitActions.moveAwayFrom(unit, defensiveBuilding);
+				UnitActions.holdPosition(unit);
 				unit.setIsRunningFromEnemyNow(defensiveBuilding);
 				unit.setAiOrder("Avoid building");
 				return true;
@@ -220,13 +239,16 @@ public class ArmyUnitBasicBehavior {
 		return false;
 	}
 
-	public static void tryUsingStimpacksIfNeeded(Unit unit) {
+	public static boolean tryUsingStimpacksIfNeeded(Unit unit) {
 		if (unit.getType().canUseStimpacks() && TechnologyManager.isStimpacksResearched()
 				&& !unit.isStimmed()) {
 			if (!unit.isWounded() && xvr.countUnitsEnemyInRadius(unit, 8) >= 2) {
 				UnitActions.useTech(unit, TechnologyManager.STIMPACKS);
+				return true;
 			}
 		}
+
+		return false;
 	}
 
 	public static boolean tryRetreatingIfChancesNotFavorable(Unit unit) {

@@ -13,7 +13,6 @@ import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
-import ai.managers.units.coordination.FrontLineManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranSiegeTank;
 import ai.utils.RUtilities;
@@ -92,11 +91,11 @@ public class SiegeTankManager {
 		// =========================================================
 		// Define hi-level behaviour
 
-		if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 7) {
-			actOffensively(unit);
-		} else {
-			actDefensively(unit);
-		}
+		// if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 7) {
+		// actOffensively(unit);
+		// } else {
+		// actDefensively(unit);
+		// }
 	}
 
 	// =========================================================
@@ -106,21 +105,23 @@ public class SiegeTankManager {
 	 * 
 	 * @param unit
 	 */
-	private static void actDefensively(Unit unit) {
-		MapPoint rendezvousPointForTanks = ArmyRendezvousManager.getDefensivePointForTanks();
-		if (unit.distanceTo(rendezvousPointForTanks) > 5) {
-			unit.setAiOrder("Entrench");
-			UnitActions.attackTo(unit, rendezvousPointForTanks);
-		}
-	}
-
-	private static void actOffensively(Unit unit) {
-		FrontLineManager.actOffensively(unit, FrontLineManager.MODE_VANGUARD);
-
-		if (!StrategyManager.FORCE_CRAZY_ATTACK && tryGoingBackToMedianTankIfNeeded(unit)) {
-			return;
-		}
-	}
+	// private static void actDefensively(Unit unit) {
+	// MapPoint rendezvousPointForTanks =
+	// ArmyRendezvousManager.getDefensivePointForTanks();
+	// if (unit.distanceTo(rendezvousPointForTanks) > 5) {
+	// unit.setAiOrder("Entrench");
+	// UnitActions.attackTo(unit, rendezvousPointForTanks);
+	// }
+	// }
+	//
+	// private static void actOffensively(Unit unit) {
+	// FrontLineManager.actOffensively(unit, FrontLineManager.MODE_VANGUARD);
+	//
+	// if (!StrategyManager.FORCE_CRAZY_ATTACK &&
+	// tryGoingBackToMedianTankIfNeeded(unit)) {
+	// return;
+	// }
+	// }
 
 	// =========================================================
 
@@ -187,7 +188,7 @@ public class SiegeTankManager {
 	}
 
 	private static boolean shouldUnsiegeBecauseOfPendingAttack(Unit unit) {
-		return unit.isSieged() && StrategyManager.isAnyAttackFormPending()
+		return unit.isSieged() && StrategyManager.isGlobalAttackActive()
 				&& unit.distanceTo(ArmyRendezvousManager.getDefensivePoint(unit)) < 7;
 	}
 

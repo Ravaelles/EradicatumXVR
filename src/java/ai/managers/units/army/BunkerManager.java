@@ -59,7 +59,7 @@ public class BunkerManager {
 
 		// If unit should be inside bunker, try to load it inside.
 		if (!isUnitLoaded) {
-			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending() && !unit.isIdle()) {
+			if (!enemyIsNearby && StrategyManager.isGlobalAttackInProgress() && !unit.isIdle()) {
 				return false;
 			}
 			// enemyIsNearby &&
@@ -170,7 +170,7 @@ public class BunkerManager {
 		}
 
 		// If there's an attack pending, consider getting out of the bunker.
-		if (StrategyManager.isAnyAttackFormPending() || TerranSiegeTank.getNumberOfUnits() >= 2) {
+		if (StrategyManager.isGlobalAttackInProgress() || TerranSiegeTank.getNumberOfUnits() >= 2) {
 			// Unit bunker = unit.getBunkerThatsIsLoadedInto();
 			// if (bunker != null && bunker.getNumLoadedUnits() > 1) {
 			MapPoint safePoint = ArmyRendezvousManager.getDefensivePoint(unit);

@@ -64,7 +64,7 @@ public class TerranSupplyDepot {
 		// =========================================================
 
 		if (total > 0 && total < 200) {
-			if (free <= 3 || (total >= 39 && free <= 18)) {
+			if (free <= 3 || (total >= 39 && free <= 22)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 		}

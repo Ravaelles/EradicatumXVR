@@ -7,6 +7,7 @@ import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Region;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
@@ -27,7 +28,7 @@ public class ConstructionPlaceFinder {
 		boolean isDepot = type.isSupplyDepot();
 
 		boolean skipCheckingIsFreeFromUnits = false;
-		boolean skipCheckingRegion = xvr.getTimeSeconds() > 250 || isBase || type.isBunker()
+		boolean skipCheckingRegion = xvr.getTimeSeconds() > 380 || isBase || type.isBunker()
 				|| type.isMissileTurret() || type.isAddon();
 
 		// =========================================================
@@ -152,18 +153,13 @@ public class ConstructionPlaceFinder {
 
 			// Supply Depots can be really close to each other, but only if
 			// there're few of them
-			// if (isDepot
-			// && type.isSupplyDepot()
-			// &&
-			// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot,
-			// 5, place,
-			// true) <= 2
-			// &&
-			// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot,
-			// 9, place,
-			// true) <= 3) {
-			// continue;
-			// }
+			if (type.isSupplyDepot()
+					&& xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot, 5, place,
+							true) <= 2
+					&& xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot, 9, place,
+							true) <= 3) {
+				continue;
+			}
 
 			// Also: don't build in the place where there COULD BE Add-On for a
 			// different, already existing building
@@ -196,7 +192,7 @@ public class ConstructionPlaceFinder {
 		Unit nearestGeyser = xvr.getUnitNearestFromList(point, xvr.getGeysersUnits());
 		double distToGeyser = xvr.getDistanceBetween(nearestGeyser, point);
 		Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
-		if (distToGeyser <= 7 + minDistBonus) {
+		if (distToGeyser <= 5 + minDistBonus) {
 			double distBaseToGeyser = xvr.getDistanceBetween(nearestBase, nearestGeyser);
 			if (distBaseToGeyser >= distToGeyser + minDistBonus) {
 				return false;
@@ -207,11 +203,11 @@ public class ConstructionPlaceFinder {
 		// Check if isn't too near to mineral
 		Unit nearestMineral = xvr.getUnitNearestFromList(point, xvr.getMineralsUnits());
 		double distToMineral = xvr.getDistanceBetween(nearestMineral, point);
-		if (distToMineral <= 7 + minDistBonus) {
+		if (distToMineral <= 5 + minDistBonus) {
 			return true;
 		}
 
-		if (distToMineral <= 10 + minDistBonus) {
+		if (distToMineral <= 8 + minDistBonus) {
 			if (nearestBase.distanceTo(point) <= 4 + minDistBonus) {
 				return false;
 			}

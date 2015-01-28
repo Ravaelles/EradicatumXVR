@@ -1299,6 +1299,10 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 		return getType().getID() == UnitTypes.Zerg_Zergling.ordinal();
 	}
 
+	public boolean isZealot() {
+		return getType().getID() == UnitTypes.Protoss_Zealot.ordinal();
+	}
+
 	public boolean isMissileTurret() {
 		return getType().getID() == UnitTypes.Terran_Missile_Turret.ordinal();
 	}

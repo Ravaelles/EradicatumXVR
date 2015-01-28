@@ -368,7 +368,7 @@ public class TerranBunker {
 		// MapPointInstance location = new MapPointInstance(
 		// (base.getX() + 2 * choke.getX()) / 3,
 		// (base.getY() + 2 * choke.getY()) / 3);
-		MapPointInstance location = MapPointInstance.getMiddlePointBetween(base, choke);
+		MapPointInstance location = MapPointInstance.getTwoThirdPointBetween(base, choke);
 
 		// Find place for bunker between choke point and the second base.
 		// return Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),

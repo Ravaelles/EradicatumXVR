@@ -7,6 +7,7 @@ import jnibwapi.types.UnitType;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.coordination.AttackCloseTargets;
@@ -20,6 +21,14 @@ public class RunManager {
 	// =========================================================
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
+
+		// If attack is pending, only tanks can run away from enemies.
+		if (StrategyManager.isGlobalAttackInProgress()) {
+			if (!unit.isTank()) {
+				return false;
+			}
+		}
+
 		return runFromCloseOpponentsIfNecessary(unit, SAFE_DIST_FROM_ENEMY);
 	}
 

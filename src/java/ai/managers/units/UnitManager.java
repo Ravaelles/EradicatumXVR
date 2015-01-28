@@ -7,24 +7,14 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.map.MapPoint;
-import ai.handling.strength.StrengthComparison;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
-import ai.handling.units.UnitAiOrders;
-import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
-import ai.managers.units.army.BunkerManager;
 import ai.managers.units.army.FlyerManager;
-import ai.managers.units.army.RunManager;
-import ai.managers.units.army.specialforces.SpecialForcesManager;
-import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
-import ai.managers.units.coordination.AttackCloseTargets;
-import ai.managers.units.workers.RepairAndSons;
 
 public class UnitManager {
 
@@ -32,10 +22,9 @@ public class UnitManager {
 	public static final UnitTypes BASE = UnitTypes.Terran_Command_Center;
 	public static final UnitTypes BARRACKS = UnitTypes.Terran_Barracks;
 
-	private static XVR xvr = XVR.getInstance();
+	// =========================================================
 
 	private static int _unitCounter = 0;
-	public static int _lastTimeSpreadOut = -1;
 	public static boolean _forceSpreadOut = false;
 
 	// ===========================================================
@@ -55,38 +44,9 @@ public class UnitManager {
 
 		// Act with non workers units
 		for (Unit unit : xvr.getUnitsNonWorkerAllowIncompleted()) {
-			UnitType type = unit.getType();
-
-			// Reject non controllable unit types
-			if (type.isSpiderMine()) {
-				continue;
+			if (shouldHandleUnit(unit)) {
+				act(unit);
 			}
-
-			// =========================================================
-
-			updateBeingRepairedStatus(unit);
-
-			// ===============================
-			// IF UNIT SHOULD BE HANDLED BY DIFFERENT MANAGE
-
-			// BUILDINGS have their own manager.
-			if (type.isBuilding()) {
-				BuildingManager.act(unit);
-				continue;
-			}
-
-			if (!unit.isCompleted()) {
-				continue;
-			}
-
-			// FLYERS (air units) have their own manager.
-			if (type.isFlyer()) {
-				FlyerManager.act(unit);
-				continue;
-			}
-
-			// ===============================
-			act(unit);
 
 			// ======================================
 			// Increase unit counter, so we can know which unit in order it was.
@@ -100,126 +60,68 @@ public class UnitManager {
 	}
 
 	private static void act(Unit unit) {
-		// UnitType type = unit.getType();
+		beforeUnitAction(unit);
 
-		// ==============================
-		// Should not listen to any actions that we announce here because it
-		// would mess the things up.
+		// =========================================================
 
-		// Don't interrupt when shooting or don't move when being repaired.
-		if (unit.isStartingAttack()) {
+		// Try doing most important things like avoiding enemy defensive
+		// buildings,
+		// avoiding enemy Siege Tanks.
+		if (UnitTopPriorityActions.tryTopPriorityActions(unit)) {
 			return;
 		}
 
-		// Spread out if enemy is beaten and we're very strong
-		if (shouldSpreadOut(unit)) {
-			UnitActions.spreadOutRandomly(unit);
+		// Try doing important things like running from very close enemy.
+		else if (UnitImportantActions.tryImportantActions(unit)) {
 			return;
 		}
 
-		// *UPDATE* value of strength ratio.
-		StrengthRatio.recalculateFor(unit);
-
-		// ======================================
-		// TOP PRIORITY ACTIONS, order is important!
-
-		// Avoid enemy tanks in Siege Mode
-		if (EnemyTanksManager.tryAvoidingEnemyTanks(unit)) {
-			return;
-		}
-
-		// Disallow units to move close to the defensive buildings
-		if (!_forceSpreadOut && ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
-			return;
-		}
-
-		// Make sure unit will get repaired
-		if (RepairAndSons.tryGoingToRepairIfNeeded(unit)) {
-			if (unit.isSieged()) {
-				unit.unsiege();
-			}
-			unit.setAiOrder(UnitAiOrders.ORDER_TO_REPAIR);
-			return;
-		}
-
-		// Use Stimpacks if need.
-		ArmyUnitBasicBehavior.tryUsingStimpacksIfNeeded(unit);
-
-		// Try to load infantry inside bunkers if possible.
-		if (BunkerManager.tryLoadingIntoBunkersIfPossible(unit)) {
-			unit.setAiOrder("Into bunker");
-			return;
-		}
-
-		// Wounded units should avoid being killed (if possible you know...)
-		if (ArmyUnitBasicBehavior.tryRunningIfSeriouslyWounded(unit)) {
-			unit.setAiOrder("Is badly wounded");
-			return;
-		}
-
-		// If enemy has got very close near to us, move away
-		if (RunManager.runFromCloseOpponentsIfNecessary(unit)) {
-			return;
-		}
-
-		// Run from hidden Lurkers, Dark Templars etc.
-		if (HiddenEnemyUnitsManager.tryAvoidingHiddenUnitsIfNecessary(unit)) {
-			return;
-		}
-
-		// Don't interrupt units being repaired
-		if (RepairAndSons.isUnitBeingRepaired(unit)) {
-			return;
-		}
-
-		// Disallow fighting when overwhelmed.
-		// if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
-		// unit.setAiOrder("Would lose");
-		// return;
-		// }
-
-		// ===============================
-		// INIDIVIDUAL MISSIONS, SPECIAL FORCES
-		if (SpecialForcesManager.tryActingSpecialForceIfNeeded(unit)) {
-			return;
-		}
-
-		// ===============================
-		// Act according to STRATEGY, attack strategic targets,
-		// define proper place for a unit.
-		ArmyUnitBasicBehavior.act(unit);
-
-		// ===============================
-		// ATTACK CLOSE targets (Tactics phase)
-		if (AttackCloseTargets.tryAttackingCloseTargets(unit)) {
-			unit.setAiOrder("Attack close targets");
+		else {
+			UnitOrdinaryActions.tryOrdinaryActions(unit);
 		}
 	}
 
-	private static boolean shouldSpreadOut(Unit unit) {
-		_forceSpreadOut = false;
+	// =========================================================
 
-		if (unit.isAttacking() || unit.isUnderAttack()) {
+	private static void beforeUnitAction(Unit unit) {
+		updateBeingRepairedStatus(unit);
+		StrengthRatio.recalculateFor(unit);
+	}
+
+	private static boolean shouldHandleUnit(Unit unit) {
+		UnitType type = unit.getType();
+
+		// Reject non controllable unit types
+		if (type.isSpiderMine()) {
 			return false;
 		}
 
-		if (xvr.getSuppliesTotal() > 150 && xvr.getSuppliesFree() < 10
-				&& StrengthComparison.getEnemySupply() < 40
-				&& xvr.countUnitsOursInRadius(unit, 10) >= 15) {
+		// ===============================
+		// IF UNIT SHOULD BE HANDLED BY DIFFERENT MANAGE
 
-			MapPoint targetPoint = StrategyManager.getTargetPoint();
-			if (targetPoint != null && targetPoint.distanceTo(unit) > 5.5
-					&& xvr.getTimeSeconds() <= _lastTimeSpreadOut + 10) {
-				_lastTimeSpreadOut = xvr.getTimeSeconds();
-				_forceSpreadOut = true;
-				return true;
-			} else {
-				_forceSpreadOut = true;
-				return true;
-			}
+		// BUILDINGS have their own manager.
+		if (type.isBuilding()) {
+			BuildingManager.act(unit);
+			return false;
 		}
 
-		return false;
+		// Unfinished units shouldn't be handled
+		if (!unit.isCompleted()) {
+			return false;
+		}
+
+		// FLYERS (air units) have their own manager.
+		if (type.isFlyer()) {
+			FlyerManager.act(unit);
+			return false;
+		}
+
+		// Don't interrupt when shooting or don't move when being repaired.
+		if (unit.isStartingAttack()) {
+			return false;
+		}
+
+		return true;
 	}
 
 	// =========================================================
@@ -349,5 +251,9 @@ public class UnitManager {
 		}
 
 	}
+
+	// =========================================================
+
+	private static XVR xvr = XVR.getInstance();
 
 }

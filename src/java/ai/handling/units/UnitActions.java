@@ -151,7 +151,7 @@ public class UnitActions {
 		unit.setAiOrder("Spreading out");
 
 		// Act when enemy detector is nearby, run away
-		if (!StrategyManager.isAttackPending()
+		if (!StrategyManager.isGlobalAttackActive()
 				&& (xvr.isEnemyDetectorNear(unit.getX(), unit.getY()) || xvr
 						.isEnemyDefensiveGroundBuildingNear(unit))) {
 			Unit goTo = xvr.getLastBase();
@@ -297,7 +297,7 @@ public class UnitActions {
 
 		// If there's massive attack and unit has more than 60% of initial
 		// shields, we treat it as healthy, as there's nothing to do about it.
-		if (StrategyManager.isAttackPending()) {
+		if (StrategyManager.isGlobalAttackActive()) {
 			if (!isImportantUnit && currHP >= 0.6 * maxHP) {
 				return false;
 			}

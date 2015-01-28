@@ -28,7 +28,7 @@ public class WorkerManager {
 	// public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
 	// public static final ArrayList<Integer> EXTRA_PROFESSIONAL_REPAIRERERS =
 	// new ArrayList<>();
-	public static int EXPLORER_INDEX = 6; // 6
+	public static int EXPLORER_INDEX = 9; // 6
 	public static int DEFEND_BASE_RADIUS = 23;
 
 	private static XVR xvr = XVR.getInstance();
@@ -49,15 +49,11 @@ public class WorkerManager {
 		private ProfessionalRepairersSettings() {
 			professionalRepairersIndices.clear();
 
-			// if (xvr.isEnemyProtoss()) {
-			// professionalRepairersIndices.add(15);
-			// }
-			//
-			// if (!xvr.isEnemyTerran()) {
-			// professionalRepairersIndices.add(18);
-			// }
-
-			professionalRepairersIndices.add(25);
+			if (xvr.isEnemyProtoss()) {
+				professionalRepairersIndices.add(15);
+			} else {
+				professionalRepairersIndices.add(25);
+			}
 		}
 
 	}

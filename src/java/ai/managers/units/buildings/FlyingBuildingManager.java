@@ -1,6 +1,7 @@
 package ai.managers.units.buildings;
 
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.units.UnitActions;
@@ -75,7 +76,10 @@ public class FlyingBuildingManager {
 			}
 
 			// If building is close to tank
-			if (medianTank.distanceTo(flyingBuilding) < MAX_ALLOWED_DIST_FROM_TANK) {
+			double maxDistanceBonus = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 8,
+					flyingBuilding, true) > 0 ? 3 : 0;
+			if (medianTank.distanceTo(flyingBuilding) < MAX_ALLOWED_DIST_FROM_TANK
+					+ maxDistanceBonus) {
 				if (MapExploration.getNumberOfKnownEnemyBases() > 0) {
 					Unit enemyBuilding = MapExploration.getNearestEnemyBuilding();
 					UnitActions.moveTo(flyingBuilding, enemyBuilding);

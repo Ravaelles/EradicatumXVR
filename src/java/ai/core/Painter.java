@@ -13,7 +13,6 @@ import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.other.NukeHandling;
 import ai.handling.strength.StrengthComparison;
-import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
@@ -298,13 +297,16 @@ public class Painter {
 			// ==========================
 			// Strength evaluation
 			// strength = StrengthEvaluator.calculateStrengthRatioFor(unit);
-			strength = unit.getStrengthRatio();
-			if (!type.isBuilding() && strength != StrengthRatio.STRENGTH_RATIO_FULLY_SAFE) {
-				strength -= 1; // make +/- values display
-				text = (strength > 0 ? (BWColor.getToStringHex(BWColor.GREEN) + "+") : (BWColor
-						.getToStringHex(BWColor.RED) + "")) + String.format("%.1f", strength);
-				bwapi.drawText(unit.getX() - 7, unit.getY() + 30, text, false);
-			}
+			// strength = unit.getStrengthRatio();
+			// if (!type.isBuilding() && strength !=
+			// StrengthRatio.STRENGTH_RATIO_FULLY_SAFE) {
+			// strength -= 1; // make +/- values display
+			// text = (strength > 0 ? (BWColor.getToStringHex(BWColor.GREEN) +
+			// "+") : (BWColor
+			// .getToStringHex(BWColor.RED) + "")) + String.format("%.1f",
+			// strength);
+			// bwapi.drawText(unit.getX() - 7, unit.getY() + 30, text, false);
+			// }
 
 			// ==========================
 			// Cooldown
@@ -531,13 +533,16 @@ public class Painter {
 		} else if (u.isGatheringGas()) {
 			// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREEN, false,
 			// false);
-		} else if (u.isMoving() && !u.isConstructing()) {
-			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false, false);
-
-			if (xvr.getDistanceBetween(u, u.getTargetX(), u.getTargetY()) <= 15) {
-				bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(), u.getTargetY(), BWColor.GREY,
-						false);
-			}
+			// } else if (u.isMoving() && !u.isConstructing()) {
+			// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.GREY, false,
+			// false);
+			//
+			// if (xvr.getDistanceBetween(u, u.getTargetX(), u.getTargetY()) <=
+			// 15) {
+			// bwapi.drawLine(u.getX(), u.getY(), u.getTargetX(),
+			// u.getTargetY(), BWColor.GREY,
+			// false);
+			// }
 		} else if (u.isRepairing()) {
 			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false, false);
 			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.PURPLE, false, false);
@@ -872,7 +877,7 @@ public class Painter {
 			}
 			paintMainMessage(xvr, "Build army: " + buildArmy);
 
-			boolean attackPending = StrategyManager.isAttackPending();
+			boolean attackPending = StrategyManager.isGlobalAttackActive();
 			paintMainMessage(xvr, "Attack ready: " + (attackPending ? "YES" : "no"));
 
 			if (attackPending) {

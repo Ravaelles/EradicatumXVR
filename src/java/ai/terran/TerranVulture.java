@@ -13,16 +13,12 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.army.RunManager;
-import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
-import ai.managers.units.coordination.ArmyUnitBasicBehavior;
-import ai.managers.units.coordination.FrontLineManager;
 import ai.utils.RUtilities;
 
 public class TerranVulture {
 
-	public static int CRITICALLY_FEW_VULTURES = 3;
+	public static int CRITICALLY_FEW_VULTURES = 2;
 	public static final int SAFE_DISTANCE_FROM_ENEMY_DEFENSIVE_BUILDING = 12;
 	private static final double SAFE_DISTANCE_FROM_ENEMY = 3.85;
 	private static final int MINIMUM_VULTURES_TO_DO_SCOUTING = 5;
@@ -37,36 +33,47 @@ public class TerranVulture {
 
 	public static boolean act(Unit unit) {
 
+		// =========================================================
+		// Use mines if possible
+
+		if (tryPlantingMines(unit)) {
+			return true;
+		}
+
+		// =========================================================
+
 		// int alliedUnitsNearby = xvr.countUnitsInRadius(unit, 10, true);
 		// boolean shouldConsiderRunningAway =
 		// !StrategyManager.isAnyAttackFormPending();
 
-		// =========================
-		// Look out for enemy defensive buildings.
-		if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
-			return true;
-		}
-
-		// Avoid enemy tanks in Siege Mode
-		if (EnemyTanksManager.tryAvoidingEnemyTanks(unit)) {
-			return true;
-		}
-
-		// Don't interrupt unit on march
-		if (unit.isStartingAttack()) {
-			return true;
-		}
-
-		if (RunManager.runFromCloseOpponentsIfNecessary(unit, SAFE_DISTANCE_FROM_ENEMY)) {
-			unit.setAiOrder("Run from enemy");
-			return true;
-		}
-
-		// Disallow fighting when overwhelmed.
-		if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
-			unit.setAiOrder("Would lose");
-			return true;
-		}
+		// // =========================
+		// // Look out for enemy defensive buildings.
+		// if (ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit))
+		// {
+		// return true;
+		// }
+		//
+		// // Avoid enemy tanks in Siege Mode
+		// if (EnemyTanksManager.tryAvoidingEnemyTanks(unit)) {
+		// return true;
+		// }
+		//
+		// // Don't interrupt unit on march
+		// if (unit.isStartingAttack()) {
+		// return true;
+		// }
+		//
+		// if (RunManager.runFromCloseOpponentsIfNecessary(unit,
+		// SAFE_DISTANCE_FROM_ENEMY)) {
+		// unit.setAiOrder("Run from enemy");
+		// return true;
+		// }
+		//
+		// // Disallow fighting when overwhelmed.
+		// if (ArmyUnitBasicBehavior.tryRetreatingIfChancesNotFavorable(unit)) {
+		// unit.setAiOrder("Would lose");
+		// return true;
+		// }
 
 		// Scout bases near the enemy
 		// if (handleExplorerVulture(unit)) {
@@ -81,12 +88,6 @@ public class TerranVulture {
 		// } else {
 		// actDefensively(unit);
 		// }
-
-		// =================================
-		// Use mines if possible
-		if (tryPlantingMines(unit)) {
-			return true;
-		}
 
 		// if (!StrengthEvaluator.isStrengthRatioFavorableFor(unit)) {
 		// UnitActions.moveToSafePlace(unit);
@@ -118,7 +119,8 @@ public class TerranVulture {
 		// FrontLineManager.MODE_FRONT_GUARD);
 		// }
 
-		FrontLineManager.actOffensively(unit, FrontLineManager.MODE_FRONT_GUARD);
+		// FrontLineManager.actOffensively(unit,
+		// FrontLineManager.MODE_FRONT_GUARD);
 	}
 
 	private static void actIndividually(Unit unit) {

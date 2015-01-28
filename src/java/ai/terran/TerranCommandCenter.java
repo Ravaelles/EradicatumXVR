@@ -213,6 +213,21 @@ public class TerranCommandCenter {
 	// =========================================================
 
 	private static boolean shouldBuildWorkers(Unit base) {
+		if (base == null) {
+			return false;
+		}
+
+		// =========================================================
+		// Dont produce workers at bases that are under attack, unless it's the
+		// main base
+		if (base.getID() != xvr.getFirstBase().getID()) {
+			if (xvr.countUnitsEnemyInRadius(base, 15) >= 2) {
+				return false;
+			}
+		}
+
+		// =========================================================
+
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int depots = UnitCounter.getNumberOfUnits(TerranSupplyDepot.getBuildingType());
 		boolean weAreBuildingDepot = Constructing

@@ -23,6 +23,8 @@ public class AttackCloseTargets {
 	private static final int MIN_TANKS_TO_FORWARD = 5;
 	private static final double FORCE_MOVE_TO_ENEMY_TANK_IF_DISTANCE_GREATER_THAN = 0.8;
 
+	private static Unit firstBase;
+
 	// =========================================================
 
 	public static boolean tryAttackingCloseTargets(Unit unit) {
@@ -47,7 +49,7 @@ public class AttackCloseTargets {
 
 		// If unit is far from any base and there's no attack pending, don't
 		// attack
-		if (StrategyManager.isAnyAttackFormPending()) {
+		if (StrategyManager.isGlobalAttackInProgress()) {
 			Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, unit);
 			if (nearestBase != null
 					&& nearestBase.distanceTo(unit) > MAX_DIST_TO_BASE_WHEN_AT_PEACE) {
@@ -136,6 +138,24 @@ public class AttackCloseTargets {
 		}
 
 		enemyToAttack = makeSureItsNotEnemyWorkerAroundTheBase(enemyToAttack);
+		if (enemyToAttack == null) {
+			return false;
+		}
+
+		// =========================================================
+		// Only allow attacking enemies that are near our main base
+
+		if (firstBase != null && firstBase.distanceTo(enemyToAttack) > 20 || unit.isZealot()) {
+			return false;
+		}
+
+		// =========================================================
+		// Only allow attacking if SIEGE TANK NEARBY
+		if (xvr.countTanksOurInRadius(unit, 8) == 0 || unit.isZealot()) {
+			return false;
+		}
+
+		// =========================================================
 
 		// Attack selected target if it's not too far away.
 		if (enemyToAttack != null && enemyToAttack.isDetected()) {
