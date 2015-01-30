@@ -29,8 +29,9 @@ public class UnitTopPriorityActions {
 				unit.unsiege();
 			}
 
-			UnitActions.spreadOutRandomly(unit);
-			unit.setAiOrder("Spread");
+			spreadOut(unit);
+
+			unit.setAiOrder("Make place");
 			return true;
 		}
 
@@ -41,6 +42,24 @@ public class UnitTopPriorityActions {
 		}
 
 		return false;
+	}
+
+	private static void spreadOut(Unit unit) {
+		Unit nearestTank = xvr.getNearestTankTo(unit);
+
+		// Tank
+		if (unit.isTank() || nearestTank == null) {
+			UnitActions.spreadOutRandomly(unit);
+		}
+
+		// Not-tank
+		else {
+			if (StrategyManager.getTargetUnit() != null) {
+				UnitActions.attackTo(unit, StrategyManager.getTargetUnit());
+			} else {
+				UnitActions.moveAwayFrom(unit, nearestTank);
+			}
+		}
 	}
 
 	// =========================================================
@@ -56,18 +75,24 @@ public class UnitTopPriorityActions {
 		}
 
 		// =========================================================
-
+		// If unit is engaged in combat, don't spread out
 		if (unit.getGroundWeaponCooldown() > 0 || unit.isUnderAttack()) {
 			return false;
 		}
 
-		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 1) > 0) {
+		// =========================================================
+		// Anti-stuck code
+
+		// If there's a tank in radius of 2 tiles, spread
+		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 2) > 0) {
 			return true;
 		}
 
-		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 1.6) >= 5) {
+		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 1.8) >= 4) {
 			return true;
 		}
+
+		// =========================================================
 
 		if (xvr.getSuppliesTotal() > 150 && xvr.getSuppliesFree() < 10
 		// && StrengthComparison.getEnemySupply() < 40

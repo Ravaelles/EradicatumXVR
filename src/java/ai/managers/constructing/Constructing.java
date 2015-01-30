@@ -83,19 +83,36 @@ public class Constructing {
 		// Try to find possible place to build starting in given point and
 		// gradually increasing search radius
 		int currentDist = minimumDist;
+		// System.out.println();
+		// System.out.println("TILE_X = " + tileX);
+		// System.out.println("TILE_Y = " + tileY);
 		while (currentDist <= maximumDist) {
 			int step = Math.max(2 * currentDist, 1);
-			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
+			for (int i = tileX - currentDist; i <= tileX + currentDist; i += step) {
 				if (!isSpecialBuilding && i % 5 == 0) {
 					continue;
 				}
 
 				// for (int j = tileY - currentDist; j <= tileY + currentDist;
 				// j++) {
-				for (int j = tileY - currentDist; j <= tileY + currentDist; j += step) {
-					if (!isSpecialBuilding && j % 5 == 0) {
+				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
+					// System.out.println(i + ", " + j);
+					if (!isSpecialBuilding && j % 7 == 0) {
 						continue;
 					}
+
+					// Draw base position as rectangle
+					// int x = i * 32;
+					// int y = j * 32;
+					// xvr.getBwapi().drawBox(x, y,
+					// x + type.getDimensionLeft() + type.getDimensionRight(),
+					// y + type.getDimensionUp() + type.getDimensionDown(),
+					// BWColor.TEAL,
+					// false, false);
+					// xvr.getBwapi().drawText(x, y + 3,
+					// BWColor.getToStringHex(BWColor.GREEN) + type.getName(),
+					// false);
+
 					MapPoint position = ConstructionPlaceFinder.shouldBuildHere(type, i, j);
 					if (position != null) {
 						return position;
@@ -105,7 +122,7 @@ public class Constructing {
 
 			currentDist++;
 
-			if (currentDist > 50) {
+			if (currentDist > 42) {
 				break;
 			}
 		}
@@ -119,7 +136,7 @@ public class Constructing {
 
 		// There is a nasty bug: when we're losing badly Terran Barracks are
 		// slowing down game terribly; try to limit search range.
-		int MAX_RANGE = 80;
+		int MAX_RANGE = 70;
 		if (xvr.getTimeSeconds() > 400
 				&& typeToBuild.ordinal() == UnitTypes.Terran_Barracks.ordinal()) {
 			MAX_RANGE = 20;
@@ -132,7 +149,7 @@ public class Constructing {
 		}
 
 		MapPoint tile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), typeToBuild,
-				base.translate(48, 16), 5, MAX_RANGE);
+				base.translate(96, -48), 3, MAX_RANGE);
 
 		return tile;
 	}

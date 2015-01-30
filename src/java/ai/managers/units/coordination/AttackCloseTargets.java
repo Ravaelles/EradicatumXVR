@@ -152,14 +152,26 @@ public class AttackCloseTargets {
 		// Only allow attacking enemies that are near our main base
 
 		if (firstBase != null) {
-			boolean isTooFarFromBase = firstBase.distanceTo(enemyToAttack) > 24;
-			boolean engageZealots = enemyToAttack.isZealot() && unit.isVulture();
-			boolean forceTanksSupport = xvr.countTanksOurInRadius(unit, 7) == 0
-					&& !enemyToAttack.isZealot();
 			boolean isVeryCloseToMainBase = firstBase.distanceTo(enemyToAttack) < 15;
 
-			if (!isVeryCloseToMainBase && isTooFarFromBase && !engageZealots && forceTanksSupport) {
-				return false;
+			if (isVeryCloseToMainBase) {
+				return true;
+			}
+
+			// =========================================================
+
+			boolean engageZealots = enemyToAttack.isZealot() && unit.isVulture()
+					&& xvr.getTimeSeconds() <= 430;
+			boolean isTooFarFromBase = firstBase.distanceTo(enemyToAttack) > 24;
+			boolean enoughTanksSupport = xvr.countTanksOurInRadius(unit, 7) > 0
+					|| enemyToAttack.isZealot();
+
+			if (isTooFarFromBase || !enoughTanksSupport) {
+				if (engageZealots) {
+					return true;
+				} else {
+					return false;
+				}
 			}
 		}
 

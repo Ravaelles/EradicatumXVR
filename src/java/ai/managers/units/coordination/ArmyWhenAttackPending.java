@@ -25,7 +25,7 @@ public class ArmyWhenAttackPending {
 				return;
 			}
 
-			if (StrategyManager.getTargetPoint() != null) {
+			if (StrategyManager.getTargetPoint() != null && StrategyManager.getTargetUnit() != null) {
 				if (!UnitManager.isHasValidTargetToAttack(unit)) {
 					UnitActions.attackTo(unit, StrategyManager.getTargetPoint());
 					unit.setAiOrder("Forward!");

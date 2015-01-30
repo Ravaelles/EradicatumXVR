@@ -472,7 +472,7 @@ public class XVR {
 		ArrayList<Unit> objectsOfThisType = new ArrayList<Unit>();
 
 		for (Unit unit : bwapi.getNeutralUnits()) {
-			if (unit.getTypeID() == UnitTypes.Resource_Vespene_Geyser.ordinal()) {
+			if (unit.isOnGeyser()) {
 				objectsOfThisType.add(unit);
 			}
 		}
@@ -627,7 +627,7 @@ public class XVR {
 		return countUnitsInRadius(point, tileRadius, TerranSiegeTank.getAllCompletedTanks());
 	}
 
-	public int countUnitsOursInRadius(MapPoint point, int tileRadius) {
+	public int countUnitsOursInRadius(MapPoint point, double tileRadius) {
 		// return countUnitsInRadius(point, tileRadius, bwapi.getMyUnits());
 		return getUnitsInRadius(point, tileRadius, bwapi.getMyUnits()).size();
 	}

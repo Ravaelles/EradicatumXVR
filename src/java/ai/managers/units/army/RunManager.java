@@ -33,7 +33,7 @@ public class RunManager {
 	}
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit, double safeDistance) {
-		if (unit.getGroundWeaponCooldown() == 0 && unit.getHPPercent() > 65) {
+		if (unit.getGroundWeaponCooldown() == 0 && (unit.getHPPercent() > 65 && unit.getHP() >= 30)) {
 			return false;
 		}
 

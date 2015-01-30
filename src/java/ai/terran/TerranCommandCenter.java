@@ -258,7 +258,15 @@ public class TerranCommandCenter {
 		// =========================================================
 		// ANTI ZERG-RUSH
 		if (xvr.isEnemyZerg()) {
-			if (workers >= 7 && TerranBunker.getNumberOfUnits() == 0
+
+			// Barracks
+			if (workers >= 7 && TerranBarracks.getNumberOfUnits() == 0
+					&& !Constructing.weAreBuilding(TerranBarracks.getBuildingType())) {
+				return false;
+			}
+
+			// Bunker
+			if (workers >= 8 && TerranBunker.getNumberOfUnits() == 0
 					&& !Constructing.weAreBuilding(TerranBunker.getBuildingType())) {
 				return false;
 			}

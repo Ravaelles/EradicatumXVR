@@ -24,7 +24,7 @@ public class TerranBarracks {
 	private static boolean isPlanAntiAirActive = false;
 
 	public static int MIN_UNITS_FOR_DIFF_BUILDING = TerranBunker.GLOBAL_MAX_BUNKERS * 4;
-	public static int MIN_MEDICS = 2;
+	public static int MIN_MEDICS = 1;
 	public static int MAX_BARRACKS = 1;
 
 	public static boolean LIMIT_MARINES = false;
@@ -47,10 +47,9 @@ public class TerranBarracks {
 		// =========================================================
 		// ANTI-ZERGLING RUSH
 
-		// If enemy is Zerg make sure you build one barracks, one bunker.
-		// Normally it would be: 2 x Barracks, only then bunker.
 		if (xvr.isEnemyZerg()) {
-			if (barracks == 0 && !Constructing.weAreBuilding(buildingType)) {
+			// if (barracks == 0 && !Constructing.weAreBuilding(buildingType)) {
+			if (barracks == 0 && xvr.canAfford(134)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 
@@ -144,7 +143,8 @@ public class TerranBarracks {
 		boolean criticallyFewInfantry = battleUnits < 4;
 		boolean notEnoughInfantry = (xvr.canAfford(100) && UnitCounter.getNumberOfBattleUnits() <= MIN_UNITS_FOR_DIFF_BUILDING);
 		boolean shouldAlwaysBuild = criticallyFewInfantry || notEnoughInfantry;
-		if (shouldAlwaysBuild || buildingQueueDetails == null || freeMinerals >= 100) {
+		if (shouldAlwaysBuild || buildingQueueDetails == null || freeMinerals >= 100
+				|| UnitCounter.getNumberOfUnits(MEDIC) == 0) {
 			if (barracks.getTrainingQueueSize() == 0) {
 				xvr.buildUnit(barracks, defineUnitToBuild(freeMinerals, freeGas));
 			}
@@ -232,6 +232,10 @@ public class TerranBarracks {
 
 		// ===========================================================
 		UnitTypes typeToBuild = MARINE;
+
+		if (marines >= 4 && medicAllowed && medics == 0) {
+			return MEDIC;
+		}
 
 		if (marines < 8) {
 			return MARINE;

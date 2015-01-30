@@ -34,7 +34,7 @@ public class TerranRefinery {
 			minSupply += 1;
 		}
 
-		if (refineries == 0 && supplyUsed >= minSupply) {
+		if (refineries == 0 && (supplyUsed >= minSupply || xvr.canAfford(270))) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
@@ -93,6 +93,25 @@ public class TerranRefinery {
 
 	// =========================================================
 
+	public static MapPoint findTileForRefinery() {
+		Unit nearestGeyser = xvr.getUnitNearestFromList(xvr.getFirstBase(), xvr.getGeysersUnits());
+		if (nearestGeyser != null
+				&& xvr.getUnitsOfGivenTypeInRadius(UnitManager.BASE, 15, nearestGeyser, true)
+						.isEmpty()) {
+			return null;
+		}
+
+		if (nearestGeyser != null) {
+			// return new MapPointInstance(nearestGeyser.getX(),
+			// nearestGeyser.getY());
+			return new MapPointInstance(nearestGeyser.getX() - 64, nearestGeyser.getY() - 32);
+		} else {
+			return null;
+		}
+	}
+
+	// =========================================================
+
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -111,21 +130,6 @@ public class TerranRefinery {
 
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
-	}
-
-	public static MapPoint findTileForRefinery() {
-		Unit nearestGeyser = xvr.getUnitNearestFromList(xvr.getFirstBase(), xvr.getGeysersUnits());
-		if (nearestGeyser != null
-				&& xvr.getUnitsOfGivenTypeInRadius(UnitManager.BASE, 15, nearestGeyser, true)
-						.isEmpty()) {
-			return null;
-		}
-
-		if (nearestGeyser != null) {
-			return new MapPointInstance(nearestGeyser.getX() - 64, nearestGeyser.getY() - 32);
-		} else {
-			return null;
-		}
 	}
 
 }

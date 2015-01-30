@@ -18,6 +18,7 @@ import ai.terran.TerranSiegeTank;
 public class FlyingBuildingManager {
 
 	private static final double MAX_ALLOWED_DIST_FROM_TANK = 5.5;
+	private static final double MAX_ALLOWED_DIST_FROM_TANK_IF_BUNKER_NEAR = 9;
 	private static XVR xvr = XVR.getInstance();
 	private static Unit flyingBuilding1 = null;
 	private static Unit flyingBuilding2 = null;
@@ -87,8 +88,12 @@ public class FlyingBuildingManager {
 
 		// =========================================================
 
-		Unit medianTank = ArmyRendezvousManager.getRendezvousTankForFlyers();
-		if (medianTank != null) {
+		Unit enhanceViewForUnit = ArmyRendezvousManager.getRendezvousTankForFlyers();
+		// if (enhanceViewForUnit == null) {
+		// TerranBunker.get
+		// }
+
+		if (enhanceViewForUnit != null) {
 
 			// Lift building if isn't lifted yet
 			if (!flyingBuilding.isLifted()) {
@@ -96,10 +101,17 @@ public class FlyingBuildingManager {
 			}
 
 			// If building is close to tank
-			double maxDistanceBonus = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 8,
-					flyingBuilding, true) > 0 ? 3 : 0;
-			if (medianTank.distanceTo(flyingBuilding) < MAX_ALLOWED_DIST_FROM_TANK
-					+ maxDistanceBonus) {
+			boolean isNearBunker = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 12,
+					flyingBuilding, true) > 0;
+
+			// if (isNearBunker) {
+			//
+			// } else {
+			double maxDistanceAllowedFromTank = isNearBunker ? MAX_ALLOWED_DIST_FROM_TANK_IF_BUNKER_NEAR
+					: MAX_ALLOWED_DIST_FROM_TANK;
+
+			// Building is too close to our units, enhance the vision
+			if (enhanceViewForUnit.distanceTo(flyingBuilding) < maxDistanceAllowedFromTank) {
 				if (MapExploration.getNumberOfKnownEnemyBases() > 0) {
 					Unit enemyBuilding = MapExploration.getNearestEnemyBuilding();
 					UnitActions.moveTo(flyingBuilding, enemyBuilding);
@@ -108,8 +120,9 @@ public class FlyingBuildingManager {
 
 			// Building is far from tank
 			else {
-				UnitActions.moveTo(flyingBuilding, medianTank);
+				UnitActions.moveTo(flyingBuilding, enhanceViewForUnit);
 			}
+			// }
 		}
 
 	}

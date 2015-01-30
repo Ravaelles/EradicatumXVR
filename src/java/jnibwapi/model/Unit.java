@@ -1186,15 +1186,15 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	// Duplicated auxiliary methods from UnitType
 
 	public boolean isBunker() {
-		return getType().getID() == UnitTypes.Terran_Bunker.ordinal();
+		return typeID == UnitTypes.Terran_Bunker.ordinal();
 	}
 
 	public boolean isGhost() {
-		return getType().getID() == UnitTypes.Terran_Ghost.ordinal();
+		return typeID == UnitTypes.Terran_Ghost.ordinal();
 	}
 
 	public boolean isGoliath() {
-		return getType().getID() == UnitTypes.Terran_Ghost.ordinal();
+		return typeID == UnitTypes.Terran_Ghost.ordinal();
 	}
 
 	public boolean isArmy() {
@@ -1202,173 +1202,172 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public boolean isBase() {
-		return (getType().getID() == UnitTypes.Terran_Command_Center.ordinal())
-				|| (getType().getID() == UnitTypes.Protoss_Nexus.ordinal())
-				|| (getType().getID() == UnitTypes.Zerg_Hatchery.ordinal())
-				|| (getType().getID() == UnitTypes.Zerg_Lair.ordinal())
-				|| (getType().getID() == UnitTypes.Zerg_Hive.ordinal());
+		return (typeID == UnitTypes.Terran_Command_Center.ordinal())
+				|| (typeID == UnitTypes.Protoss_Nexus.ordinal())
+				|| (typeID == UnitTypes.Zerg_Hatchery.ordinal())
+				|| (typeID == UnitTypes.Zerg_Lair.ordinal())
+				|| (typeID == UnitTypes.Zerg_Hive.ordinal());
 	}
 
 	public boolean isOnGeyser() {
-		return ID == UnitTypes.Terran_Refinery.ordinal()
-				|| ID == UnitTypes.Resource_Vespene_Geyser.ordinal()
-				|| ID == UnitTypes.Protoss_Assimilator.ordinal()
-				|| ID == UnitTypes.Zerg_Extractor.ordinal();
+		return typeID == UnitTypes.Terran_Refinery.ordinal()
+				|| typeID == UnitTypes.Resource_Vespene_Geyser.ordinal()
+				|| typeID == UnitTypes.Protoss_Assimilator.ordinal()
+				|| typeID == UnitTypes.Zerg_Extractor.ordinal();
 	}
 
 	public boolean isPylon() {
-		return getType().getID() == UnitTypes.Protoss_Pylon.ordinal();
+		return typeID == UnitTypes.Protoss_Pylon.ordinal();
 	}
 
 	public boolean isPhotonCannon() {
-		return getType().getID() == UnitTypes.Protoss_Photon_Cannon.ordinal();
+		return typeID == UnitTypes.Protoss_Photon_Cannon.ordinal();
 	}
 
 	public boolean isBarracks() {
-		return getType().getID() == UnitTypes.Terran_Barracks.ordinal();
+		return typeID == UnitTypes.Terran_Barracks.ordinal();
 	}
 
 	public boolean isFactory() {
-		return getType().getID() == UnitTypes.Terran_Factory.ordinal();
+		return typeID == UnitTypes.Terran_Factory.ordinal();
 	}
 
 	public boolean isGateway() {
-		return getType().getID() == UnitTypes.Protoss_Gateway.ordinal();
+		return typeID == UnitTypes.Protoss_Gateway.ordinal();
 	}
 
 	public boolean isDragoon() {
-		return getType().getID() == UnitTypes.Protoss_Dragoon.ordinal();
+		return typeID == UnitTypes.Protoss_Dragoon.ordinal();
 	}
 
 	public boolean isSunkenColony() {
-		return getType().getID() == UnitTypes.Zerg_Sunken_Colony.ordinal();
+		return typeID == UnitTypes.Zerg_Sunken_Colony.ordinal();
 	}
 
 	public boolean isSporeColony() {
-		return getType().getID() == UnitTypes.Zerg_Spore_Colony.ordinal();
+		return typeID == UnitTypes.Zerg_Spore_Colony.ordinal();
 	}
 
 	public boolean isLarvaOrEgg() {
-		return getType().getID() == UnitTypes.Zerg_Larva.ordinal()
-				|| getType().getID() == UnitTypes.Zerg_Egg.ordinal();
+		return typeID == UnitTypes.Zerg_Larva.ordinal() || typeID == UnitTypes.Zerg_Egg.ordinal();
 	}
 
 	public boolean isLurker() {
-		return getType().getID() == UnitTypes.Zerg_Lurker.ordinal();
+		return typeID == UnitTypes.Zerg_Lurker.ordinal();
 	}
 
 	public boolean isMutalisk() {
-		return getType().getID() == UnitTypes.Zerg_Mutalisk.ordinal();
+		return typeID == UnitTypes.Zerg_Mutalisk.ordinal();
 	}
 
 	public boolean isTank() {
-		return getType().getID() == UnitTypes.Terran_Siege_Tank_Siege_Mode.ordinal()
-				|| getType().getID() == UnitTypes.Terran_Siege_Tank_Tank_Mode.ordinal();
+		return typeID == UnitTypes.Terran_Siege_Tank_Siege_Mode.ordinal()
+				|| typeID == UnitTypes.Terran_Siege_Tank_Tank_Mode.ordinal();
 	}
 
 	public boolean isTankSieged() {
-		return getType().getID() == UnitTypes.Terran_Siege_Tank_Siege_Mode.ordinal();
+		return typeID == UnitTypes.Terran_Siege_Tank_Siege_Mode.ordinal();
 	}
 
 	public boolean isTerranInfantry() {
-		return getType().getID() == UnitTypes.Terran_Marine.ordinal()
-				|| getType().getID() == UnitTypes.Terran_Firebat.ordinal()
-				|| getType().getID() == UnitTypes.Terran_Medic.ordinal()
-				|| getType().getID() == UnitTypes.Terran_Ghost.ordinal();
+		return typeID == UnitTypes.Terran_Marine.ordinal()
+				|| typeID == UnitTypes.Terran_Firebat.ordinal()
+				|| typeID == UnitTypes.Terran_Medic.ordinal()
+				|| typeID == UnitTypes.Terran_Ghost.ordinal();
 	}
 
 	public boolean canUseStimpacks() {
-		return getType().getID() == UnitTypes.Terran_Marine.ordinal()
-				|| getType().getID() == UnitTypes.Terran_Firebat.ordinal()
-				|| getType().getID() == UnitTypes.Terran_Ghost.ordinal();
+		return typeID == UnitTypes.Terran_Marine.ordinal()
+				|| typeID == UnitTypes.Terran_Firebat.ordinal()
+				|| typeID == UnitTypes.Terran_Ghost.ordinal();
 	}
 
 	public boolean isReaver() {
-		return getType().getID() == UnitTypes.Protoss_Reaver.ordinal();
+		return typeID == UnitTypes.Protoss_Reaver.ordinal();
 	}
 
 	public boolean isHighTemplar() {
-		return getType().getID() == UnitTypes.Protoss_High_Templar.ordinal();
+		return typeID == UnitTypes.Protoss_High_Templar.ordinal();
 	}
 
 	public boolean isDarkTemplar() {
-		return getType().getID() == UnitTypes.Protoss_Dark_Templar.ordinal();
+		return typeID == UnitTypes.Protoss_Dark_Templar.ordinal();
 	}
 
 	public boolean isZergling() {
-		return getType().getID() == UnitTypes.Zerg_Zergling.ordinal();
+		return typeID == UnitTypes.Zerg_Zergling.ordinal();
 	}
 
 	public boolean isZealot() {
-		return getType().getID() == UnitTypes.Protoss_Zealot.ordinal();
+		return typeID == UnitTypes.Protoss_Zealot.ordinal();
 	}
 
 	public boolean isMissileTurret() {
-		return getType().getID() == UnitTypes.Terran_Missile_Turret.ordinal();
+		return typeID == UnitTypes.Terran_Missile_Turret.ordinal();
 	}
 
 	public boolean isObserver() {
-		return getType().getID() == UnitTypes.Protoss_Observer.ordinal();
+		return typeID == UnitTypes.Protoss_Observer.ordinal();
 	}
 
 	public boolean isScienceVessel() {
-		return getType().getID() == UnitTypes.Terran_Science_Vessel.ordinal();
+		return typeID == UnitTypes.Terran_Science_Vessel.ordinal();
 	}
 
 	public boolean isStarport() {
-		return getType().getID() == UnitTypes.Terran_Starport.ordinal();
+		return typeID == UnitTypes.Terran_Starport.ordinal();
 	}
 
 	public boolean isScienceFacility() {
-		return getType().getID() == UnitTypes.Terran_Science_Facility.ordinal();
+		return typeID == UnitTypes.Terran_Science_Facility.ordinal();
 	}
 
 	public boolean isCarrier() {
-		return getType().getID() == UnitTypes.Protoss_Carrier.ordinal();
+		return typeID == UnitTypes.Protoss_Carrier.ordinal();
 	}
 
 	public boolean isInterceptor() {
-		return getType().getID() == UnitTypes.Protoss_Interceptor.ordinal();
+		return typeID == UnitTypes.Protoss_Interceptor.ordinal();
 	}
 
 	public boolean isVulture() {
-		return getType().getID() == UnitTypes.Terran_Vulture.ordinal();
+		return typeID == UnitTypes.Terran_Vulture.ordinal();
 	}
 
 	public boolean isWraith() {
-		return getType().getID() == UnitTypes.Terran_Wraith.ordinal();
+		return typeID == UnitTypes.Terran_Wraith.ordinal();
 	}
 
 	public boolean isHydralisk() {
-		return getType().getID() == UnitTypes.Zerg_Hydralisk.ordinal();
+		return typeID == UnitTypes.Zerg_Hydralisk.ordinal();
 	}
 
 	public boolean isFirebat() {
-		return getType().getID() == UnitTypes.Terran_Firebat.ordinal();
+		return typeID == UnitTypes.Terran_Firebat.ordinal();
 	}
 
 	public boolean isSpiderMine() {
-		return getType().getID() == UnitTypes.Terran_Vulture_Spider_Mine.ordinal();
+		return typeID == UnitTypes.Terran_Vulture_Spider_Mine.ordinal();
 	}
 
 	public boolean isSCV() {
-		return getType().getID() == UnitTypes.Terran_SCV.ordinal();
+		return typeID == UnitTypes.Terran_SCV.ordinal();
 	}
 
 	public boolean isMarine() {
-		return getType().getID() == UnitTypes.Terran_Marine.ordinal();
+		return typeID == UnitTypes.Terran_Marine.ordinal();
 	}
 
 	public boolean isSupplyDepot() {
-		return getType().getID() == UnitTypes.Terran_Supply_Depot.ordinal();
+		return typeID == UnitTypes.Terran_Supply_Depot.ordinal();
 	}
 
 	public boolean isFleetBeacon() {
-		return getType().getID() == UnitTypes.Protoss_Fleet_Beacon.ordinal();
+		return typeID == UnitTypes.Protoss_Fleet_Beacon.ordinal();
 	}
 
 	public boolean isMedic() {
-		return getType().getID() == UnitTypes.Terran_Medic.ordinal();
+		return typeID == UnitTypes.Terran_Medic.ordinal();
 	}
 
 	public WeaponType getGroundWeapon() {

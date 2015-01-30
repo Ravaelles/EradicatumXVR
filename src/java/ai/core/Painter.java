@@ -548,8 +548,20 @@ public class Painter {
 			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.PURPLE, false, false);
 			bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.PURPLE, false, false);
 		} else if (u.isConstructing() || u.getLastCommandID() == UnitCommandTypes.Build.ordinal()) {
-			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false, false);
-			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.ORANGE, false, false);
+			// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false,
+			// false);
+			// bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.ORANGE, false,
+			// false);
+			// bwapi.drawLine(u.getX() + 7, u.getY() + 5, u.getX(), u.getY(),
+			// BWColor.YELLOW, false);
+
+			// Paint hammer's hand
+			bwapi.drawBox(u.getX() + 5, u.getY(), u.getX() + 6, u.getY() + 5, BWColor.ORANGE, true,
+					false);
+
+			// Paint hammer's head
+			bwapi.drawBox(u.getX() + 2, u.getY() - 2, u.getX() + 9, u.getY() - 1, BWColor.GREY,
+					true, false);
 		} else if (u.isStuck()) {
 			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.TEAL, false, false);
 			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.TEAL, false, false);

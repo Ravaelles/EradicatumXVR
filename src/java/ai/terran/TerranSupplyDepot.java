@@ -48,6 +48,35 @@ public class TerranSupplyDepot {
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
 
 		// =========================================================
+		// ANTI ZERG RUSH
+		if (xvr.isEnemyZerg()) {
+
+			// First build barracks
+			if (barracks == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				return false;
+			}
+
+			// Then bunker
+			if (TerranBunker.getNumberOfUnits() == 0
+					&& !Constructing.weAreBuilding(TerranBunker.getBuildingType())
+					&& !xvr.canAfford(200)) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				return false;
+			}
+
+			if (barracks >= 1 && depots == 0 && xvr.canAfford(200)) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				return true;
+			}
+
+			if ((depots >= 1 || weAreBuilding) && TerranBunker.getNumberOfUnits() == 0) {
+				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+				return false;
+			}
+		}
+
+		// =========================================================
 		// Begin EASY-WAY
 
 		if (depots == 0) {
@@ -78,30 +107,9 @@ public class TerranSupplyDepot {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
-		// ZERG RUSH
-		if (xvr.isEnemyZerg()) {
-			if (barracks == 0) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
-			}
-
-			if (barracks >= 1 && depots == 0 && xvr.canAfford(200)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
-
-			if ((depots >= 1 || weAreBuilding) && TerranBunker.getNumberOfUnits() == 0) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
-			}
-		}
-
-		// NON-ZERG RUSH
-		else {
-			if (depots == 0 && xvr.canAfford(90)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
-			}
+		if (depots == 0 && xvr.canAfford(90)) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			return true;
 		}
 
 		if (barracks == 0 && depots == 1) {

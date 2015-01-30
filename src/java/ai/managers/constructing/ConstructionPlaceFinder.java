@@ -25,7 +25,7 @@ public class ConstructionPlaceFinder {
 
 	public static MapPoint shouldBuildHere(UnitType type, int i, int j) {
 		boolean isBase = type.isBase();
-		boolean isDepot = type.isSupplyDepot();
+		// boolean isDepot = type.isSupplyDepot();
 
 		boolean skipCheckingIsFreeFromUnits = false;
 		boolean skipCheckingRegion = xvr.getTimeSeconds() > 380 || isBase || type.isBunker()
@@ -36,8 +36,10 @@ public class ConstructionPlaceFinder {
 		// if (isDepot && (j % 2 != 0 || j % 6 == 0)) {
 		// continue;
 		// }
-		int x = i * 32;
-		int y = j * 32;
+		int buildingPixelWidth = type.getDimensionLeft() + type.getDimensionRight();
+		int buildingPixelHeight = type.getDimensionUp() + type.getDimensionDown();
+		int x = i * 32 - buildingPixelWidth / 2;
+		int y = j * 32 - buildingPixelHeight / 2;
 		MapPointInstance place = new MapPointInstance(x, y);
 
 		// Is it physically possibly to build here?
@@ -172,12 +174,12 @@ public class ConstructionPlaceFinder {
 			int dx = 0;
 			int bonus = spaceBonus;
 			UnitType unitType = unit.getType();
-			if (type.canHaveAddOn() && !unit.hasAddOn()) {
+			if (unitType.canHaveAddOn() && !unit.hasAddOn()) {
 				// bonus++;
-				dx = 96;
+				dx = 64;
 			}
 			if (unitType.isBase()) {
-				dx += 96;
+				// dx += 96;
 				bonus += 5;
 			}
 
@@ -192,43 +194,110 @@ public class ConstructionPlaceFinder {
 	}
 
 	public static boolean isTooNearMineralsOrGeyser(UnitType type, MapPoint point) {
-		int minDistBonus = type.canHaveAddOn() ? 2 : 0;
-
-		// Check if isn't too near to geyser
-		Unit nearestGeyser = xvr.getUnitNearestFromList(point, xvr.getGeysersUnits());
-		double distToGeyser = xvr.getDistanceBetween(nearestGeyser, point);
+		if (type.canHaveAddOn()) {
+			point = point.translate(64, 0);
+		}
 		Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
-		if (distToGeyser <= 5 + minDistBonus) {
-			double distBaseToGeyser = xvr.getDistanceBetween(nearestBase, nearestGeyser);
-			if (distBaseToGeyser >= distToGeyser + minDistBonus) {
-				return false;
-			}
+		double distToBase = nearestBase.distanceTo(point);
+
+		// =========================================================
+
+		if (type.isOnGeyser()) {
+			return false;
 		}
 
-		// ==================================
-		// Check if isn't too near to mineral
-		Unit nearestMineral = xvr.getUnitNearestFromList(point, xvr.getMineralsUnits());
-		double distToMineral = xvr.getDistanceBetween(nearestMineral, point);
-		if (distToMineral <= 5 + minDistBonus) {
-			return true;
-		}
-
-		if (distToMineral <= 8 + minDistBonus) {
-			if (nearestBase.distanceTo(point) <= 4 + minDistBonus) {
-				return false;
-			}
-
-			double distBaseToMineral = xvr.getDistanceBetween(nearestBase, nearestMineral);
-			if (distToMineral < distBaseToMineral + minDistBonus) {
+		// =========================================================
+		// Check if isn't too near to geyser
+		MapPoint nearestGeyser = xvr.getUnitNearestFromList(point, xvr.getGeysersUnits());
+		if (nearestGeyser != null) {
+			if (distToBase <= 6 && nearestGeyser.distanceTo(point) <= 4.9) {
 				return true;
 			}
 		}
+
+		// Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE,
+		// point);
+		// if (distToGeyser <= 5 + minDistBonus) {
+		// double distBaseToGeyser = xvr.getDistanceBetween(nearestBase,
+		// nearestGeyser);
+		// if (distBaseToGeyser >= distToGeyser + minDistBonus) {
+		// return false;
+		// }
+		// }
+
+		// =========================================================
+		// Check if isn't too near to mineral
+		Unit nearestMineral = xvr.getUnitNearestFromList(point, xvr.getMineralsUnits());
+
+		if (nearestMineral != null) {
+			double distToMineral = nearestMineral.distanceTo(point);
+
+			if (distToMineral <= 3 && distToBase <= 6) {
+				return true;
+			}
+
+			// if (distToMineral <= 5) {
+			// return true;
+			// }
+			//
+			// if (distToMineral <= 8) {
+			// if (nearestBase.distanceTo(point) <= 4 + minDistBonus) {
+			// return false;
+			// }
+			//
+			// double distBaseToMineral = xvr.getDistanceBetween(nearestBase,
+			// nearestMineral);
+			// if (distToMineral < distBaseToMineral + minDistBonus) {
+			// return true;
+			// }
+			// }
+		}
+
+		// =========================================================
+
+		// int minDistBonus = type.canHaveAddOn() ? 2 : 0;
+		//
+		// // Check if isn't too near to geyser
+		// Unit nearestGeyser = xvr.getUnitNearestFromList(point,
+		// xvr.getGeysersUnits());
+		// double distToGeyser = xvr.getDistanceBetween(nearestGeyser, point);
+		// Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE,
+		// point);
+		// if (distToGeyser <= 5 + minDistBonus) {
+		// double distBaseToGeyser = xvr.getDistanceBetween(nearestBase,
+		// nearestGeyser);
+		// if (distBaseToGeyser >= distToGeyser + minDistBonus) {
+		// return false;
+		// }
+		// }
+		//
+		// // ==================================
+		// // Check if isn't too near to mineral
+		// Unit nearestMineral = xvr.getUnitNearestFromList(point,
+		// xvr.getMineralsUnits());
+		// double distToMineral = xvr.getDistanceBetween(nearestMineral, point);
+		// if (distToMineral <= 5 + minDistBonus) {
+		// return true;
+		// }
+		//
+		// if (distToMineral <= 8 + minDistBonus) {
+		// if (nearestBase.distanceTo(point) <= 4 + minDistBonus) {
+		// return false;
+		// }
+		//
+		// double distBaseToMineral = xvr.getDistanceBetween(nearestBase,
+		// nearestMineral);
+		// if (distToMineral < distBaseToMineral + minDistBonus) {
+		// return true;
+		// }
+		// }
+
 		return false;
 	}
 
 	public static boolean isBuildTileFreeFromUnits(int builderID, int tileX, int tileY) {
 		JNIBWAPI bwapi = XVR.getInstance().getBwapi();
-		MapPointInstance point = new MapPointInstance((int) (tileX + 1.5) * 32, (tileY + 1) * 32);
+		MapPointInstance point = new MapPointInstance((int) (tileX - 1.5) * 32, (tileY - 1) * 32);
 
 		// Check if units are blocking this tile
 		boolean unitsInWay = false;

@@ -115,6 +115,49 @@ public class TerranBunker {
 
 	// =========================================================
 
+	public static MapPoint findTileForBunker() {
+		MapPoint tileForBunker = null;
+
+		if (getNumberOfUnits() < GLOBAL_MAX_BUNKERS) {
+			if (xvr.isEnemyZerg() && getNumberOfUnits() == 0) {
+				tileForBunker = findTileAtBase(xvr.getFirstBase());
+			} else {
+				tileForBunker = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());
+			}
+		} else {
+
+			// return findProperBuildTile(_chokePointToReinforce, true);
+			if (_placeToReinforceWithBunker == null) {
+				_placeToReinforceWithBunker = MapExploration
+						.getNearestChokePointFor(getInitialPlaceToReinforce());
+			}
+
+			// Try to find normal tile.
+			tileForBunker = findProperBuildTile(_placeToReinforceWithBunker);
+		}
+
+		if (tileForBunker != null) {
+			return tileForBunker;
+		}
+
+		// =========================================================
+		// If we're here it can mean we should build bunkers at position of the
+		// next base
+		MapPoint tileForNextBase = TerranCommandCenter.findTileForNextBase(false);
+		if (shouldBuildFor(tileForNextBase)) {
+			tileForBunker = findProperBuildTile(tileForNextBase);
+			if (tileForBunker != null) {
+				return tileForBunker;
+			}
+		}
+
+		_skipForTurns = 30;
+
+		return null;
+	}
+
+	// =========================================================
+
 	private static double calculateExistingBunkersStrength() {
 		double result = 0;
 		UnitType unitType = UnitType.getUnitTypeByUnitTypes(type);
@@ -298,52 +341,6 @@ public class TerranBunker {
 		}
 
 		return properBuildTile;
-	}
-
-	public static MapPoint findTileForBunker() {
-		MapPoint tileForBunker = null;
-
-		// Protected main base
-		// if (shouldBuildNearMainBase()) {
-		// tileForCannon = findBuildTileNearMainBase();
-		// } else {
-		if (getNumberOfUnits() < GLOBAL_MAX_BUNKERS) {
-			if (xvr.isEnemyZerg() && getNumberOfUnits() == 0) {
-				tileForBunker = findTileAtBase(xvr.getFirstBase());
-			} else {
-				tileForBunker = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());
-			}
-		} else {
-
-			// return findProperBuildTile(_chokePointToReinforce, true);
-			if (_placeToReinforceWithBunker == null) {
-				_placeToReinforceWithBunker = MapExploration
-						.getNearestChokePointFor(getInitialPlaceToReinforce());
-			}
-
-			// Try to find normal tile.
-			tileForBunker = findProperBuildTile(_placeToReinforceWithBunker);
-		}
-
-		// }
-		if (tileForBunker != null) {
-			return tileForBunker;
-		}
-
-		// ===================
-		// If we're here it can mean we should build bunkers at position of the
-		// next base
-		MapPoint tileForNextBase = TerranCommandCenter.findTileForNextBase(false);
-		if (shouldBuildFor(tileForNextBase)) {
-			tileForBunker = findProperBuildTile(tileForNextBase);
-			if (tileForBunker != null) {
-				return tileForBunker;
-			}
-		}
-
-		_skipForTurns = 30;
-
-		return null;
 	}
 
 	private static MapPoint findTileAtBase(MapPoint base) {

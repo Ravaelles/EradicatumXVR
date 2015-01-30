@@ -99,13 +99,13 @@ public class AdaptStrategy {
 	private static void adaptRace_protoss() {
 
 		// BUNKER
-		TerranBunker.GLOBAL_MAX_BUNKERS = 1;
+		TerranBunker.GLOBAL_MAX_BUNKERS = 2;
 
 		// BARRACKS
 		TerranBarracks.enemyIsProtoss();
 
 		// VULTURES
-		TerranVulture.CRITICALLY_FEW_VULTURES = 4;
+		TerranVulture.CRITICALLY_FEW_VULTURES = 8;
 	}
 
 	private static void adaptRace_zerg() {
