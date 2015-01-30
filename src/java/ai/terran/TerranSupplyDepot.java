@@ -34,6 +34,10 @@ public class TerranSupplyDepot {
 	// Should build?
 
 	public static boolean shouldBuild() {
+		if (getNumberOfUnits() != getNumberOfUnitsCompleted()) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 
 		int free = xvr.getSuppliesFree();

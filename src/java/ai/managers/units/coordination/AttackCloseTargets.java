@@ -143,16 +143,24 @@ public class AttackCloseTargets {
 		}
 
 		// =========================================================
-		// Only allow attacking enemies that are near our main base
-
-		if (firstBase != null && firstBase.distanceTo(enemyToAttack) > 20 || unit.isZealot()) {
+		// Ignore flying buildings
+		if (enemyToAttack.isBuilding() && enemyToAttack.isLifted()) {
 			return false;
 		}
 
 		// =========================================================
-		// Only allow attacking if SIEGE TANK NEARBY
-		if (xvr.countTanksOurInRadius(unit, 8) == 0 || unit.isZealot()) {
-			return false;
+		// Only allow attacking enemies that are near our main base
+
+		if (firstBase != null) {
+			boolean isTooFarFromBase = firstBase.distanceTo(enemyToAttack) > 24;
+			boolean engageZealots = enemyToAttack.isZealot() && unit.isVulture();
+			boolean forceTanksSupport = xvr.countTanksOurInRadius(unit, 7) == 0
+					&& !enemyToAttack.isZealot();
+			boolean isVeryCloseToMainBase = firstBase.distanceTo(enemyToAttack) < 15;
+
+			if (!isVeryCloseToMainBase && isTooFarFromBase && !engageZealots && forceTanksSupport) {
+				return false;
+			}
 		}
 
 		// =========================================================

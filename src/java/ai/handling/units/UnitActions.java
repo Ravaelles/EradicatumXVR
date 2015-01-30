@@ -138,8 +138,23 @@ public class UnitActions {
 	}
 
 	public static void spreadOutRandomly(Unit unit) {
+
+		// =========================================================
+		// Vs. XIMP
+
+		// if (TerranFactory.ONLY_TANKS && xvr.getTimeSeconds() < 490) {
+		// return;
+		// }
+
+		// =========================================================
+
 		if (unit.isLoaded()) {
 			unit.unload();
+			return;
+		}
+
+		if (unit.isSieged() && unit.getGroundWeaponCooldown() < 1) {
+			unit.unsiege();
 			return;
 		}
 

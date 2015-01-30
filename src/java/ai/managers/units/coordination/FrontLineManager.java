@@ -79,9 +79,10 @@ public class FrontLineManager {
 		boolean enoughTanksNearby = xvr.countTanksOurInRadius(unit, 4) >= 3
 				|| xvr.countTanksOurInRadius(unit, 5.5) >= 5;
 		if (!enoughTanksNearby) {
-			Unit nearestTank = xvr.getNearestTankTo(unit);
-			if (nearestTank != null && nearestTank.distanceTo(unit) >= 2.9) {
-				UnitActions.attackTo(unit, nearestTank);
+			// Unit rendezvousTank = xvr.getNearestTankTo(unit);
+			MapPoint rendezvousTank = ArmyRendezvousManager.getRendezvousTankForGroundUnits();
+			if (rendezvousTank != null && rendezvousTank.distanceTo(unit) >= 2.9) {
+				UnitActions.attackTo(unit, rendezvousTank);
 				if (DISPLAY_DEBUG) {
 					unit.setAiOrder("Wait for tank");
 				}
@@ -136,7 +137,14 @@ public class FrontLineManager {
 
 		Unit nearestTank = xvr.getNearestTankTo(unit);
 		if (nearestTank != null && nearestTank.distanceTo(unit) >= maxDistToTanks) {
-			return true;
+
+			// Ensure that unit isn't foo far only because the units are very
+			// stacked
+			if (xvr.countUnitsOursInRadius(unit, 4) >= 9) {
+				return false;
+			} else {
+				return true;
+			}
 		}
 
 		return false;

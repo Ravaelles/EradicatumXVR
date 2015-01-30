@@ -94,7 +94,7 @@ public class XVR {
 
 			// Calculate numbers of units by type, so this info can be used in
 			// other methods.
-			if (getFrames() % 4 == 0) {
+			if (getFrames() % 5 == 0) {
 				UnitCounter.recalculateUnits();
 			}
 
@@ -106,7 +106,7 @@ public class XVR {
 			}
 
 			// Check very often for nearby activated mines
-			if (getFrames() % 3 == 0) {
+			if (getFrames() % 4 == 0) {
 				UnitManager.avoidMines();
 			}
 
@@ -143,7 +143,7 @@ public class XVR {
 
 			// Handle behavior of units and buildings.
 			// Handle units in neighborhood of army units.
-			if (getFrames() % 11 == 0) {
+			if (getFrames() % 9 == 0) {
 				CodeProfiler.startMeasuring("Army");
 				UnitManager.act();
 				CodeProfiler.endMeasuring("Army");
@@ -734,6 +734,38 @@ public class XVR {
 		return nearestUnit;
 	}
 
+	public Unit getUnitFarestFromList(int x, int y, Collection<Unit> units,
+			boolean includeGroundUnits, boolean includeAirUnits) {
+		double farestDistance = 0;
+		Unit farestUnit = null;
+
+		for (Unit otherUnit : units) {
+			if (!otherUnit.isCompleted()) {
+				continue;
+			}
+
+			UnitType type = otherUnit.getType();
+			if (type.isLarvaOrEgg()) {
+				continue;
+			}
+
+			boolean isAirUnit = type.isFlyer();
+			if (isAirUnit && !includeAirUnits) {
+				continue;
+			} else if (!isAirUnit && !includeGroundUnits) {
+				continue;
+			}
+
+			double distance = getDistanceBetween(otherUnit, x, y);
+			if (distance > farestDistance) {
+				farestDistance = distance;
+				farestUnit = otherUnit;
+			}
+		}
+
+		return farestUnit;
+	}
+
 	public ArrayList<Unit> getEnemyUnitsVisible(boolean includeGroundUnits, boolean includeAirUnits) {
 		ArrayList<Unit> units = new ArrayList<Unit>();
 		for (Unit unit : bwapi.getEnemyUnits()) {
@@ -841,7 +873,7 @@ public class XVR {
 		ArrayList<Unit> result = new ArrayList<>();
 		result.addAll(MapExploration.getEnemyBuildingsDiscovered());
 		for (Unit enemyUnit : xvr.getBwapi().getEnemyUnits()) {
-			if (enemyUnit.getType().isBuilding()) {
+			if (enemyUnit.getType().isBuilding() && !enemyUnit.isLifted()) {
 				result.add(enemyUnit);
 			}
 		}

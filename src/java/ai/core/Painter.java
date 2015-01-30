@@ -781,8 +781,8 @@ public class Painter {
 
 		int time = xvr.getFrames();
 		paintMainMessage(xvr, "Time: " + (time / 30) + "s"); // (" + time + ")"
-		paintMainMessage(xvr, "Killed: " + enemyDeaths);
-		paintMainMessage(xvr, "Lost: " + ourDeaths);
+		paintMainMessage(xvr, "Killed: " + BWColor.getToStringHex(BWColor.GREEN) + enemyDeaths);
+		paintMainMessage(xvr, "Lost: " + BWColor.getToStringHex(BWColor.YELLOW) + ourDeaths);
 		if (StrategyManager.getTargetUnit() != null) {
 			Unit attack = StrategyManager.getTargetUnit();
 			paintMainMessage(xvr,
@@ -905,7 +905,7 @@ public class Painter {
 
 	private static void paintMainMessage(XVR xvr, String string) {
 		// string = "\u001F" + string;
-		string = BWColor.getToStringHex(BWColor.WHITE) + string;
+		string = BWColor.getToStringHex(BWColor.GREY) + string;
 		xvr.getBwapi().drawText(new Point(5, 12 * mainMessageRowCounter++), string, true);
 	}
 

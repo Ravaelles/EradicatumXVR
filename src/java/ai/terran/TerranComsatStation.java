@@ -14,8 +14,7 @@ import ai.managers.constructing.ShouldBuildCache;
 
 public class TerranComsatStation {
 
-	private static final UnitTypes buildingType = UnitTypes.Terran_Comsat_Station;
-	private static XVR xvr = XVR.getInstance();
+	public static boolean MODE_ASAP = false;
 
 	private static int lastTimeScannedSecondEnemyBase = -1;
 
@@ -144,5 +143,10 @@ public class TerranComsatStation {
 			tryToScanPoint(unit);
 		}
 	}
+
+	// =========================================================
+
+	private static final UnitTypes buildingType = UnitTypes.Terran_Comsat_Station;
+	private static XVR xvr = XVR.getInstance();
 
 }

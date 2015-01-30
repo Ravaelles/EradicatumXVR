@@ -37,11 +37,18 @@ public class TerranCommandCenter {
 	private static MapPoint _cachedNextBaseTile = null;
 	private static int _lastTimeCalculatedTileForBase = -1;
 
+	public static int EXPAND_ONLY_IF_TANKS_MORE_THAN = -1;
+
 	private static final UnitTypes buildingType = UnitTypes.Terran_Command_Center;
 
 	// =========================================================
 
 	public static boolean shouldBuild() {
+		if ((EXPAND_ONLY_IF_TANKS_MORE_THAN > -1 || xvr.canAfford(600))
+				&& TerranSiegeTank.getNumberOfUnits() < EXPAND_ONLY_IF_TANKS_MORE_THAN) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		int bases = UnitCounter.getNumberOfUnits(buildingType);
 		int factories = UnitCounter.getNumberOfUnits(buildingType);
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
@@ -217,6 +224,22 @@ public class TerranCommandCenter {
 			return false;
 		}
 
+		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
+
+		// =========================================================
+		// Prioritize Comsat station
+		if (TerranComsatStation.MODE_ASAP && TerranComsatStation.getNumberOfUnits() == 0) {
+			if (xvr.canAfford(0, 50)) {
+				return false;
+			}
+		}
+
+		// =========================================================
+		// Prioritize quick tanks
+		if (TerranFactory.ONLY_TANKS && workers >= 10 && !xvr.canAfford(200)) {
+			return false;
+		}
+
 		// =========================================================
 		// Dont produce workers at bases that are under attack, unless it's the
 		// main base
@@ -228,7 +251,6 @@ public class TerranCommandCenter {
 
 		// =========================================================
 
-		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int depots = UnitCounter.getNumberOfUnits(TerranSupplyDepot.getBuildingType());
 		boolean weAreBuildingDepot = Constructing
 				.weAreBuilding(TerranSupplyDepot.getBuildingType());

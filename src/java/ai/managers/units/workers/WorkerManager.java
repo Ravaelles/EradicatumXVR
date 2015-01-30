@@ -7,6 +7,7 @@ import java.util.List;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
@@ -28,7 +29,7 @@ public class WorkerManager {
 	// public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
 	// public static final ArrayList<Integer> EXTRA_PROFESSIONAL_REPAIRERERS =
 	// new ArrayList<>();
-	public static int EXPLORER_INDEX = 9; // 6
+	public static int EXPLORER_INDEX = 8; // 6
 	public static int DEFEND_BASE_RADIUS = 23;
 
 	private static XVR xvr = XVR.getInstance();
@@ -287,6 +288,14 @@ public class WorkerManager {
 		if (enemyToFight == null) {
 			Unit enemyBuilding = xvr.getUnitNearestFromList(worker, xvr.getEnemyBuildings(), true,
 					false);
+
+			if (xvr.isEnemyProtoss()) {
+				Unit pylon = xvr.getEnemyUnitOfType(UnitTypes.Protoss_Pylon);
+				if (pylon != null) {
+					enemyBuilding = pylon;
+				}
+			}
+
 			if (enemyBuilding != null && enemyBuilding.distanceTo(worker) <= DEFEND_BASE_RADIUS) {
 				enemyToFight = enemyBuilding;
 				UnitActions.attackEnemyUnit(worker, enemyToFight);

@@ -9,9 +9,6 @@ import ai.managers.constructing.ShouldBuildCache;
 
 public class TerranAcademy {
 
-	private static final UnitTypes buildingType = UnitTypes.Terran_Academy;
-	private static XVR xvr = XVR.getInstance();
-
 	// =========================================================
 
 	public static boolean shouldBuild() {
@@ -19,23 +16,33 @@ public class TerranAcademy {
 		if (weAreBuilding) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
-
 		int academies = getNumberOfUnits();
-		if (academies == 0 && xvr.getTimeSeconds() >= 275) {
-			int barracks = TerranBarracks.getNumberOfUnitsCompleted();
 
-			if (barracks >= TerranBarracks.MAX_BARRACKS && !weAreBuilding
-					&& UnitCounter.getNumberOfBattleUnits() >= 5) {
+		// Build as soon as possible
+		if (TerranComsatStation.MODE_ASAP) {
+			if (academies == 0 && TerranBunker.getNumberOfUnits() > 0) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
+		}
 
-			if (TerranRefinery.getNumberOfUnitsCompleted() == 1
-					|| TerranFactory.getNumberOfUnits() == 1) {
-				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			}
+		// Normal mode
+		else {
+			if (academies == 0 && xvr.getTimeSeconds() >= 275) {
+				int barracks = TerranBarracks.getNumberOfUnitsCompleted();
 
-			if (xvr.canAfford(50, 50)) {
-				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				if (barracks >= TerranBarracks.MAX_BARRACKS && !weAreBuilding
+						&& UnitCounter.getNumberOfBattleUnits() >= 5) {
+					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				}
+
+				if (TerranRefinery.getNumberOfUnitsCompleted() == 1
+						|| TerranFactory.getNumberOfUnits() == 1) {
+					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				}
+
+				if (xvr.canAfford(50, 50)) {
+					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+				}
 			}
 		}
 
@@ -72,5 +79,10 @@ public class TerranAcademy {
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
 	}
+
+	// =========================================================
+
+	private static final UnitTypes buildingType = UnitTypes.Terran_Academy;
+	private static XVR xvr = XVR.getInstance();
 
 }

@@ -23,8 +23,9 @@ public class TerranArmory {
 		if (armories == 0
 				&& (factories >= 2 && !weAreBuilding
 						&& !TechnologyManager.isSiegeModeResearchPossible() || TerranFactory.FORCE_GOLIATHS_INSTEAD_VULTURES)) {
-			if (UnitCounter.getNumberOfBattleUnits() >= 12
-					|| TerranFactory.FORCE_GOLIATHS_INSTEAD_VULTURES) {
+			int numberOfBattleUnits = UnitCounter.getNumberOfBattleUnits();
+			if (numberOfBattleUnits >= 12
+					|| (TerranFactory.FORCE_GOLIATHS_INSTEAD_VULTURES && numberOfBattleUnits >= 4)) {
 				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				return true;
 			}

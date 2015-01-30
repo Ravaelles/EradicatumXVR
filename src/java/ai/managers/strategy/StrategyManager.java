@@ -24,7 +24,7 @@ public class StrategyManager {
 	// private static final int MINIMUM_INITIAL_ARMY_TO_PUSH_ONE_TIME = 5;
 	// private static final int MINIMUM_NON_INITIAL_ARMY_TO_PUSH = 25;
 	public static final int MIN_TANKS_TO_ATTACK = 10;
-	public static final int MIN_BATTLE_UNITS_TO_ATTACK = 26;
+	public static int MIN_BATTLE_UNITS_TO_ATTACK = 26;
 	private static final double MOVE_FORWARD_SPEED = 0.09;
 
 	// private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 20;
@@ -205,19 +205,6 @@ public class StrategyManager {
 
 	// =========================================================
 
-	public static int calculateMinimumUnitsToAttack() {
-		return getMinBattleUnits();
-		// return getMinBattleUnits() + retreatsCounter *
-		// EXTRA_UNITS_PER_RETREAT
-		// + (retreatsCounter >= 2 ? retreatsCounter * 2 : 0);
-	}
-
-	public static void forceRedefinitionOfNextTarget() {
-		_attackPoint = null;
-		_attackTargetUnit = null;
-		defineNextTarget();
-	}
-
 	private static void defineNextTarget() {
 		Unit target = TargetHandling.getImportantEnemyUnitTargetIfPossibleFor(
 				ArmyRendezvousManager.getArmyCenterPoint(), true, true);
@@ -249,8 +236,11 @@ public class StrategyManager {
 			if (base == null) {
 				return;
 			}
-			target = xvr.getUnitNearestFromList(base.getX(), base.getY(), enemyBuildings, true,
+			target = xvr.getUnitFarestFromList(base.getX(), base.getY(), enemyBuildings, true,
 					false);
+			// target = xvr.getUnitNearestFromList(base.getX(), base.getY(),
+			// enemyBuildings, true,
+			// false);
 		}
 
 		// Update the target.
@@ -273,6 +263,21 @@ public class StrategyManager {
 		// System.out.println("isProperTarget(target) = " +
 		// TargetHandling.isProperTarget(target));
 		// System.out.println();
+	}
+
+	// =========================================================
+
+	public static int calculateMinimumUnitsToAttack() {
+		return getMinBattleUnits();
+		// return getMinBattleUnits() + retreatsCounter *
+		// EXTRA_UNITS_PER_RETREAT
+		// + (retreatsCounter >= 2 ? retreatsCounter * 2 : 0);
+	}
+
+	public static void forceRedefinitionOfNextTarget() {
+		_attackPoint = null;
+		_attackTargetUnit = null;
+		defineNextTarget();
 	}
 
 	private static void updateTargetPosition() {

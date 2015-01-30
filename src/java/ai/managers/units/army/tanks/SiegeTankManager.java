@@ -68,7 +68,12 @@ public class SiegeTankManager {
 		// =========================================================
 		// Check if should siege
 
-		if (canSiegeInThisPlace(unit)) {
+		Unit nearestEnemy = xvr.getNearestEnemy(unit);
+		boolean isFalseAlert = nearestEnemy != null && nearestEnemy.isWorker()
+				&& xvr.countUnitsEnemyInRadius(unit, 12) <= 1
+				&& nearestEnemy.distanceTo(xvr.getFirstBase()) < 20;
+
+		if (!isFalseAlert && canSiegeInThisPlace(unit)) {
 			if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
 				unit.siege();
 				return;
@@ -142,7 +147,7 @@ public class SiegeTankManager {
 		boolean neighborhoodDangerous = enemyVeryClose && unit.getStrengthRatio() < 1.8;
 		// boolean chancesRatherBad = unit.getStrengthRatio() < 1.1;
 		if (neighborhoodDangerous && enemyVeryClose && enemiesVeryClose >= 2) {
-			unit.setAiOrder("Unsiege: Urgent");
+			// unit.setAiOrder("Unsiege: Urgent");
 			unit.unsiege();
 			return;
 		}
@@ -172,7 +177,7 @@ public class SiegeTankManager {
 		}
 
 		if (isUnsiegingIdeaTimerExpired(unit)) {
-			unit.setAiOrder("Unsiege: OK");
+			// unit.setAiOrder("Unsiege: OK");
 			if (!mustSiege(unit) && !shouldSiege(unit)) {
 				unit.unsiege();
 				return;
@@ -307,7 +312,7 @@ public class SiegeTankManager {
 
 	private static void infoTankIsConsideringUnsieging(Unit unit) {
 		if (!TargettingDetails.unsiegeIdeasMap.containsKey(unit)) {
-			unit.setAiOrder("Consider unsieging");
+			// unit.setAiOrder("Consider unsieging");
 			TargettingDetails.unsiegeIdeasMap.put(unit, xvr.getTimeSeconds());
 		}
 	}

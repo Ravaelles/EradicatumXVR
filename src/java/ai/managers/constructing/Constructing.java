@@ -77,6 +77,8 @@ public class Constructing {
 			int tileY, int minimumDist, int maximumDist) {
 		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
 
+		boolean isSpecialBuilding = type.isBase() || type.isBunker() || type.isRefinery();
+
 		// =========================================================
 		// Try to find possible place to build starting in given point and
 		// gradually increasing search radius
@@ -84,12 +86,16 @@ public class Constructing {
 		while (currentDist <= maximumDist) {
 			int step = Math.max(2 * currentDist, 1);
 			for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
-				// if (isDepot && (i % 3 != 0 || i % 9 == 0)) {
-				// continue;
-				// }
+				if (!isSpecialBuilding && i % 5 == 0) {
+					continue;
+				}
+
 				// for (int j = tileY - currentDist; j <= tileY + currentDist;
 				// j++) {
 				for (int j = tileY - currentDist; j <= tileY + currentDist; j += step) {
+					if (!isSpecialBuilding && j % 5 == 0) {
+						continue;
+					}
 					MapPoint position = ConstructionPlaceFinder.shouldBuildHere(type, i, j);
 					if (position != null) {
 						return position;
@@ -98,6 +104,10 @@ public class Constructing {
 			}
 
 			currentDist++;
+
+			if (currentDist > 50) {
+				break;
+			}
 		}
 
 		return null;

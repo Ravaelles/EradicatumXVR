@@ -40,6 +40,10 @@ public class TerranBarracks {
 		int barracks = UnitCounter.getNumberOfUnits(buildingType);
 		int bases = UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE);
 
+		if (barracks > 0 && DONT_USE_INFANTRY) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		// =========================================================
 		// ANTI-ZERGLING RUSH
 

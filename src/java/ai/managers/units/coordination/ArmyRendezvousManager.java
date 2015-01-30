@@ -34,7 +34,7 @@ public class ArmyRendezvousManager {
 		MapPoint safePlace = null;
 
 		if (unit.shouldFollowTanks()) {
-			if (TerranSiegeTank.getNumberOfUnits() > 1) {
+			if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 2) {
 				// safePlace = TerranSiegeTank.getMedianTank();
 				safePlace = getRendezvousTankForGroundUnits();
 			}

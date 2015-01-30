@@ -98,10 +98,12 @@ public class ArmyUnitBasicBehavior {
 	public static boolean tryRunningFromCloseDefensiveBuilding(Unit unit) {
 		Unit defensiveBuilding = xvr.getEnemyDefensiveGroundBuildingNear(unit);
 		if (defensiveBuilding != null) {
+			double distanceToBuilding = unit.distanceTo(defensiveBuilding);
 
 			// Handle TANKS
 			if (unit.getType().isTank()) {
-				if (unit.distanceTo(defensiveBuilding) <= 10.8) {
+				if (distanceToBuilding <= 10.94) {
+					UnitActions.holdPosition(unit);
 					unit.siege();
 					unit.setAiOrder("Building siege");
 				}
@@ -110,9 +112,12 @@ public class ArmyUnitBasicBehavior {
 
 			// Non-tanks
 			else {
-				// UnitActions.moveAwayFrom(unit, defensiveBuilding);
-				UnitActions.holdPosition(unit);
-				unit.setIsRunningFromEnemyNow(defensiveBuilding);
+				if (distanceToBuilding < 10.8) {
+					UnitActions.moveAwayFrom(unit, defensiveBuilding);
+					unit.setIsRunningFromEnemyNow(defensiveBuilding);
+				} else {
+					UnitActions.holdPosition(unit);
+				}
 				unit.setAiOrder("Avoid building");
 				return true;
 			}

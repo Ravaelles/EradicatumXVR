@@ -76,6 +76,12 @@ public class ConstructionPlaceFinder {
 
 	private static boolean isInAllowedRegions(MapPoint place) {
 		Region buildTileRegion = xvr.getMap().getRegion(place);
+
+		if (xvr.getFirstBase().getRegion() == null
+				|| TerranCommandCenter.getSecondBaseLocation() == null) {
+			return true;
+		}
+
 		if (buildTileRegion.equals(xvr.getFirstBase().getRegion())
 				|| buildTileRegion.equals(TerranCommandCenter.getSecondBaseLocation().getRegion())) {
 			return true;
@@ -141,7 +147,7 @@ public class ConstructionPlaceFinder {
 		int spaceBonus = 0;
 		if (type.canHaveAddOn()) {
 			// spaceBonus += 2;
-			center = center.translate(32, 0);
+			center = center.translate(64, 0);
 		}
 
 		// For each building nearby define if it's not too close to this build
@@ -167,12 +173,12 @@ public class ConstructionPlaceFinder {
 			int bonus = spaceBonus;
 			UnitType unitType = unit.getType();
 			if (type.canHaveAddOn() && !unit.hasAddOn()) {
-				bonus++;
-				dx = 64;
+				// bonus++;
+				dx = 96;
 			}
 			if (unitType.isBase()) {
-				dx += 16;
-				bonus += 4;
+				dx += 96;
+				bonus += 5;
 			}
 
 			// If this building is too close to our build tile, indicate this

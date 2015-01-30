@@ -6,11 +6,13 @@ import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.FlyerManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranEngineeringBay;
+import ai.terran.TerranFactory;
 import ai.terran.TerranSiegeTank;
 
 public class FlyingBuildingManager {
@@ -54,6 +56,10 @@ public class FlyingBuildingManager {
 	// =========================================================
 
 	private static boolean shouldHaveFlyingBuilding1() {
+		if (TerranFactory.ONLY_TANKS && TerranBarracks.MAX_BARRACKS >= 1) {
+			return true;
+		}
+
 		return (UnitCounter.getNumberOfInfantryUnitsCompleted() >= 4 || TerranSiegeTank
 				.getNumberOfUnitsCompleted() >= 1)
 				&& TerranBarracks.MAX_BARRACKS >= 1
@@ -67,6 +73,20 @@ public class FlyingBuildingManager {
 	// =========================================================
 
 	private static void moveBuildingToProperPlace(Unit flyingBuilding) {
+		if (TerranFactory.ONLY_TANKS) {
+			if (StrategyManager.getTargetUnit() != null) {
+				UnitActions.moveTo(flyingBuilding, StrategyManager.getTargetUnit());
+			} else if (StrategyManager.getTargetPoint() != null) {
+				UnitActions.moveTo(flyingBuilding, StrategyManager.getTargetPoint());
+			} else {
+				if (MapExploration.getNearestEnemyBase() != null) {
+					UnitActions.moveTo(flyingBuilding, MapExploration.getNearestEnemyBase());
+				}
+			}
+		}
+
+		// =========================================================
+
 		Unit medianTank = ArmyRendezvousManager.getRendezvousTankForFlyers();
 		if (medianTank != null) {
 
@@ -91,6 +111,7 @@ public class FlyingBuildingManager {
 				UnitActions.moveTo(flyingBuilding, medianTank);
 			}
 		}
+
 	}
 
 	private static void tryRepairingIfNeeded(Unit flyingBuilding) {

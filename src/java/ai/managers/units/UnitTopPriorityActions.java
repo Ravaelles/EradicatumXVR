@@ -3,11 +3,11 @@ package ai.managers.units;
 import jnibwapi.model.Unit;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
-import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.tanks.EnemyTanksManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
+import ai.terran.TerranFactory;
 
 public class UnitTopPriorityActions {
 
@@ -16,6 +16,12 @@ public class UnitTopPriorityActions {
 	// =========================================================
 
 	protected static boolean tryTopPriorityActions(Unit unit) {
+
+		// Disallow units to move close to the defensive buildings
+		if (!UnitManager._forceSpreadOut
+				&& ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+			return true;
+		}
 
 		// Spread out if enemy is beaten and we're very strong
 		if (shouldSpreadOut(unit)) {
@@ -34,12 +40,6 @@ public class UnitTopPriorityActions {
 			return true;
 		}
 
-		// Disallow units to move close to the defensive buildings
-		if (!UnitManager._forceSpreadOut
-				&& ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
-			return true;
-		}
-
 		return false;
 	}
 
@@ -48,16 +48,29 @@ public class UnitTopPriorityActions {
 	private static boolean shouldSpreadOut(Unit unit) {
 		UnitManager._forceSpreadOut = false;
 
-		if (unit.isAttacking() || unit.isUnderAttack()) {
+		// =========================================================
+		// Vs. XIMP
+
+		if (TerranFactory.ONLY_TANKS && xvr.getTimeSeconds() < 490) {
 			return false;
 		}
 
-		if (StrategyManager.getTargetUnit() != null) {
+		// =========================================================
+
+		if (unit.getGroundWeaponCooldown() > 0 || unit.isUnderAttack()) {
 			return false;
+		}
+
+		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 1) > 0) {
+			return true;
+		}
+
+		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 1.6) >= 5) {
+			return true;
 		}
 
 		if (xvr.getSuppliesTotal() > 150 && xvr.getSuppliesFree() < 10
-				&& StrengthComparison.getEnemySupply() < 40
+		// && StrengthComparison.getEnemySupply() < 40
 				&& xvr.countUnitsOursInRadius(unit, 6) >= 15) {
 
 			MapPoint targetPoint = StrategyManager.getTargetPoint();
@@ -70,6 +83,15 @@ public class UnitTopPriorityActions {
 				UnitManager._forceSpreadOut = true;
 				return true;
 			}
+		}
+
+		Unit targetUnit = StrategyManager.getTargetUnit();
+		if (targetUnit != null) {
+			return false;
+		}
+
+		if (StrategyManager.isSomethingToAttackDefined()) {
+			return false;
 		}
 
 		return false;
