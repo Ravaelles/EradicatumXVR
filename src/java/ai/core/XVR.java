@@ -17,6 +17,8 @@ import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitCounter;
+import ai.managers.constructing.Constructing;
+import ai.managers.constructing.ConstructingDebugger;
 import ai.managers.constructing.ConstructingManager;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
@@ -182,7 +184,15 @@ public class XVR {
 			if (getFrames() % 35 == 0) {
 				FlyingBuildingManager.act();
 			}
-		} catch (Exception e) {
+
+			// Paint places where you can build Supply Depot for debugging
+			if (Constructing.DEBUG_CONSTRUCTION_MODE) {
+				ConstructingDebugger.debug();
+			}
+		}
+
+		// Catch any exception that may occur not to crash the bot
+		catch (Exception e) {
 			Painter.errorOccured(e.getStackTrace()[0].toString());
 			System.err.println("--------------------------------------");
 			System.err.println("---------- NON CRITICAL ERROR OCCURED: ");
@@ -1178,6 +1188,10 @@ public class XVR {
 
 	public Unit getNearestEnemy(MapPoint point) {
 		return getUnitNearestFromList(point, getEnemyUnitsVisible(), true, true);
+	}
+
+	public Unit getNearestWorkerTo(MapPoint point) {
+		return getUnitNearestFromList(point, getWorkers(), true, false);
 	}
 
 	// private Collection<Unit> getEnemyGroundUnits() {

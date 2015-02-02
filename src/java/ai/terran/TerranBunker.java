@@ -120,7 +120,7 @@ public class TerranBunker {
 
 		if (getNumberOfUnits() < GLOBAL_MAX_BUNKERS) {
 			if (xvr.isEnemyZerg() && getNumberOfUnits() == 0) {
-				tileForBunker = findTileAtBase(xvr.getFirstBase());
+				tileForBunker = findTileForZergFirstBunker();
 			} else {
 				tileForBunker = findTileAtBase(TerranCommandCenter.getSecondBaseLocation());
 			}
@@ -154,6 +154,18 @@ public class TerranBunker {
 		_skipForTurns = 30;
 
 		return null;
+	}
+
+	private static MapPoint findTileForZergFirstBunker() {
+		MapPoint tile = findTileAtBase(xvr.getFirstBase());
+		// if (tile == null && TerranBarracks.getNumberOfUnits() > 0) {
+		Unit basePoint = xvr.getFirstBase();
+		tile = Constructing.getLegitTileToBuildNear(TerranBunker.type, basePoint, 2, 20);
+		// }
+
+		System.out.println(tile);
+
+		return tile;
 	}
 
 	// =========================================================

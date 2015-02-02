@@ -33,7 +33,7 @@ public class RunManager {
 	}
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit, double safeDistance) {
-		if (unit.getGroundWeaponCooldown() == 0 && (unit.getHPPercent() > 65 && unit.getHP() >= 30)) {
+		if (shouldFightInsteadOfRunning(unit)) {
 			return false;
 		}
 
@@ -92,6 +92,19 @@ public class RunManager {
 		// UnitManager.isUnitSafeFromEnemiesShootRange(unit,
 		// xvr.getEnemyUnitsInRadius(11, unit));
 		//
+	}
+
+	private static boolean shouldFightInsteadOfRunning(Unit unit) {
+		boolean isRelativelyHealthy = (unit.getHPPercent() > 65 && unit.getHP() >= 30);
+		if (!isRelativelyHealthy && unit.isVulture()) {
+			isRelativelyHealthy = unit.getHP() >= 21;
+		}
+
+		if (unit.getGroundWeaponCooldown() == 0 && isRelativelyHealthy) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private static boolean handleIsNotRunning(Unit unit) {

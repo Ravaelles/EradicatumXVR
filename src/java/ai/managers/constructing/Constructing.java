@@ -4,6 +4,7 @@ import jnibwapi.JNIBWAPI;
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
+import jnibwapi.util.BWColor;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitCounter;
@@ -20,8 +21,13 @@ import ai.terran.TerranSupplyDepot;
 
 public class Constructing {
 
-	private static XVR xvr = XVR.getInstance();
+	private static final int MAX_SEARCH_RANGE = 50; // Max dist from base for
+													// building
 
+	// =========================================================
+
+	public static boolean DEBUG_CONSTRUCTION_MODE = false;
+	public static boolean debugConstruction = false;
 	private static int _skipCheckingForTurns = 0;
 
 	// =========================================================
@@ -39,11 +45,12 @@ public class Constructing {
 
 	// =========================================================
 
-	public static boolean canBuildHere(Unit builder, UnitType buildingType, int tx, int ty) {
-		boolean onlyExplored = !buildingType.isBase();
-		return xvr.getBwapi().canBuildHere(builder.getID(), tx, ty,
-				buildingType.getUnitTypes().ordinal(), onlyExplored);
-	}
+	// public static boolean canBuildHere(Unit builder, UnitType buildingType,
+	// int tx, int ty) {
+	// // boolean onlyExplored = !buildingType.isBase();
+	// return xvr.getBwapi().canBuildHere(builder.getID(), tx, ty,
+	// buildingType.getUnitTypes().ordinal(), true);
+	// }
 
 	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
 		boolean canProceed = false;
@@ -73,8 +80,8 @@ public class Constructing {
 		}
 	}
 
-	public static MapPoint getLegitTileToBuildNear(int builderID, int buildingTypeID, int tileX,
-			int tileY, int minimumDist, int maximumDist) {
+	public static MapPoint getLegitTileToBuildNear(int builderID, int buildingTypeID,
+			int initialTileX, int initialTileY, int minimumDist, int maximumDist) {
 		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
 
 		boolean isSpecialBuilding = type.isBase() || type.isBunker() || type.isRefinery();
@@ -82,91 +89,95 @@ public class Constructing {
 		// =========================================================
 		// Try to find possible place to build starting in given point and
 		// gradually increasing search radius
-		int currentDist = minimumDist;
-		// System.out.println();
-		// System.out.println("TILE_X = " + tileX);
-		// System.out.println("TILE_Y = " + tileY);
-		while (currentDist <= maximumDist) {
-			int step = Math.max(2 * currentDist, 1);
-			for (int i = tileX - currentDist; i <= tileX + currentDist; i += step) {
-				if (!isSpecialBuilding && i % 5 == 0) {
+		int maxSearchRadius = minimumDist;
+
+		int minTileX = Math.max(0, initialTileX - maxSearchRadius);
+		int maxTileX = Math.min(xvr.getMap().getWidth(), initialTileX + maxSearchRadius);
+		int minTileY = Math.max(0, initialTileY - maxSearchRadius);
+		int maxTileY = Math.min(xvr.getMap().getHeight(), initialTileY + maxSearchRadius);
+
+		// Start looking for a place to build this building in radius of given
+		// arbitrary point. If you can't find point, increase search radius.
+		while (maxSearchRadius <= maximumDist) {
+			for (int tileX = minTileX; tileX <= maxTileX; tileX += 1) {
+
+				// Leave space on some rows/columns so unit can have corridors
+				if (!isSpecialBuilding && tileX % 5 == 0) {
 					continue;
 				}
 
-				// for (int j = tileY - currentDist; j <= tileY + currentDist;
-				// j++) {
-				for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
-					// System.out.println(i + ", " + j);
-					if (!isSpecialBuilding && j % 7 == 0) {
+				for (int tileY = minTileY; tileY <= maxTileY; tileY += 1) {
+
+					// Leave space on some rows/columns so unit can have
+					// corridors
+					if (!isSpecialBuilding && tileY % 7 == 0) {
 						continue;
 					}
 
 					// Draw base position as rectangle
-					// int x = i * 32;
-					// int y = j * 32;
-					// xvr.getBwapi().drawBox(x, y,
-					// x + type.getDimensionLeft() + type.getDimensionRight(),
-					// y + type.getDimensionUp() + type.getDimensionDown(),
-					// BWColor.TEAL,
-					// false, false);
-					// xvr.getBwapi().drawText(x, y + 3,
-					// BWColor.getToStringHex(BWColor.GREEN) + type.getName(),
-					// false);
+					int x = tileX * 32;
+					int y = tileY * 32;
 
-					MapPoint position = ConstructionPlaceFinder.shouldBuildHere(type, i, j);
+					// Check if it's possible and reasonable to build this type
+					// of building in this place
+					MapPoint position = ConstructionPlaceFinder.shouldBuildHere(type, tileX, tileY);
 					if (position != null) {
+
+						// Code for debugging: paint this build position as
+						// green/red
+						if (DEBUG_CONSTRUCTION_MODE && debugConstruction) {
+							paintBuildingPosition(type, x, y, BWColor.GREEN, "OK");
+						}
+
 						return position;
+					}
+
+					// Code for debugging: paint this build position as
+					// green/red
+					else {
+						if (DEBUG_CONSTRUCTION_MODE && debugConstruction) {
+							paintBuildingPosition(type, x, y, BWColor.RED, "BAD ");
+						}
 					}
 				}
 			}
 
-			currentDist++;
-
-			if (currentDist > 42) {
-				break;
-			}
+			maxSearchRadius++;
 		}
 
 		return null;
 	}
 
-	// =========================================================
-
-	public static MapPoint findTileForStandardBuilding(UnitTypes typeToBuild) {
-
-		// There is a nasty bug: when we're losing badly Terran Barracks are
-		// slowing down game terribly; try to limit search range.
-		int MAX_RANGE = 70;
-		if (xvr.getTimeSeconds() > 400
-				&& typeToBuild.ordinal() == UnitTypes.Terran_Barracks.ordinal()) {
-			MAX_RANGE = 20;
-		}
-
-		// Unit base = xvr.getFirstBase();
-		Unit base = xvr.getRandomBase();
-		if (base == null) {
-			return null;
-		}
-
-		MapPoint tile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), typeToBuild,
-				base.translate(96, -48), 3, MAX_RANGE);
-
-		return tile;
+	private static void paintBuildingPosition(UnitType type, int x, int y, int color, String string) {
+		xvr.getBwapi().drawBox(x - type.getDimensionLeft(), y - type.getDimensionUp(),
+				x + type.getDimensionRight(), y + type.getDimensionDown(), color, false, false);
+		xvr.getBwapi().drawText(x, y + 3, BWColor.getToStringHex(color) + type.getName() + " OK",
+				false);
+		// xvr.getBwapi().drawBox(x, y, x + type.getDimensionLeft() +
+		// type.getDimensionRight(),
+		// y + type.getDimensionUp() + type.getDimensionDown(), color, false,
+		// false);
+		// xvr.getBwapi().drawText(x, y + 3, BWColor.getToStringHex(color) +
+		// type.getName() + " OK",
+		// false);
 	}
+
+	// =========================================================
 
 	private static MapPoint getTileAccordingToBuildingType(UnitTypes building) {
 		MapPoint buildTile = null;
 		boolean disableReportOfNoPlaceFound = false;
 
-		// Supply Depot
-		if (TerranSupplyDepot.getBuildingType().ordinal() == building.ordinal()) {
-			buildTile = TerranSupplyDepot.findTileForDepot();
-		}
-
 		// Bunker
-		else if (TerranBunker.getBuildingType().ordinal() == building.ordinal()) {
+		if (TerranBunker.getBuildingType().ordinal() == building.ordinal()) {
 			buildTile = TerranBunker.findTileForBunker();
 		}
+
+		// Supply Depot
+		// if (TerranSupplyDepot.getBuildingType().ordinal() ==
+		// building.ordinal()) {
+		// buildTile = TerranSupplyDepot.findTileForDepot();
+		// }
 
 		// Missile Turret
 		else if (TerranMissileTurret.getBuildingType().ordinal() == building.ordinal()) {
@@ -176,8 +187,6 @@ public class Constructing {
 		// Refinery
 		else if (TerranRefinery.getBuildingType().ordinal() == building.ordinal()) {
 			buildTile = TerranRefinery.findTileForRefinery();
-			// System.out.println("       buildTile = " +
-			// buildTile.toStringLocation());
 			disableReportOfNoPlaceFound = true;
 		}
 
@@ -196,10 +205,37 @@ public class Constructing {
 		}
 
 		if (buildTile == null && !disableReportOfNoPlaceFound) {
-			System.out.println("# No tile found for: " + building.getType().getName());
+			System.out.println("# No tile found for: " + building.getType().getName() + " // "
+					+ ConstructionPlaceFinder.lastError);
+		} else {
+			// System.out.println(building.name() + ": " + buildTile);
 		}
 
 		return buildTile;
+	}
+
+	// =========================================================
+
+	public static MapPoint findTileForStandardBuilding(UnitTypes typeToBuild) {
+
+		// There is a nasty bug: when we're losing badly Terran Barracks are
+		// slowing down game terribly; try to limit search range.
+		// int MAX_RANGE = 60;
+		// if (xvr.getTimeSeconds() > 400
+		// && typeToBuild.ordinal() == UnitTypes.Terran_Barracks.ordinal()) {
+		// MAX_RANGE = 20;
+		// }
+
+		// Unit base = xvr.getFirstBase();
+		Unit base = xvr.getRandomBase();
+		if (base == null) {
+			return null;
+		}
+
+		MapPoint tile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), typeToBuild,
+				base.translate(96, 0), 5, MAX_SEARCH_RANGE);
+
+		return tile;
 	}
 
 	/**
@@ -287,7 +323,7 @@ public class Constructing {
 
 	public static MapPoint getLegitTileToBuildNear(UnitTypes type, MapPoint nearTo,
 			int minimumDist, int maximumDist) {
-		Unit worker = xvr.getRandomWorker();
+		Unit worker = xvr.getNearestWorkerTo(nearTo);
 		if (worker == null || type == null) {
 			return null;
 		}
@@ -391,5 +427,9 @@ public class Constructing {
 		}
 		xvr.getBwapi().buildAddon(buildingWithNoAddOn.getID(), buildingType.ordinal());
 	}
+
+	// =========================================================
+
+	private static XVR xvr = XVR.getInstance();
 
 }

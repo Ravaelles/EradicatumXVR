@@ -20,7 +20,7 @@ public class TerranAcademy {
 
 		// Build as soon as possible
 		if (TerranComsatStation.MODE_ASAP) {
-			if (academies == 0 && TerranBunker.getNumberOfUnits() > 0) {
+			if (academies == 0 && (TerranBunker.getNumberOfUnits() > 0 || xvr.canAfford(250))) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 		}

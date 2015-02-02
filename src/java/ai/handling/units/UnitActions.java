@@ -67,9 +67,11 @@ public class UnitActions {
 	}
 
 	public static void repair(Unit worker, Unit unitToRepair) {
-		if (worker != null && unitToRepair != null) {
-			xvr.getBwapi().repair(worker.getID(), unitToRepair.getID());
-			worker.setAiOrder("Repair " + unitToRepair.getName());
+		if (xvr.canAfford(5)) {
+			if (worker != null && unitToRepair != null) {
+				xvr.getBwapi().repair(worker.getID(), unitToRepair.getID());
+				worker.setAiOrder("Repair " + unitToRepair.getName());
+			}
 		}
 	}
 
@@ -408,9 +410,9 @@ public class UnitActions {
 	}
 
 	public static void repairThisUnit(Unit unit) {
-		if (unit.getType().isVulture()) {
-			return;
-		}
+		// if (unit.getType().isVulture()) {
+		// return;
+		// }
 
 		Unit repairer = xvr.getOptimalBuilder(unit);
 		if (unit == null || repairer == null) {

@@ -254,6 +254,16 @@ public class SiegeTankManager {
 
 		boolean isEnemyNearShootRange = (TargettingDetails._nearestEnemyDist > 0 && TargettingDetails._nearestEnemyDist <= (TargettingDetails._nearestEnemy
 				.getType().isBuilding() ? 10.6 : 13));
+		boolean isEnemyBuildingInRange = TargettingDetails._nearestEnemyBuilding != null;
+
+		// =========================================================
+		// Don't siege if there's only one enemy near the tank
+		if (isEnemyNearShootRange && !isEnemyBuildingInRange
+				&& xvr.countUnitsEnemyInRadius(unit, 14) < 2) {
+			return false;
+		}
+
+		// =========================================================
 
 		// Check if should siege, based on unit proper place to be (e.g. near
 		// the bunker), but consider the neighborhood, if it's safe etc.
@@ -272,7 +282,7 @@ public class SiegeTankManager {
 		}
 
 		// If there's enemy building in range, siege.
-		if (TargettingDetails._nearestEnemyBuilding != null
+		if (isEnemyBuildingInRange
 				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5
 				&& oursNearby >= 2) {
 			return true;

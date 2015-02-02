@@ -53,12 +53,21 @@ public class FrontLineManager {
 		}
 
 		// =========================================================
+		// Check if didn't go to far
 
-		handleMoveForward(unit, offensivePoint);
+		if (shouldWaitWithMovingForward(unit)) {
+			return;
+		}
+
+		// =========================================================
 
 		if (unit.isTank()) {
 			handleTankMoveForward(unit, offensivePoint);
+		} else {
+			handleMoveForward(unit, offensivePoint);
 		}
+
+		// =========================================================
 
 		// Make units stick together
 		handleDontSeparateTooMuch(unit);
@@ -73,15 +82,39 @@ public class FrontLineManager {
 		}
 	}
 
+	private static boolean shouldWaitWithMovingForward(Unit unit) {
+		double allowedMaxDistance = StrategyManager.getAllowedDistanceFromSafePoint();
+		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
+		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
+		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 8
+				&& isFarFromSafePoint(unit)) {
+			// int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
+			// UnitTypes.Terran_Siege_Tank_Siege_Mode, maxDistToTanks, unit,
+			// true)
+			// +
+			// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
+			// maxDistToTanks, unit, true);
+
+			// (StrengthComparison.getEnemySupply() >= 35 ||
+			// xvr.getTimeSeconds() < 1000)
+			// &&
+			if (xvr.getSuppliesUsed() < 190) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	// =========================================================
 
 	private static void handleDontSeparateTooMuch(Unit unit) {
-		boolean enoughTanksNearby = xvr.countTanksOurInRadius(unit, 4) >= 3
-				|| xvr.countTanksOurInRadius(unit, 5.5) >= 5;
+		boolean enoughTanksNearby = xvr.countTanksOurInRadius(unit, 5) >= 2
+				|| xvr.countTanksOurInRadius(unit, 6) >= 3;
 		if (!enoughTanksNearby) {
 			// Unit rendezvousTank = xvr.getNearestTankTo(unit);
 			MapPoint rendezvousTank = ArmyRendezvousManager.getRendezvousTankForGroundUnits();
-			if (rendezvousTank != null && rendezvousTank.distanceTo(unit) >= 2.9) {
+			if (rendezvousTank != null && rendezvousTank.distanceTo(unit) >= 4) {
 				UnitActions.attackTo(unit, rendezvousTank.translate(64, 40));
 				if (DISPLAY_DEBUG) {
 					unit.setAiOrder("Wait for tank");
@@ -106,42 +139,17 @@ public class FrontLineManager {
 
 	private static void handleKeepTheFrontLine(Unit unit, MapPoint offensivePoint,
 			double maxDistBonus, int mode) {
-		double allowedMaxDistance = StrategyManager.getAllowedDistanceFromSafePoint();
-
-		// Include bonus to max distance for front guard.
-		allowedMaxDistance += maxDistBonus;
 
 		// =========================================================
 		// Unit has advanced, but is too far behind the front line.
-		if (isUnitOutOfLine(unit, allowedMaxDistance)) {
-			actionUnitTooFarBehindTheFrontLine(unit, mode, allowedMaxDistance);
+		if (isUnitOutOfLine(unit)) {
+			actionUnitTooFarBehindTheFrontLine(unit, mode);
 		}
 	}
 
-	private static boolean isUnitOutOfLine(Unit unit, double allowedMaxDistance) {
+	private static boolean isUnitOutOfLine(Unit unit) {
 		double manyUnitsBonus = Math.max(3, xvr.countUnitsOursInRadius(unit, 2.8) / 1.7);
 		double maxDistToTanks = 3.3 + manyUnitsBonus;
-
-		// =========================================================
-
-		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
-		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
-		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 8
-				&& isFarFromSafePoint(unit)) {
-			// int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
-			// UnitTypes.Terran_Siege_Tank_Siege_Mode, maxDistToTanks, unit,
-			// true)
-			// +
-			// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
-			// maxDistToTanks, unit, true);
-
-			// (StrengthComparison.getEnemySupply() >= 35 ||
-			// xvr.getTimeSeconds() < 1000)
-			// &&
-			if (xvr.getSuppliesUsed() < 190) {
-				return true;
-			}
-		}
 
 		// =========================================================
 
@@ -169,8 +177,7 @@ public class FrontLineManager {
 
 	// =========================================================
 
-	private static void actionUnitTooFarBehindTheFrontLine(Unit unit, int mode,
-			double allowedMaxDistance) {
+	private static void actionUnitTooFarBehindTheFrontLine(Unit unit, int mode) {
 		if (unit.isSieged()) {
 			unit.unsiege();
 		}

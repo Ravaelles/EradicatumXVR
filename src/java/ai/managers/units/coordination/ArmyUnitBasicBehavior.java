@@ -1,19 +1,14 @@
 package ai.managers.units.coordination;
 
 import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.WeaponType;
 import ai.core.XVR;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitActions;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.strategy.StrategyManager;
-import ai.managers.units.army.tanks.SiegeTankManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBunker;
-import ai.terran.TerranMedic;
-import ai.terran.TerranVulture;
 import ai.utils.RUtilities;
 
 public class ArmyUnitBasicBehavior {
@@ -22,60 +17,16 @@ public class ArmyUnitBasicBehavior {
 
 	// =============================================
 
-	public static void act(Unit unit) {
-		UnitType unitType = unit.getType();
-		if (unitType == null) {
-			return;
-		}
-
-		// ======================================
-		// STANDARD ARMY UNIT COMMANDS
-		else {
-			// // Go a little further and help attacked unit
-			// if (tryConsideringCallForHelpMission(unit)) {
-			// UnitManager.actWhenOnCallForHelpMission(unit);
-			// }
-			//
-			// // Go to PLACE WHERE UNIT SHOULD BE
-			// else {
-			// ArmyRendezvousManager.act(unit);
-			// }
-
-			// GLOBAL ATTACK is active
-			if (StrategyManager.isGlobalAttackActive()) {
-				FrontLineManager.actOffensively(unit);
-			}
-
-			// DEFENSIVE STANCE is active
-			else {
-				ArmyRendezvousManager.act(unit);
-			}
-		}
-
-		// ======================================
-		// SPECIFIC ACTIONS for units, but DON'T FULLY OVERRIDE standard
-		// behavior
-
-		// Tank
-		if (unitType.isTank()) {
-			SiegeTankManager.act(unit);
-		}
-
-		// ======================================
-		// OVERRIDE COMMANDS FOR SPECIFIC UNITS
-
-		// Vulture
-		if (unitType.isVulture()) {
-			TerranVulture.act(unit);
-			return;
-		}
-
-		// Medic
-		else if (unitType.isMedic()) {
-			TerranMedic.act(unit);
-			return;
-		}
-	}
+	// public static void act(Unit unit) {
+	// UnitType unitType = unit.getType();
+	// if (unitType == null) {
+	// return;
+	// }
+	//
+	// // ======================================
+	// // STANDARD ARMY UNIT COMMANDS
+	//
+	// }
 
 	// =========================================================
 
@@ -112,12 +63,12 @@ public class ArmyUnitBasicBehavior {
 
 			// Non-tanks
 			else {
-				if (distanceToBuilding < 10.8) {
-					UnitActions.moveAwayFrom(unit, defensiveBuilding);
-					unit.setIsRunningFromEnemyNow(defensiveBuilding);
-				} else {
-					UnitActions.holdPosition(unit);
-				}
+				// if (distanceToBuilding < 10.8) {
+				UnitActions.moveAwayFrom(unit, defensiveBuilding);
+				unit.setIsRunningFromEnemyNow(defensiveBuilding);
+				// } else {
+				// UnitActions.holdPosition(unit);
+				// }
 				unit.setAiOrder("Avoid building");
 				return true;
 			}

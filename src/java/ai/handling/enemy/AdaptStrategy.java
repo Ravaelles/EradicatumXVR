@@ -80,6 +80,8 @@ public class AdaptStrategy {
 		else if (opponentName.contains("florian")) {
 			System.out.println("Special strategy for: Florian Richoux");
 			TerranComsatStation.MODE_ASAP = true;
+
+			TerranBarracks.CRITICALLY_FEW_INFANTRY = 16;
 		}
 	}
 
@@ -99,10 +101,13 @@ public class AdaptStrategy {
 	private static void adaptRace_protoss() {
 
 		// BUNKER
-		TerranBunker.GLOBAL_MAX_BUNKERS = 2;
+		TerranBunker.GLOBAL_MAX_BUNKERS = 1;
 
 		// BARRACKS
-		TerranBarracks.enemyIsProtoss();
+		TerranBarracks.CRITICALLY_FEW_INFANTRY = 14;
+		TerranBarracks.RATIO_MARINES_PERCENT = 55;
+		TerranBarracks.RATIO_FIREBATS_PERCENT = 25;
+		TerranBarracks.RATIO_MEDICS_PERCENT = 20;
 
 		// VULTURES
 		TerranVulture.CRITICALLY_FEW_VULTURES = 8;
@@ -114,7 +119,7 @@ public class AdaptStrategy {
 		TerranBunker.GLOBAL_MAX_BUNKERS = 2;
 
 		// BARRACKS
-		TerranBarracks.enemyIsZerg();
+		TerranBarracks.CRITICALLY_FEW_INFANTRY = 6;
 	}
 
 	private static void adaptRace_terran() {
@@ -124,7 +129,6 @@ public class AdaptStrategy {
 		TerranBunker.GLOBAL_MAX_BUNKERS = 1;
 
 		// BARRACKS
-		TerranBarracks.enemyIsTerran();
 		TerranBarracks.MAX_BARRACKS = 1;
 
 		// UNITS

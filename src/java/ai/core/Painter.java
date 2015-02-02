@@ -45,6 +45,74 @@ public class Painter {
 
 	// =========================================================
 
+	public static void paintAll(XVR xvr) {
+
+		// SUPER-SPEED UP, turn off entire extra painting
+		// if (true) {
+		// return;
+		// }
+
+		CodeProfiler.startMeasuring("Painting");
+
+		// =========================================================
+
+		Painter.xvr = xvr;
+		bwapi = XVR.getInstance().getBwapi();
+		int oldMainMessageRowCounter = mainMessageRowCounter;
+		mainMessageRowCounter = 0;
+
+		// =========================================================
+
+		// MapPoint assimilator = Constructing.findTileForAssimilator();
+		// if (assimilator != null) {
+		// xvr.getBwapi().drawBox(assimilator.getX(), assimilator.getY(),
+		// 3 * 32, 2 * 32, BWColor.TEAL, false, false);
+		// }
+
+		// MapPoint base = xvr.getFirstBase().translate(96, 0);
+		// bwapi.drawBox(base.getX() - 4, base.getY() - 4, base.getX() + 4,
+		// base.getY() + 4,
+		// BWColor.GREEN, true, false);
+		// // bwapi.drawHealth(true);
+		// bwapi.drawTargets(true);
+
+		paintTestConstructionPlaces();
+		paintTimeConsumption();
+		paintBuildingsToConstructPosition();
+		paintSpeculatedEnemyTanksPositions();
+		paintRenzdezvousPoints();
+		paintUnitsDetails();
+		paintValuesOverUnits();
+
+		// Draw choke points
+		// paintChokePoints();
+
+		// Draw where to attack
+		paintAttackLocation();
+
+		// Statistics
+		paintStatistics();
+
+		// Aditional messages for debug purpose
+		paintDebugMessages();
+
+		// =========================================================
+
+		if (Painter.errorOcurred) {
+			String string = "!!! EXCEPTION (" + errorOcurredDetails + ") !!!";
+			xvr.getBwapi().drawText(new Point(320 - string.length() * 3, 100),
+					BWColor.getToStringHex(BWColor.RED) + string, true);
+		}
+
+		mainMessageRowCounter = oldMainMessageRowCounter;
+
+		// =========================================================
+
+		CodeProfiler.endMeasuring("Painting");
+	}
+
+	// =========================================================
+
 	private static void paintDebugMessages() {
 		debugMessageCounter = 0;
 
@@ -114,67 +182,6 @@ public class Painter {
 		// paintDebugMessage(xvr, "Next base",
 		// "X: " + nextBase.getTx() + ", Y: " + nextBase.getTy());
 		// }
-	}
-
-	public static void paintAll(XVR xvr) {
-
-		// SUPER-SPEED UP, turn of entire painting
-		// if (true) {
-		// return;
-		// }
-
-		// =========================================================
-
-		Painter.xvr = xvr;
-
-		CodeProfiler.startMeasuring("Painting");
-
-		bwapi = XVR.getInstance().getBwapi();
-
-		int oldMainMessageRowCounter = mainMessageRowCounter;
-		mainMessageRowCounter = 0;
-
-		// MapPoint assimilator = Constructing.findTileForAssimilator();
-		// if (assimilator != null) {
-		// xvr.getBwapi().drawBox(assimilator.getX(), assimilator.getY(),
-		// 3 * 32, 2 * 32, BWColor.TEAL, false, false);
-		// }
-
-		// if (FULL_DEBUG) {
-		paintTestConstructionPlaces();
-		paintTimeConsumption();
-		paintBuildingsToConstructPosition();
-		paintSpeculatedEnemyTanksPositions();
-		paintRenzdezvousPoints();
-		// }
-		paintUnitsDetails();
-		//
-		// if (FULL_DEBUG) {
-		paintValuesOverUnits();
-		// }
-
-		// Draw choke points
-		// paintChokePoints();
-
-		// Draw where to attack
-		paintAttackLocation();
-
-		// Statistics
-		paintStatistics();
-
-		// Aditional messages for debug purpose
-		paintDebugMessages();
-
-		if (Painter.errorOcurred) {
-			String string = "!!! EXCEPTION (" + errorOcurredDetails + ") !!!";
-			xvr.getBwapi().drawText(new Point(320 - string.length() * 3, 100),
-					BWColor.getToStringHex(BWColor.RED) + string, true);
-		}
-
-		// ========
-		mainMessageRowCounter = oldMainMessageRowCounter;
-
-		CodeProfiler.endMeasuring("Painting");
 	}
 
 	// =========================================================
@@ -387,7 +394,6 @@ public class Painter {
 
 		// =========================================================
 		// Paint next BASE position
-		// building = TerranCommandCenter.findTileForNextBase(false);
 		buildingPlace = TerranCommandCenter.get_cachedNextBaseTile();
 		if (buildingPlace != null) {
 
@@ -426,22 +432,26 @@ public class Painter {
 
 		// =========================================================
 		// Paint next FACTORY position
-		buildingPlace = Constructing.findTileForStandardBuilding(UnitTypes.Terran_Factory);
-		if (buildingPlace != null) {
-
-			// Draw base position as rectangle
-			xvr.getBwapi().drawBox(buildingPlace.getX(), buildingPlace.getY(),
-					buildingPlace.getX() + 4 * 32, buildingPlace.getY() + 3 * 32, BWColor.GREY,
-					false, false);
-
-			// Draw string
-			xvr.getBwapi().drawText(buildingPlace.getX() + 6, buildingPlace.getY() + 3,
-					BWColor.getToStringHex(BWColor.GREY) + "Potential factory", false);
-		}
+		// buildingPlace =
+		// Constructing.findTileForStandardBuilding(UnitTypes.Terran_Factory);
+		// if (buildingPlace != null) {
+		//
+		// // Draw base position as rectangle
+		// xvr.getBwapi().drawBox(buildingPlace.getX(), buildingPlace.getY(),
+		// buildingPlace.getX() + 4 * 32, buildingPlace.getY() + 3 * 32,
+		// BWColor.GREY,
+		// false, false);
+		//
+		// // Draw string
+		// xvr.getBwapi().drawText(buildingPlace.getX() + 6,
+		// buildingPlace.getY() + 3,
+		// BWColor.getToStringHex(BWColor.GREY) + "Potential factory", false);
+		// }
 
 		// =========================================================
 		// Paint next BUNKER position
-		// if (TerranBunker.getNumberOfUnits() == 0) {
+		// if (TerranBunker.getNumberOfUnits() <
+		// TerranBunker.GLOBAL_MAX_BUNKERS) {
 		// MapPoint building = null;
 		// building = TerranBunker.findTileForBunker();
 		// if (building != null) {
@@ -918,7 +928,12 @@ public class Painter {
 	private static void paintMainMessage(XVR xvr, String string) {
 		// string = "\u001F" + string;
 		string = BWColor.getToStringHex(BWColor.GREY) + string;
-		xvr.getBwapi().drawText(new Point(5, 12 * mainMessageRowCounter++), string, true);
+
+		int x = 5;
+		int y = 5 + 12 * mainMessageRowCounter;
+
+		xvr.getBwapi().drawText(new Point(x, y), string, true);
+		mainMessageRowCounter++;
 	}
 
 	// =========================================================

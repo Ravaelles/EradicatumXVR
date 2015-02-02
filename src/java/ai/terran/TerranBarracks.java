@@ -18,21 +18,19 @@ public class TerranBarracks {
 	public static UnitTypes MEDIC = UnitTypes.Terran_Medic;
 	public static UnitTypes GHOST = UnitTypes.Terran_Ghost;
 
-	private static final UnitTypes buildingType = UnitTypes.Terran_Barracks;
-	private static XVR xvr = XVR.getInstance();
-
 	private static boolean isPlanAntiAirActive = false;
 
+	public static int CRITICALLY_FEW_INFANTRY = 4;
 	public static int MIN_UNITS_FOR_DIFF_BUILDING = TerranBunker.GLOBAL_MAX_BUNKERS * 4;
-	public static int MIN_MEDICS = 1;
+	public static int MIN_MEDICS = 2;
 	public static int MAX_BARRACKS = 1;
 
 	public static boolean LIMIT_MARINES = false;
 	public static boolean DONT_USE_INFANTRY = false;
 
-	private static int marinesBuildRatio = 65;
-	private static int firebatBuildRatio = 0;
-	private static int medicBuildRatio = 19;
+	public static int RATIO_MARINES_PERCENT = 80;
+	public static int RATIO_FIREBATS_PERCENT = 0;
+	public static int RATIO_MEDICS_PERCENT = 20;
 
 	// =========================================================
 
@@ -108,7 +106,7 @@ public class TerranBarracks {
 		// If we have very few tanks, always leave cash for one.
 		if (TerranMachineShop.getNumberOfUnitsCompleted() > 0
 				&& TerranSiegeTank.getNumberOfUnits() < TerranFactory.MINIMUM_TANKS
-				&& TerranFactory.getOneNotBusy() != null) {
+				&& TerranFactory.getOneNotBusy() != null && !xvr.canAfford(500)) {
 			if (!xvr.canAfford(200) && UnitCounter.getNumberOfInfantryUnits() >= 8) {
 				return;
 			}
@@ -140,7 +138,8 @@ public class TerranBarracks {
 		// }
 
 		// =====================================================
-		boolean criticallyFewInfantry = battleUnits < 4;
+		boolean criticallyFewInfantry = battleUnits < CRITICALLY_FEW_INFANTRY
+				|| UnitCounter.getNumberOfUnits(MEDIC) < MIN_MEDICS;
 		boolean notEnoughInfantry = (xvr.canAfford(100) && UnitCounter.getNumberOfBattleUnits() <= MIN_UNITS_FOR_DIFF_BUILDING);
 		boolean shouldAlwaysBuild = criticallyFewInfantry || notEnoughInfantry;
 		if (shouldAlwaysBuild || buildingQueueDetails == null || freeMinerals >= 100
@@ -180,16 +179,6 @@ public class TerranBarracks {
 		return null;
 	}
 
-	public static void enemyIsProtoss() {
-	}
-
-	public static void enemyIsTerran() {
-		medicBuildRatio /= 7;
-	}
-
-	public static void enemyIsZerg() {
-	}
-
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -226,14 +215,14 @@ public class TerranBarracks {
 				&& (freeMinerals >= 50 && (freeGas - forceFreeGas) >= 25);
 
 		// Calculate unit ratios
-		double totalRatio = marinesBuildRatio + (firebatAllowed ? firebatBuildRatio : 0)
-				+ (medicAllowed ? medicBuildRatio : 0);
+		double totalRatio = RATIO_MARINES_PERCENT + (firebatAllowed ? RATIO_FIREBATS_PERCENT : 0)
+				+ (medicAllowed ? RATIO_MEDICS_PERCENT : 0);
 		double totalInfantry = UnitCounter.getNumberOfInfantryUnits() + 1;
 
 		// ===========================================================
 		UnitTypes typeToBuild = MARINE;
 
-		if (marines >= 4 && medicAllowed && medics == 0) {
+		if (marines >= 4 * medics && medicAllowed && medics == 0) {
 			return MEDIC;
 		}
 
@@ -251,7 +240,7 @@ public class TerranBarracks {
 				}
 
 				double firebatPercent = (double) firebats / totalInfantry;
-				if (firebatPercent < firebatBuildRatio / totalRatio) {
+				if (firebatPercent < RATIO_FIREBATS_PERCENT / totalRatio) {
 					return FIREBAT;
 				}
 			}
@@ -267,13 +256,13 @@ public class TerranBarracks {
 
 			// Build some HIGH Templars if there'are none.
 			if (ghostAllowed
-					&& ((medics >= 5 || medicBuildRatio < 10) && ghosts < 2 || freeGas > 1000)) {
+					&& ((medics >= 5 || RATIO_MEDICS_PERCENT < 10) && ghosts < 2 || freeGas > 1000)) {
 				return GHOST;
 			}
 
 			if (xvr.getTimeSeconds() >= 270) {
 				double medicPercent = (double) medics / totalInfantry;
-				if (medics < MIN_MEDICS || medicPercent < medicBuildRatio / totalRatio) {
+				if (medics < MIN_MEDICS || medicPercent < RATIO_MEDICS_PERCENT / totalRatio) {
 					return MEDIC;
 				}
 			} else {
@@ -286,7 +275,7 @@ public class TerranBarracks {
 
 		// MARINES
 		double marinePercent = marines / totalInfantry;
-		if (marinePercent < marinesBuildRatio / totalRatio || LIMIT_MARINES) {
+		if (marinePercent < RATIO_MARINES_PERCENT / totalRatio || LIMIT_MARINES) {
 			return MARINE;
 		}
 
@@ -303,9 +292,9 @@ public class TerranBarracks {
 		}
 
 		isPlanAntiAirActive = true;
-		marinesBuildRatio = 10;
-		firebatBuildRatio = 70;
-		medicBuildRatio = 10;
+		RATIO_MARINES_PERCENT = 10;
+		RATIO_FIREBATS_PERCENT = 70;
+		RATIO_MEDICS_PERCENT = 10;
 	}
 
 	public static boolean isPlanAntiAirActive() {
@@ -319,5 +308,10 @@ public class TerranBarracks {
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
 	}
+
+	// =========================================================
+
+	private static final UnitTypes buildingType = UnitTypes.Terran_Barracks;
+	private static XVR xvr = XVR.getInstance();
 
 }

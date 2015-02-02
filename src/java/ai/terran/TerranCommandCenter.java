@@ -267,7 +267,8 @@ public class TerranCommandCenter {
 
 			// Bunker
 			if (workers >= 8 && TerranBunker.getNumberOfUnits() == 0
-					&& !Constructing.weAreBuilding(TerranBunker.getBuildingType())) {
+					&& !Constructing.weAreBuilding(TerranBunker.getBuildingType())
+					&& !xvr.canAfford(150)) {
 				return false;
 			}
 		}
@@ -401,6 +402,47 @@ public class TerranCommandCenter {
 				}
 			}
 		}
+	}
+
+	// =========================================================
+	// Define tile for the next base
+
+	/** Find building tile for new base. */
+	public static MapPoint findTileForNextBase(boolean forceNewSolution) {
+		if (xvr.getFirstBase() == null) {
+			return null;
+		}
+
+		// Try to get cached value
+		boolean isVeryOldSolution = _lastTimeCalculatedTileForBase + 5 <= xvr.getTimeSeconds();
+		if (_cachedNextBaseTile != null && !forceNewSolution && !isVeryOldSolution) {
+			return _cachedNextBaseTile;
+		}
+
+		// Make sure you're not calculating base location all the time
+		if (forceNewSolution || isVeryOldSolution) {
+			int now = xvr.getTimeSeconds();
+			if (_lastTimeCalculatedTileForBase != -1 && now - _lastTimeCalculatedTileForBase <= 3) {
+				return _cachedNextBaseTile;
+			}
+			_lastTimeCalculatedTileForBase = now;
+		}
+
+		// ===============================
+		BaseLocation nearestFreeBaseLocation = getNearestFreeBaseLocation();
+		if (nearestFreeBaseLocation != null) {
+			MapPoint point = nearestFreeBaseLocation;
+
+			CodeProfiler.startMeasuring("New base");
+			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
+					buildingType, point, 0, 10);
+			CodeProfiler.endMeasuring("New base");
+		} else {
+			System.out.println("Error! No place for next base!");
+			_cachedNextBaseTile = null;
+		}
+
+		return _cachedNextBaseTile;
 	}
 
 	// =========================================================
@@ -558,44 +600,6 @@ public class TerranCommandCenter {
 				}
 			}
 		}
-	}
-
-	/** Find building tile for new base. */
-	public static MapPoint findTileForNextBase(boolean forceNewSolution) {
-		if (xvr.getFirstBase() == null) {
-			return null;
-		}
-
-		// Try to get cached value
-		boolean isVeryOldSolution = _lastTimeCalculatedTileForBase + 5 <= xvr.getTimeSeconds();
-		if (_cachedNextBaseTile != null && !forceNewSolution && !isVeryOldSolution) {
-			return _cachedNextBaseTile;
-		}
-
-		// Make sure you're not calculating base location all the time
-		if (forceNewSolution || isVeryOldSolution) {
-			int now = xvr.getTimeSeconds();
-			if (_lastTimeCalculatedTileForBase != -1 && now - _lastTimeCalculatedTileForBase <= 3) {
-				return _cachedNextBaseTile;
-			}
-			_lastTimeCalculatedTileForBase = now;
-		}
-
-		// ===============================
-		BaseLocation nearestFreeBaseLocation = getNearestFreeBaseLocation();
-		if (nearestFreeBaseLocation != null) {
-			MapPoint point = nearestFreeBaseLocation;
-
-			CodeProfiler.startMeasuring("New base");
-			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
-					buildingType, point, 0, 8);
-			CodeProfiler.endMeasuring("New base");
-		} else {
-			System.out.println("Error! No place for next base!");
-			_cachedNextBaseTile = null;
-		}
-
-		return _cachedNextBaseTile;
 	}
 
 	private static BaseLocation getNearestFreeBaseLocation() {
