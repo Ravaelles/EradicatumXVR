@@ -175,24 +175,28 @@ public class TerranCommandCenter {
 	}
 
 	public static void buildIfNecessary() {
-		boolean shouldBuild = shouldBuild();
-
-		if (shouldBuild) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
-		} else {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		if (shouldBuild()) {
+			Constructing.construct(buildingType);
 		}
+
+		// boolean shouldBuild = shouldBuild();
+		//
+		// if (shouldBuild) {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// Constructing.construct(xvr, buildingType);
+		// } else {
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
 
 		// =========================================================
-		// Ensure base is being build
-		if (shouldBuild && xvr.getFrames() % 30 == 0
-				&& BuildingManager.getNextBaseBuilder() == null) {
-			Constructing.construct(xvr, buildingType);
-			// System.out.println("Base build fix #69 (builder: "
-			// + BuildingManager.getNextBaseBuilder() + ")");
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-		}
+		// Ensure base is being built
+		// if (xvr.getFrames() % 30 == 0
+		// && BuildingManager.getNextBaseBuilder() == null) {
+		// Constructing.construct(xvr, buildingType);
+		// // System.out.println("Base build fix #69 (builder: "
+		// // + BuildingManager.getNextBaseBuilder() + ")");
+		// ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		// }
 	}
 
 	// =========================================================
@@ -434,8 +438,7 @@ public class TerranCommandCenter {
 			MapPoint point = nearestFreeBaseLocation;
 
 			CodeProfiler.startMeasuring("New base");
-			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),
-					buildingType, point, 0, 10);
+			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(buildingType, point, 0, 10);
 			CodeProfiler.endMeasuring("New base");
 		} else {
 			System.out.println("Error! No place for next base!");

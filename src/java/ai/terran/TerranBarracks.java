@@ -7,6 +7,7 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
+import ai.managers.constructing.ConstructingHelper;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.units.UnitManager;
@@ -39,6 +40,10 @@ public class TerranBarracks {
 		int bases = UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE);
 
 		if (barracks > 0 && DONT_USE_INFANTRY) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
+		if (ConstructingHelper.weAreBuilding(buildingType)) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
@@ -182,7 +187,7 @@ public class TerranBarracks {
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
+			Constructing.construct(buildingType);
 		}
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}

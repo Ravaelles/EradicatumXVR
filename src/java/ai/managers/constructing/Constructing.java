@@ -5,9 +5,9 @@ import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.util.BWColor;
+import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.map.MapPoint;
-import ai.handling.units.UnitCounter;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
@@ -28,19 +28,47 @@ public class Constructing {
 
 	public static boolean DEBUG_CONSTRUCTION_MODE = false;
 	public static boolean debugConstruction = false;
-	private static int _skipCheckingForTurns = 0;
+
+	// private static int _skipCheckingForTurns = 0;
 
 	// =========================================================
 
-	public static void construct(XVR xvr, UnitTypes building) {
+	public static void construct(UnitTypes building) {
+		// xvr.getClient().sendText("Build: " + building.name());
+		// System.err.println("Build: " + building.name());
 
 		// Define tile where to build according to type of building.
 		MapPoint buildTile = getTileAccordingToBuildingType(building);
 
 		// Check if build tile is okay.
-		if (buildTile != null) {
-			constructBuilding(xvr, building, buildTile);
+		if (buildTile != null && !isConstructionDuplicated(building)) {
+			Painter.message(xvr, "Construct: " + building.name());
+			constructBuilding(building, buildTile);
 		}
+	}
+
+	private static boolean isConstructionDuplicated(UnitTypes building) {
+		// boolean canProceed = false;
+		//
+		// // Disallow multiple building of all buildings, except barracks,
+		// // bunkers.
+		// if (building.getType().isBarracks() || building.getType().isFactory()
+		// || building.getType().isBase()) {
+		// int builders =
+		// ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
+		// int numOfBuildings =
+		// UnitCounter.getNumberOfUnits(building.getType().getUnitTypes());
+		// if (numOfBuildings != 1) {
+		// canProceed = builders == 0;
+		// }
+		// if (numOfBuildings == 1) {
+		// canProceed = builders <= 1;
+		// }
+		// } else {
+		// canProceed = !weAreBuilding(building);
+		// }
+
+		return weAreBuilding(building);
 	}
 
 	// =========================================================
@@ -52,57 +80,55 @@ public class Constructing {
 	// buildingType.getUnitTypes().ordinal(), true);
 	// }
 
-	private static void build(Unit builder, MapPoint buildTile, UnitTypes building) {
-		boolean canProceed = false;
-
-		// Disallow multiple building of all buildings, except barracks,
-		// bunkers.
-		if (building.getType().isBarracks() || building.getType().isFactory()
-				|| building.getType().isBase()) {
-			int builders = ifWeAreBuildingItCountHowManyWorkersIsBuildingIt(building);
-			int numOfBuildings = UnitCounter.getNumberOfUnits(building.getType().getUnitTypes());
-			if (numOfBuildings != 1) {
-				canProceed = builders == 0;
-			}
-			if (numOfBuildings == 1) {
-				canProceed = builders <= 1;
-			}
-		} else {
-			canProceed = !weAreBuilding(building);
-		}
-
-		// If there aren't multiple orders to build one building given, we can
-		// proceed
-		if (canProceed) {
-			xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
-					building.ordinal());
-			ConstructingHelper.addInfoAboutConstruction(building, builder, buildTile);
-		}
+	private static void issueBuildOrder(Unit builder, MapPoint buildTile, UnitTypes building) {
+		xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
+				building.ordinal());
+		ConstructingHelper.addInfoAboutConstruction(building, builder, buildTile);
 	}
 
-	public static MapPoint getLegitTileToBuildNear(int builderID, int buildingTypeID,
-			int initialTileX, int initialTileY, int minimumDist, int maximumDist) {
-		UnitType type = UnitType.getUnitTypeByID(buildingTypeID);
+	public static MapPoint getLegitTileToBuildNear(UnitTypes buildingType, MapPoint point,
+			int minSearchRadius, int maxSearchRadius) {
+		UnitType type = buildingType.getType();
 
 		boolean isSpecialBuilding = type.isBase() || type.isBunker() || type.isRefinery();
 
 		// =========================================================
 		// Try to find possible place to build starting in given point and
 		// gradually increasing search radius
-		int maxSearchRadius = minimumDist;
+		int currSearchRadius = minSearchRadius;
 
-		int minTileX = Math.max(0, initialTileX - maxSearchRadius);
-		int maxTileX = Math.min(xvr.getMap().getWidth(), initialTileX + maxSearchRadius);
-		int minTileY = Math.max(0, initialTileY - maxSearchRadius);
-		int maxTileY = Math.min(xvr.getMap().getHeight(), initialTileY + maxSearchRadius);
+		// int minTileX = Math.max(3, point.getTx() - currSearchRadius);
+		// int maxTileX = Math.min(xvr.getMap().getWidth() - 3, point.getTx() +
+		// currSearchRadius);
+		// if (maxTileX < minTileX) {
+		// maxTileX = minTileX;
+		// }
+		//
+		// int minTileY = Math.max(3, point.getTy() - currSearchRadius);
+		// int maxTileY = Math.min(xvr.getMap().getHeight() - 3, point.getTy() +
+		// currSearchRadius);
+		// if (maxTileY < minTileY) {
+		// maxTileY = minTileY;
+		// }
+
+		// if (!isSpecialBuilding) {
+		// currSearchRadius = 15 + (int) (xvr.getUnitsBuildings().size() / 2);
+		// }
 
 		// Start looking for a place to build this building in radius of given
 		// arbitrary point. If you can't find point, increase search radius.
-		while (maxSearchRadius <= maximumDist) {
+		ConstructionPlaceFinder.lastError = null;
+		while (currSearchRadius <= maxSearchRadius) {
+			int minTileX = point.getTx() - currSearchRadius;
+			int maxTileX = point.getTx() + currSearchRadius;
+			int minTileY = point.getTy() - currSearchRadius;
+			int maxTileY = point.getTy() + currSearchRadius;
+
+			ConstructionPlaceFinder.lastRadius = currSearchRadius;
 			for (int tileX = minTileX; tileX <= maxTileX; tileX += 1) {
 
 				// Leave space on some rows/columns so unit can have corridors
-				if (!isSpecialBuilding && tileX % 5 == 0) {
+				if (!isSpecialBuilding && tileX % 7 == 0) {
 					continue;
 				}
 
@@ -110,13 +136,9 @@ public class Constructing {
 
 					// Leave space on some rows/columns so unit can have
 					// corridors
-					if (!isSpecialBuilding && tileY % 7 == 0) {
+					if (!isSpecialBuilding && tileY % 5 == 0) {
 						continue;
 					}
-
-					// Draw base position as rectangle
-					int x = tileX * 32;
-					int y = tileY * 32;
 
 					// Check if it's possible and reasonable to build this type
 					// of building in this place
@@ -126,7 +148,9 @@ public class Constructing {
 						// Code for debugging: paint this build position as
 						// green/red
 						if (DEBUG_CONSTRUCTION_MODE && debugConstruction) {
-							paintBuildingPosition(type, x, y, BWColor.GREEN, "OK");
+							int x = tileX * 32;
+							int y = tileY * 32;
+							Painter.paintBuildingPosition(type, x, y, BWColor.GREEN, "OK");
 						}
 
 						return position;
@@ -134,32 +158,20 @@ public class Constructing {
 
 					// Code for debugging: paint this build position as
 					// green/red
-					else {
-						if (DEBUG_CONSTRUCTION_MODE && debugConstruction) {
-							paintBuildingPosition(type, x, y, BWColor.RED, "BAD ");
-						}
-					}
+					// else {
+					// if (DEBUG_CONSTRUCTION_MODE && debugConstruction) {
+					// int x = tileX * 32;
+					// int y = tileY * 32;
+					// paintBuildingPosition(type, x, y, BWColor.RED, "BAD ");
+					// }
+					// }
 				}
 			}
 
-			maxSearchRadius++;
+			currSearchRadius += 1;
 		}
 
 		return null;
-	}
-
-	private static void paintBuildingPosition(UnitType type, int x, int y, int color, String string) {
-		xvr.getBwapi().drawBox(x - type.getDimensionLeft(), y - type.getDimensionUp(),
-				x + type.getDimensionRight(), y + type.getDimensionDown(), color, false, false);
-		xvr.getBwapi().drawText(x, y + 3, BWColor.getToStringHex(color) + type.getName() + " OK",
-				false);
-		// xvr.getBwapi().drawBox(x, y, x + type.getDimensionLeft() +
-		// type.getDimensionRight(),
-		// y + type.getDimensionUp() + type.getDimensionDown(), color, false,
-		// false);
-		// xvr.getBwapi().drawText(x, y + 3, BWColor.getToStringHex(color) +
-		// type.getName() + " OK",
-		// false);
 	}
 
 	// =========================================================
@@ -197,18 +209,20 @@ public class Constructing {
 
 		// Standard building
 		else {
-			if (_skipCheckingForTurns > 0) {
-				_skipCheckingForTurns--;
-				return null;
-			}
+			// if (_skipCheckingForTurns > 0) {
+			// _skipCheckingForTurns--;
+			// return null;
+			// }
 			buildTile = findTileForStandardBuilding(building);
 		}
 
 		if (buildTile == null && !disableReportOfNoPlaceFound) {
-			System.out.println("# No tile found for: " + building.getType().getName() + " // "
-					+ ConstructionPlaceFinder.lastError);
+			System.out.println("# No tile found for: " + building.getType().getName()
+					+ " // error: " + ConstructionPlaceFinder.lastError + " // search radius: "
+					+ ConstructionPlaceFinder.lastRadius);
 		} else {
-			// System.out.println(building.name() + ": " + buildTile);
+			System.out.println(building.name() + ": " + buildTile + " // search radius: "
+					+ ConstructionPlaceFinder.lastRadius);
 		}
 
 		return buildTile;
@@ -232,8 +246,8 @@ public class Constructing {
 			return null;
 		}
 
-		MapPoint tile = Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(), typeToBuild,
-				base.translate(96, 0), 5, MAX_SEARCH_RANGE);
+		MapPoint tile = Constructing.getLegitTileToBuildNear(typeToBuild, base.translate(96, 0), 6,
+				MAX_SEARCH_RANGE);
 
 		return tile;
 	}
@@ -305,11 +319,11 @@ public class Constructing {
 		}
 	}
 
-	public static MapPoint findBuildTile(XVR xvr, int builderID, UnitTypes type, MapPoint place) {
-		return findBuildTile(xvr, builderID, type.ordinal(), place.getX(), place.getY());
+	public static MapPoint findBuildTile(int builderID, UnitTypes type, MapPoint place) {
+		return findBuildTile(builderID, type.ordinal(), place.getX(), place.getY());
 	}
 
-	public static MapPoint findBuildTile(XVR xvr, int builderID, int buildingTypeID, int x, int y) {
+	public static MapPoint findBuildTile(int builderID, int buildingTypeID, int x, int y) {
 		MapPoint tileToBuild = findTileForStandardBuilding(UnitType
 				.getUnitTypesByID(buildingTypeID));
 
@@ -321,33 +335,39 @@ public class Constructing {
 		return tileToBuild;
 	}
 
-	public static MapPoint getLegitTileToBuildNear(UnitTypes type, MapPoint nearTo,
-			int minimumDist, int maximumDist) {
-		Unit worker = xvr.getNearestWorkerTo(nearTo);
-		if (worker == null || type == null) {
-			return null;
-		}
-		return getLegitTileToBuildNear(worker.getID(), type.ordinal(), nearTo.getTx(),
-				nearTo.getTy(), minimumDist, maximumDist);
-	}
+	// public static MapPoint getLegitTileToBuildNear(UnitTypes type, MapPoint
+	// nearTo,
+	// int minimumDist, int maximumDist) {
+	// Unit worker = xvr.getNearestWorkerTo(nearTo);
+	// if (worker == null || type == null) {
+	// return null;
+	// }
+	// return getLegitTileToBuildNear(type.ordinal(), nearTo.getTx(),
+	// nearTo.getTy(), minimumDist,
+	// maximumDist);
+	// }
 
-	public static MapPoint getLegitTileToBuildNear(Unit worker, UnitTypes type, MapPoint nearTo,
-			int minimumDist, int maximumDist) {
-		if (worker == null || type == null) {
-			return null;
-		}
-		return getLegitTileToBuildNear(worker.getID(), type.ordinal(), nearTo.getTx(),
-				nearTo.getTy(), minimumDist, maximumDist);
-	}
-
-	public static MapPoint getLegitTileToBuildNear(Unit worker, UnitTypes type, int tileX,
-			int tileY, int minimumDist, int maximumDist, boolean requiresPower) {
-		if (worker == null || type == null) {
-			return null;
-		}
-		return getLegitTileToBuildNear(worker.getID(), type.ordinal(), tileX, tileY, minimumDist,
-				maximumDist);
-	}
+	// public static MapPoint getLegitTileToBuildNear(UnitTypes type, MapPoint
+	// nearTo,
+	// int minimumDist, int maximumDist) {
+	// if (nearTo == null || type == null) {
+	// return null;
+	// }
+	// return getLegitTileToBuildNear(type.ordinal(), nearTo.getTx(),
+	// nearTo.getTy(), minimumDist,
+	// maximumDist);
+	// }
+	//
+	// public static MapPoint getLegitTileToBuildNear(UnitTypes type, int tileX,
+	// int tileY,
+	// int minimumDist, int maximumDist, boolean requiresPower) {
+	// if (worker == null || type == null) {
+	// return null;
+	// }
+	// return getLegitTileToBuildNear(worker.getID(), type.ordinal(), tileX,
+	// tileY, minimumDist,
+	// maximumDist);
+	// }
 
 	public static boolean isBuildTileFullyBuildableFor(int builderID, int i, int j,
 			int buildingTypeID) {
@@ -374,7 +394,7 @@ public class Constructing {
 		return true;
 	}
 
-	protected static boolean constructBuilding(XVR xvr, UnitTypes building, MapPoint buildTile) {
+	protected static boolean constructBuilding(UnitTypes building, MapPoint buildTile) {
 		if (buildTile == null) {
 			return false;
 		}
@@ -386,8 +406,8 @@ public class Constructing {
 			// constructing this building order our worker to build it
 			// && (!xvr.weAreBuilding(building))
 			if (buildTile != null) {
-				// Debug.messageBuild(xvr, building);
-				build(workerUnit, buildTile, building);
+				// Debug.messageBuild(building);
+				issueBuildOrder(workerUnit, buildTile, building);
 
 				// // If it's base then build pylon for new base
 				// if (UnitType.getUnitTypeByID(building.getID()).isBase()) {
@@ -415,10 +435,6 @@ public class Constructing {
 
 	public static boolean weAreBuilding(UnitTypes type) {
 		return ConstructingHelper.weAreBuilding(type);
-	}
-
-	public static Unit getRandomWorker() {
-		return xvr.getRandomWorker();
 	}
 
 	public static void constructAddOn(Unit buildingWithNoAddOn, UnitTypes buildingType) {

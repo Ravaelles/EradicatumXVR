@@ -1,32 +1,22 @@
 package ai.terran;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
-import ai.handling.map.MapExploration;
-import ai.handling.map.MapPoint;
-import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
-import ai.utils.RUtilities;
 
 public class TerranSupplyDepot {
 
 	// private static int INITIAL_DEPOT_MIN_DIST_FROM_BASE = 6;
 	// private static int INITIAL_DEPOT_MAX_DIST_FROM_BASE = 18;
-	private static int DEPOT_FROM_DEPOT_MIN_DISTANCE = 0;
-	private static int DEPOT_FROM_DEPOT_MAX_DISTANCE = 15;
+	// private static int DEPOT_FROM_DEPOT_MIN_DISTANCE = 0;
+	// private static int DEPOT_FROM_DEPOT_MAX_DISTANCE = 15;
 
 	private static final UnitTypes buildingType = UnitTypes.Terran_Supply_Depot;
-	private static final UnitType unitType = UnitTypes.Terran_Supply_Depot.getType();
 	private static XVR xvr = XVR.getInstance();
 
 	// =========================================================
@@ -52,26 +42,22 @@ public class TerranSupplyDepot {
 
 			// First build barracks
 			if (barracks == 0) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 
 			// Then bunker
 			if (TerranBunker.getNumberOfUnits() == 0
 					&& !Constructing.weAreBuilding(TerranBunker.getBuildingType())
 					&& !xvr.canAfford(200)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 
 			if (barracks >= 1 && depots == 0 && xvr.canAfford(200)) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 
 			if ((depots >= 1 || weAreBuilding) && TerranBunker.getNumberOfUnits() == 0) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-				return false;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 			}
 		}
 
@@ -167,117 +153,11 @@ public class TerranSupplyDepot {
 	}
 
 	// =========================================================
-	// Find place for new building
-
-	// private static MapPoint findLegitTileForDepot(MapPoint buildNearToHere,
-	// Unit builder) {
-	// int tileX = buildNearToHere.getTx();
-	// int tileY = buildNearToHere.getTy();
-	//
-	// int currentDist = DEPOT_FROM_DEPOT_MIN_DISTANCE;
-	// while (currentDist <= DEPOT_FROM_DEPOT_MAX_DISTANCE) {
-	// for (int i = tileX - currentDist; i <= tileX + currentDist; i++) {
-	// // if (i % 3 != 0 || i % 9 == 0) {
-	// // continue;
-	// // }
-	// if (i % 5 != 0) {
-	// continue;
-	// }
-	// for (int j = tileY - currentDist; j <= tileY + currentDist; j++) {
-	// // if (j % 2 != 0 || j % 6 == 0) {
-	// // continue;
-	// // }
-	// if (j % 5 == 0 || i % 5 == 0) {
-	// continue;
-	// }
-	// int x = i * 32;
-	// int y = j * 32;
-	// if (Constructing.canBuildHere(builder, unitType, i, j)
-	// && xvr.getUnitsOfGivenTypeInRadius(buildingType,
-	// DEPOT_FROM_DEPOT_MIN_DISTANCE - 1, x, y, true).isEmpty()) {
-	// MapPointInstance point = new MapPointInstance(x, y);
-	// if (!ConstructionPlaceFinder.isTooNearMineralsOrGeyser(
-	// buildingType.getType(), point)) {
-	//
-	// // Damn, try NOT to build in the middle of narrow
-	// // choke point.
-	// if (!ConstructionPlaceFinder.isTooCloseToAnyChokePoint(point)) {
-	//
-	// // Distance to the base must be big enough
-	// if (point.distanceTo(xvr.getFirstBase().translate(5, 2)) >= 3) {
-	// return point;
-	// }
-	// }
-	// }
-	// }
-	// // if (j % 4 == 0) {
-	// // j += 2;
-	// // }
-	// }
-	// }
-	//
-	// currentDist++;
-	// }
-	// return null;
-	// }
-
-	// public static MapPoint findTileForDepot() {
-	// Unit builder = Constructing.getRandomWorker();
-	//
-	// if (UnitCounter.weHaveSupplyDepot()) {
-	// return findTileForNextDepot(builder);
-	// }
-	//
-	// // It's the first Depot
-	// else {
-	// return findTileForFirstDepot(builder, xvr.getFirstBase());
-	// }
-	// }
-
-	// private static MapPoint findTileForNextDepot(Unit builder) {
-	//
-	// // Or build near random depot.
-	// Unit supplyDepot = null;
-	// ArrayList<Unit> depotsNearMainBase =
-	// xvr.getUnitsOfGivenTypeInRadius(buildingType, 23,
-	// xvr.getFirstBase(), true);
-	// if (!depotsNearMainBase.isEmpty()) {
-	// supplyDepot = (Unit) RUtilities.getRandomElement(depotsNearMainBase);
-	// }
-	// if (supplyDepot == null) {
-	// supplyDepot = getRandomSupplyDepot();
-	// }
-	//
-	// MapPoint tile = findTileForSupplyDepotNearby(supplyDepot,
-	// DEPOT_FROM_DEPOT_MIN_DISTANCE,
-	// DEPOT_FROM_DEPOT_MAX_DISTANCE);
-	// if (tile != null) {
-	// return tile;
-	// } else {
-	// return Constructing.findTileForStandardBuilding(buildingType);
-	// }
-	//
-	// }
-
-	// =========================================================
 
 	public static void buildIfNecessary() {
-		if (xvr.canAfford(100)) {
-
-			// It only makes sense to build Supply Depot if supplies less than
-			// X.
-			if (shouldBuild()) {
-				Constructing.construct(xvr, buildingType);
-			}
+		if (shouldBuild()) {
+			Constructing.construct(buildingType);
 		}
-	}
-
-	private static Unit getRandomSupplyDepot() {
-		ArrayList<Unit> pylons = getSupplyDepots();
-		if (pylons.isEmpty()) {
-			return null;
-		}
-		return (Unit) RUtilities.getRandomListElement(pylons);
 	}
 
 	public static double calculateExistingDepotsStrength() {
@@ -288,39 +168,6 @@ public class TerranSupplyDepot {
 		}
 
 		return result;
-	}
-
-	// private static MapPoint findTileForSupplyDepotNearby(MapPoint point, int
-	// minDist, int maxDist) {
-	// return findLegitTileForDepot(point, Constructing.getRandomWorker());
-	// }
-
-	private static ArrayList<Unit> getSupplyDepots() {
-		ArrayList<Unit> depots = xvr.getUnitsOfType(buildingType);
-		for (Iterator<Unit> iterator = depots.iterator(); iterator.hasNext();) {
-			Unit unit = (Unit) iterator.next();
-			if (!unit.isCompleted()) {
-				iterator.remove();
-			}
-		}
-		return depots;
-	}
-
-	private static MapPoint findTileForFirstDepot(Unit builder, Unit base) {
-		if (base == null) {
-			return null;
-		}
-
-		// Find point being in the middle of way base<->nearest choke point.
-		ChokePoint choke = MapExploration.getNearestChokePointFor(base);
-		MapPointInstance location = new MapPointInstance(
-				(2 * base.getX() + choke.getCenterX()) / 3,
-				(2 * base.getY() + choke.getCenterY()) / 3);
-		// System.out.println();
-		// System.out.println(choke.toStringLocation());
-		// System.out.println(location.toStringLocation());
-
-		return Constructing.getLegitTileToBuildNear(builder, buildingType, location, 0, 100);
 	}
 
 	public static UnitTypes getBuildingType() {

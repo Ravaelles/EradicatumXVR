@@ -22,14 +22,29 @@ public class ConstructingHelper {
 
 	public static boolean weAreBuilding(UnitTypes type) {
 		if (_recentConstructionsInfo.containsKey(type)) {
-			return true;
+			if (!isConstructionInfoObsolete(type)) {
+				return true;
+			}
 		}
 		for (Unit unit : ConstructingManager.xvr.getBwapi().getMyUnits()) {
 			if ((!unit.isCompleted() && unit.getTypeID() == type.ordinal())
 					|| unit.getBuildTypeID() == type.ordinal()) {
+				if (unit.isMoving() || unit.isConstructing()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean isConstructionInfoObsolete(UnitTypes type) {
+		if (_recentConstructionsTimes.containsKey(type)) {
+			int timeStarted = _recentConstructionsTimes.get(type);
+			if (xvr.getTimeSeconds() - timeStarted >= 7) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 

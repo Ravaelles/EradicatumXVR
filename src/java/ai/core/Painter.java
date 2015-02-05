@@ -11,10 +11,12 @@ import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.util.BWColor;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
+import ai.handling.map.MapPointInstance;
 import ai.handling.other.NukeHandling;
 import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
+import ai.managers.constructing.ConstructionPlaceFinder;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
@@ -24,6 +26,7 @@ import ai.managers.units.buildings.BuildingManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranSiegeTank;
+import ai.terran.TerranSupplyDepot;
 import ai.utils.CodeProfiler;
 import ai.utils.RUtilities;
 
@@ -83,6 +86,7 @@ public class Painter {
 		paintRenzdezvousPoints();
 		paintUnitsDetails();
 		paintValuesOverUnits();
+		// paintTest();
 
 		// Draw choke points
 		// paintChokePoints();
@@ -291,9 +295,9 @@ public class Painter {
 
 	private static void paintValuesOverUnits() {
 		JNIBWAPI bwapi = xvr.getBwapi();
-		String text;
+		// String text;
 		String cooldown;
-		double strength;
+		// double strength;
 
 		for (Unit unit : bwapi.getMyUnits()) {
 			UnitType type = unit.getType();
@@ -464,6 +468,7 @@ public class Painter {
 		// }
 	}
 
+	@SuppressWarnings("unused")
 	private static void paintChokePoints() {
 		for (ChokePoint choke : MapExploration.getChokePoints()) {
 			// xvr.getBwapi().drawBox(bounds[0], bounds[1],
@@ -936,6 +941,25 @@ public class Painter {
 		mainMessageRowCounter++;
 	}
 
+	@SuppressWarnings("unused")
+	private static void paintTest() {
+		Unit firstBase = xvr.getFirstBase();
+		int radius = 30;
+		for (int tx = firstBase.getTileX() - radius; tx <= firstBase.getTx() + radius; tx++) {
+			for (int ty = firstBase.getTileY() - radius; ty <= firstBase.getTy() + radius; ty++) {
+				MapPointInstance point = new MapPointInstance(tx * 30, ty * 30);
+				int color = BWColor.RED;
+
+				UnitTypes type = TerranSupplyDepot.getBuildingType();
+
+				if (ConstructionPlaceFinder.canBuildAt(point, type.getType())) {
+					color = BWColor.TEAL;
+					paintBuildingPosition(type.getType(), point.getX(), point.getY(), color, "");
+				}
+			}
+		}
+	}
+
 	// =========================================================
 
 	public static void message(XVR xvr, String txt, boolean displayCounter) {
@@ -974,6 +998,20 @@ public class Painter {
 		xvr.getBwapi().drawText(
 				new Point(318 - message.length() * 3, 3 + 10 * debugMessageCounter++), message,
 				true);
+	}
+
+	public static void paintBuildingPosition(UnitType type, int x, int y, int color, String string) {
+		xvr.getBwapi().drawBox(x - type.getDimensionLeft(), y - type.getDimensionUp(),
+				x + type.getDimensionRight(), y + type.getDimensionDown(), color, false, false);
+		xvr.getBwapi().drawText(x, y + 3, BWColor.getToStringHex(color) + type.getName() + " OK",
+				false);
+		// xvr.getBwapi().drawBox(x, y, x + type.getDimensionLeft() +
+		// type.getDimensionRight(),
+		// y + type.getDimensionUp() + type.getDimensionDown(), color, false,
+		// false);
+		// xvr.getBwapi().drawText(x, y + 3, BWColor.getToStringHex(color) +
+		// type.getName() + " OK",
+		// false);
 	}
 
 }

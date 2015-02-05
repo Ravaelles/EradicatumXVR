@@ -29,9 +29,11 @@ public class TerranStarport {
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
-			Constructing.construct(xvr, buildingType);
+			Constructing.construct(buildingType);
 		}
 	}
+
+	// =========================================================
 
 	public static boolean shouldBuild() {
 		int starports = UnitCounter.getNumberOfUnits(buildingType);
@@ -39,18 +41,17 @@ public class TerranStarport {
 		if (TerranFactory.getNumberOfUnitsCompleted() >= 3 && starports == 0
 				&& TerranSiegeTank.getNumberOfUnits() >= 5
 				&& !TechnologyManager.isSiegeModeResearchPossible()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		if (starports == 1 && xvr.canAfford(600, 400)) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
+
+	// =========================================================
 
 	public static Unit getOneNotBusy() {
 		for (Unit unit : xvr.getUnitsOfType(buildingType)) {

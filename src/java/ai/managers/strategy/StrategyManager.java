@@ -25,7 +25,7 @@ public class StrategyManager {
 	// private static final int MINIMUM_NON_INITIAL_ARMY_TO_PUSH = 25;
 	public static final int MIN_TANKS_TO_ATTACK = 10;
 	public static int MIN_BATTLE_UNITS_TO_ATTACK = 26;
-	private static final double MOVE_FORWARD_SPEED = 0.09;
+	private static final double MOVE_FORWARD_SPEED = 0.2;
 
 	// private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 20;
 	// public static final int INITIAL_MIN_UNITS = 1;

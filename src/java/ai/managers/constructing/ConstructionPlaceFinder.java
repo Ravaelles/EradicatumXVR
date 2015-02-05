@@ -28,10 +28,11 @@ public class ConstructionPlaceFinder {
 	// =========================================================
 
 	protected static String lastError = null;
+	protected static int lastRadius = -1;
 
 	// =========================================================
 
-	public static MapPoint shouldBuildHere(UnitType type, int i, int j) {
+	public static MapPoint shouldBuildHere(UnitType type, int tileX, int tileY) {
 		boolean isBase = type.isBase();
 		// boolean isDepot = type.isSupplyDepot();
 
@@ -41,12 +42,14 @@ public class ConstructionPlaceFinder {
 
 		// =========================================================
 
-		int buildingPixelWidth = type.getDimensionLeft() + type.getDimensionRight();
-		int buildingPixelHeight = type.getDimensionUp() + type.getDimensionDown();
-		// int x = i * 32;
-		// int y = j * 32;
-		int x = i * 32 - buildingPixelWidth / 2;
-		int y = j * 32 - buildingPixelHeight / 2;
+		// int buildingPixelWidth = type.getDimensionLeft() +
+		// type.getDimensionRight();
+		// int buildingPixelHeight = type.getDimensionUp() +
+		// type.getDimensionDown();
+		int x = tileX * 32;
+		int y = tileY * 32;
+		// int x = tileX * 32 - buildingPixelWidth / 2;
+		// int y = tileY * 32 - buildingPixelHeight / 2;
 		MapPointInstance place = new MapPointInstance(x, y);
 
 		// Is it physically possible to build here?
@@ -57,8 +60,8 @@ public class ConstructionPlaceFinder {
 			// etc.
 			Unit builderUnit = xvr.getNearestWorkerTo(place);
 			if (builderUnit != null
-					&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
-							builderUnit.getID(), i, j))) {
+					&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(type,
+							builderUnit.getID(), tileX, tileY))) {
 
 				// if ((isBase || !isTooNearMineralsOrGeyser(type, place))
 				// && (isBase || isEnoughPlaceToOtherBuildings(place, type))
@@ -81,22 +84,22 @@ public class ConstructionPlaceFinder {
 					return null;
 				}
 
-				else if (!isBase && !isEnoughPlaceToOtherBuildings(place, type)) {
+				if (!isBase && !isEnoughPlaceToOtherBuildings(place, type)) {
 					lastError = ERROR_NOT_ENOUGH_PLACE_TO_OTHER_BUILDINGS;
 					return null;
 				}
 
-				else if (!isBase && isOverlappingNextBase(place, type)) {
+				if (!isBase && isOverlappingNextBase(place, type)) {
 					lastError = ERROR_OVERLAPS_NEXT_BASE;
 					return null;
 				}
 
-				else if (!isBase && isTooCloseToAnyChokePoint(place)) {
+				if (!isBase && isTooCloseToAnyChokePoint(place)) {
 					lastError = ERROR_TOO_CLOSE_TO_CHOKEPOINT;
 					return null;
 				}
 
-				else if (!isBase && !skipCheckingRegion && !isInAllowedRegions(place)) {
+				if (!isBase && !skipCheckingRegion && !isInAllowedRegions(place)) {
 					lastError = ERROR_INVALID_REGION;
 					return null;
 				}
@@ -155,8 +158,8 @@ public class ConstructionPlaceFinder {
 			if (nextBase == null) {
 				return false;
 			} else {
-				int minDistance = type.isBunker() ? 5 : 8;
-				return xvr.getDistanceSimple(place, nextBase.translate(64, 48)) <= minDistance;
+				int minDistance = type.isBunker() ? 4 : 6;
+				return xvr.getDistanceSimple(place, nextBase.translate(96, 0)) <= minDistance;
 			}
 		} else {
 			return false;
@@ -175,27 +178,27 @@ public class ConstructionPlaceFinder {
 
 		for (Unit otherBuilding : buildingsNearby) {
 
-			// Allow stacking Supply Depots
-			if (otherBuilding.isSupplyDepot()) {
-				continue;
+			// // Allow stacking Supply Depots
+			// if (buildingType.isSupplyDepot() &&
+			// otherBuilding.isSupplyDepot()) {
+			// continue;
+			// }
+			//
+			// // Disallow stacking
+			// else {
+			// if (!canBuildAt(place.translateSafe(-1, -1), buildingType)) {
+			// return false;
+			// }
+			//
+			// if (!canBuildAt(place.translateSafe(1, 1), buildingType)) {
+			// return false;
+			// }
+			//
+			Unit builder = xvr.getNearestWorkerTo(place);
+			if (wouldNewBuildingCollideWith(place, buildingType, otherBuilding, builder)) {
+				return false;
 			}
-
-			// Disallow stacking
-			else {
-				if (!canBuildAt(place.translateSafe(-1, -1), buildingType)) {
-					return false;
-				}
-
-				if (!canBuildAt(place.translateSafe(1, 1), buildingType)) {
-					return false;
-				}
-
-				// Unit builder = xvr.getNearestWorkerTo(place);
-				// if (wouldNewBuildingCollideWith(place, buildingType,
-				// otherBuilding, builder)) {
-				// return false;
-				// }
-			}
+			// }
 		}
 
 		// No building collides, allow this building location
@@ -275,22 +278,20 @@ public class ConstructionPlaceFinder {
 			UnitType buildingType, Unit existingBuilding, Unit builder) {
 
 		// Consider space for add-ons
-		// if (buildingType.canHaveAddOn() ||
-		// existingBuilding.getType().canHaveAddOn()) {
-		// if (!isPhysicallyPossibleToBuildAt(builder,
-		// buildingPlace.translate(-64, 0),
-		// buildingType)) {
-		// return true;
-		// }
-		// }
+		if (buildingType.canHaveAddOn() || existingBuilding.getType().canHaveAddOn()) {
+			if (!isPhysicallyPossibleToBuildAt(builder, buildingPlace.translate(64, 0),
+					buildingType)) {
+				return true;
+			}
+		}
 
 		return false;
 	}
 
 	public static boolean isTooNearMineralsOrGeyser(UnitType type, MapPoint point) {
-		if (type.canHaveAddOn()) {
-			point = point.translate(64, 0);
-		}
+		// if (type.canHaveAddOn()) {
+		// point = point.translate(64, 0);
+		// }
 		Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
 		double distToBase = nearestBase.distanceTo(point);
 
@@ -302,12 +303,13 @@ public class ConstructionPlaceFinder {
 
 		// =========================================================
 		// Check if isn't too near to geyser
-		MapPoint nearestGeyser = xvr.getUnitNearestFromList(point, xvr.getGeysersUnits());
-		if (nearestGeyser != null) {
-			if (distToBase <= 6 && nearestGeyser.distanceTo(point) <= 4.9) {
-				return true;
-			}
-		}
+		// MapPoint nearestGeyser = xvr.getUnitNearestFromList(point,
+		// xvr.getGeysersUnits());
+		// if (nearestGeyser != null) {
+		// if (distToBase <= 6 && nearestGeyser.distanceTo(point) <= 4.9) {
+		// return true;
+		// }
+		// }
 
 		// Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE,
 		// point);
@@ -326,72 +328,22 @@ public class ConstructionPlaceFinder {
 		if (nearestMineral != null) {
 			double distToMineral = nearestMineral.distanceTo(point);
 
-			if (distToMineral <= 3 && distToBase <= 6) {
+			if (distToMineral <= 3.7 && distToBase <= 6) {
 				return true;
 			}
-
-			// if (distToMineral <= 5) {
-			// return true;
-			// }
-			//
-			// if (distToMineral <= 8) {
-			// if (nearestBase.distanceTo(point) <= 4 + minDistBonus) {
-			// return false;
-			// }
-			//
-			// double distBaseToMineral = xvr.getDistanceBetween(nearestBase,
-			// nearestMineral);
-			// if (distToMineral < distBaseToMineral + minDistBonus) {
-			// return true;
-			// }
-			// }
 		}
-
-		// =========================================================
-
-		// int minDistBonus = type.canHaveAddOn() ? 2 : 0;
-		//
-		// // Check if isn't too near to geyser
-		// Unit nearestGeyser = xvr.getUnitNearestFromList(point,
-		// xvr.getGeysersUnits());
-		// double distToGeyser = xvr.getDistanceBetween(nearestGeyser, point);
-		// Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE,
-		// point);
-		// if (distToGeyser <= 5 + minDistBonus) {
-		// double distBaseToGeyser = xvr.getDistanceBetween(nearestBase,
-		// nearestGeyser);
-		// if (distBaseToGeyser >= distToGeyser + minDistBonus) {
-		// return false;
-		// }
-		// }
-		//
-		// // ==================================
-		// // Check if isn't too near to mineral
-		// Unit nearestMineral = xvr.getUnitNearestFromList(point,
-		// xvr.getMineralsUnits());
-		// double distToMineral = xvr.getDistanceBetween(nearestMineral, point);
-		// if (distToMineral <= 5 + minDistBonus) {
-		// return true;
-		// }
-		//
-		// if (distToMineral <= 8 + minDistBonus) {
-		// if (nearestBase.distanceTo(point) <= 4 + minDistBonus) {
-		// return false;
-		// }
-		//
-		// double distBaseToMineral = xvr.getDistanceBetween(nearestBase,
-		// nearestMineral);
-		// if (distToMineral < distBaseToMineral + minDistBonus) {
-		// return true;
-		// }
-		// }
 
 		return false;
 	}
 
-	public static boolean isBuildTileFreeFromUnits(int builderID, int tileX, int tileY) {
+	public static boolean isBuildTileFreeFromUnits(UnitType type, int builderID, int tileX,
+			int tileY) {
 		JNIBWAPI bwapi = XVR.getInstance().getBwapi();
-		MapPointInstance point = new MapPointInstance((int) (tileX - 1.5) * 32, (tileY - 1) * 32);
+		// MapPointInstance point = new MapPointInstance((int) (tileX - 1.5) *
+		// 32, (tileY - 1) * 32);
+		MapPointInstance point = new MapPointInstance((int) (tileX) * 32, (tileY) * 32);
+
+		double buildingApprxDimension = type.getTileWidth() + 0.5;
 
 		// Check if units are blocking this tile
 		boolean unitsInWay = false;
@@ -399,7 +351,7 @@ public class ConstructionPlaceFinder {
 			if (u.getID() == builderID) {
 				continue;
 			}
-			if (xvr.getDistanceBetween(u, point) <= 2.12) {
+			if (xvr.getDistanceBetween(u, point) <= buildingApprxDimension) {
 				// for (Unit unit : xvr.getUnitsInRadius(point, 4,
 				// xvr.getBwapi().getMyUnits())) {
 				// UnitActions.moveAwayFromUnitIfPossible(unit, point, 6);
@@ -407,38 +359,48 @@ public class ConstructionPlaceFinder {
 				unitsInWay = true;
 			}
 		}
-		if (!unitsInWay) {
-			return true;
-		}
 
-		return false;
+		return !unitsInWay;
 	}
 
 	// =========================================================
 	// Lo-level abstraction methods
 
 	public static boolean canBuildAt(MapPoint point, UnitType type) {
-		Unit randomWorker = xvr.getNearestWorkerTo(point);
-		if (randomWorker == null || point == null) {
+		Unit builder = xvr.getNearestWorkerTo(point);
+		if (builder == null || point == null) {
 			return false;
 		}
 
+		// boolean checkExplored = shouldCheckOnlyExplored(type);
+		boolean checkExplored = false;
+
 		// Buildings that can have an add-on, must have additional space on
 		// their right
-		if (type.canHaveAddOn() && !type.isBase()) {
-			if (!xvr.getBwapi().canBuildHere(randomWorker.getID(), point.getTx() + 2,
-					point.getTy(), type.getUnitTypes().getID(), false)) {
-				return false;
-			}
-		}
+		// if (type.canHaveAddOn() && !type.isBase()) {
+		// // builder.getID(),
+		// if (!xvr.getBwapi().canBuildHere(builder.getID(), point.getTx() + 2,
+		// point.getTy(),
+		// type.getUnitTypes().getID(), checkExplored)) {
+		// return false;
+		// }
+		// }
 
-		return xvr.getBwapi().canBuildHere(randomWorker.getID(), point.getTx(), point.getTy(),
-				type.getUnitTypes().getID(), false);
+		// builder.getID(),
+		return xvr.getBwapi().canBuildHere(point.getTx(), point.getTy(),
+				type.getUnitTypes().getID(), checkExplored);
+	}
+
+	private static boolean shouldCheckOnlyExplored(UnitType type) {
+		return !type.isBase() && !type.isBunker();
 	}
 
 	public static boolean isPhysicallyPossibleToBuildAt(Unit builder, MapPoint point, UnitType type) {
-		return xvr.getBwapi().canBuildHere(builder.getID(), point.getTx() + 2, point.getTy(),
-				type.getUnitTypes().getID(), false);
+		// boolean checkExplored = shouldCheckOnlyExplored(type);
+		boolean checkExplored = false;
+		// builder.getID(),
+		return xvr.getBwapi().canBuildHere(point.getTx(), point.getTy(),
+				type.getUnitTypes().getID(), checkExplored);
 	}
 
 	// =========================================================

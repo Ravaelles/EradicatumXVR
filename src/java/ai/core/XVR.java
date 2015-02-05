@@ -57,12 +57,6 @@ public class XVR {
 	public Player NEUTRAL;
 	public int SELF_ID;
 
-	protected static boolean enemyTerran = false;
-	protected static boolean enemyZerg = false;
-	protected static boolean enemyProtoss = false;
-
-	// private static boolean _gameSpeedChangeApplied = false;
-
 	private XVRClient client;
 	private JNIBWAPI bwapi;
 
@@ -248,15 +242,15 @@ public class XVR {
 	}
 
 	public boolean isEnemyTerran() {
-		return enemyTerran;
+		return xvr.getENEMY().isTerran();
 	}
 
 	public boolean isEnemyZerg() {
-		return enemyZerg;
+		return xvr.getENEMY().isZerg();
 	}
 
 	public boolean isEnemyProtoss() {
-		return enemyProtoss;
+		return xvr.getENEMY().isProtoss();
 	}
 
 	// =========================================================
@@ -941,25 +935,6 @@ public class XVR {
 
 	public static void setEnemyRace(String enemyRaceString) {
 		xvr.ENEMY_RACE = enemyRaceString;
-
-		// =========================================================
-		// Protoss
-		if ("Protoss".equals(xvr.ENEMY_RACE)) {
-			enemyProtoss = true;
-		}
-
-		// =========================================================
-		// Zerg
-		else if ("Zerg".equals(xvr.ENEMY_RACE)) {
-			enemyZerg = true;
-		}
-
-		// =========================================================
-		// Terran
-		else if ("Terran".equals(xvr.ENEMY_RACE)) {
-			enemyTerran = true;
-		}
-
 		AdaptStrategy.adaptToOpponent();
 	}
 
@@ -1191,7 +1166,7 @@ public class XVR {
 	}
 
 	public Unit getNearestWorkerTo(MapPoint point) {
-		return getUnitNearestFromList(point, getWorkers(), true, false);
+		return getUnitNearestFromList(point, getWorkers());
 	}
 
 	// private Collection<Unit> getEnemyGroundUnits() {

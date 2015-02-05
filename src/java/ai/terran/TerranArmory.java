@@ -40,7 +40,7 @@ public class TerranArmory {
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
 			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
+			Constructing.construct(buildingType);
 		}
 		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}

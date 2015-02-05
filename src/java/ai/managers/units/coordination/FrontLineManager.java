@@ -55,9 +55,9 @@ public class FrontLineManager {
 		// =========================================================
 		// Check if didn't go to far
 
-		if (shouldWaitWithMovingForward(unit)) {
-			return;
-		}
+		// if (shouldWaitWithMovingForward(unit)) {
+		// return;
+		// }
 
 		// =========================================================
 

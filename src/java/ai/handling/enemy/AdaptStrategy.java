@@ -105,6 +105,7 @@ public class AdaptStrategy {
 
 		// BARRACKS
 		TerranBarracks.CRITICALLY_FEW_INFANTRY = 14;
+		TerranBarracks.MIN_MEDICS = 4;
 		TerranBarracks.RATIO_MARINES_PERCENT = 55;
 		TerranBarracks.RATIO_FIREBATS_PERCENT = 25;
 		TerranBarracks.RATIO_MEDICS_PERCENT = 20;
@@ -116,10 +117,15 @@ public class AdaptStrategy {
 	private static void adaptRace_zerg() {
 
 		// BUNKER
-		TerranBunker.GLOBAL_MAX_BUNKERS = 2;
+		TerranBunker.GLOBAL_MAX_BUNKERS = 1;
 
 		// BARRACKS
-		TerranBarracks.CRITICALLY_FEW_INFANTRY = 6;
+		TerranBarracks.CRITICALLY_FEW_INFANTRY = 14;
+		TerranBarracks.MIN_MEDICS = 4;
+		TerranBarracks.RATIO_FIREBATS_PERCENT = 5;
+
+		// VULTURES
+		TerranVulture.CRITICALLY_FEW_VULTURES = 8;
 	}
 
 	private static void adaptRace_terran() {

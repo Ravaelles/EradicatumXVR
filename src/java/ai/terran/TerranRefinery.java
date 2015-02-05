@@ -29,6 +29,11 @@ public class TerranRefinery {
 		// =========================================================
 		// Begin EASY-WAY
 
+		// If no bases are left, just quit.
+		if (TerranCommandCenter.getNumberOfUnits() == 0) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		int minSupply = 14;
 		if (xvr.isEnemyProtoss()) {
 			minSupply += 1;
@@ -60,15 +65,13 @@ public class TerranRefinery {
 
 		if (UnitCounter.getNumberOfUnitsCompleted(TerranEngineeringBay.getBuildingType()) == 0
 				&& UnitCounter.getNumberOfUnits(TerranBunker.getBuildingType()) == 0) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		if (!Constructing.weAreBuilding(buildingType)
 				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
 						.getNumberOfUnitsCompleted(UnitManager.BASE) && weHaveAcademy) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		if (!Constructing.weAreBuilding(buildingType)
@@ -76,19 +79,16 @@ public class TerranRefinery {
 				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
 						.getNumberOfUnitsCompleted(UnitManager.BASE)) {
 			if (battleUnits >= TerranBarracks.MIN_UNITS_FOR_DIFF_BUILDING) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 		}
 
 		if (UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
 				.getNumberOfUnitsCompleted(UnitManager.BASE) && xvr.canAfford(750)) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	// =========================================================
@@ -114,10 +114,8 @@ public class TerranRefinery {
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
+			Constructing.construct(buildingType);
 		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static UnitTypes getBuildingType() {

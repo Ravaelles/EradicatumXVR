@@ -20,17 +20,14 @@ public class TerranMissileTurret {
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(type, true);
-			Constructing.construct(xvr, type);
+			Constructing.construct(type);
 		}
-		ShouldBuildCache.cacheShouldBuildInfo(type, false);
 	}
 
 	public static boolean shouldBuild() {
 		if (!UnitCounter.weHaveBuildingFinished(UnitTypes.Terran_Engineering_Bay)
 				|| Constructing.weAreBuilding(type)) {
-			ShouldBuildCache.cacheShouldBuildInfo(type, false);
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(type, false);
 		}
 
 		int bunkers = TerranBunker.getNumberOfUnitsCompleted();
@@ -40,13 +37,11 @@ public class TerranMissileTurret {
 		if (bunkers > 0 && bunkers > turrets) {
 			MapPoint buildTile = findTileForTurret();
 			if (buildTile != null) {
-				ShouldBuildCache.cacheShouldBuildInfo(type, true);
-				return true;
+				return ShouldBuildCache.cacheShouldBuildInfo(type, true);
 			}
 		}
 
-		ShouldBuildCache.cacheShouldBuildInfo(type, false);
-		return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(type, false);
 	}
 
 	public static MapPoint findTileForTurret() {

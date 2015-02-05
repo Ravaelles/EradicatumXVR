@@ -66,7 +66,9 @@ public class TerranFactory {
 		// boolean isEnoughFreeResources = (freeMinerals >= 125 && freeGas >=
 		// 25);
 		boolean isEnoughFreeResources = freeMinerals >= 75;
-		if (buildingQueueDetails == null || isEnoughFreeResources || isCriticallyFewVultures) {
+		boolean isLotOfResourcesFree = freeMinerals >= 500;
+		if (buildingQueueDetails == null || isEnoughFreeResources || isCriticallyFewVultures
+				|| isLotOfResourcesFree) {
 			if (facility.getTrainingQueueSize() == 0 || facility.getRemainingTrainTime() <= 5) {
 				xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
 			}
@@ -151,7 +153,7 @@ public class TerranFactory {
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
-			Constructing.construct(xvr, buildingType);
+			Constructing.construct(buildingType);
 		}
 	}
 
