@@ -559,9 +559,20 @@ public class Painter {
 			// false);
 			// }
 		} else if (u.isRepairing()) {
-			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false, false);
-			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.PURPLE, false, false);
-			bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.PURPLE, false, false);
+			// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.PURPLE, false,
+			// false);
+			// bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.PURPLE, false,
+			// false);
+			// bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.PURPLE, false,
+			// false);
+
+			// Paint hammer's hand
+			bwapi.drawBox(u.getX() + 5, u.getY(), u.getX() + 6, u.getY() + 5, BWColor.PURPLE, true,
+					false);
+
+			// Paint hammer's head
+			bwapi.drawBox(u.getX() + 2, u.getY() - 2, u.getX() + 9, u.getY() - 1, BWColor.GREY,
+					true, false);
 		} else if (u.isConstructing() || u.getLastCommandID() == UnitCommandTypes.Build.ordinal()) {
 			// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.ORANGE, false,
 			// false);
@@ -577,12 +588,14 @@ public class Painter {
 			// Paint hammer's head
 			bwapi.drawBox(u.getX() + 2, u.getY() - 2, u.getX() + 9, u.getY() - 1, BWColor.GREY,
 					true, false);
-		} else if (u.isStuck()) {
-			bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.TEAL, false, false);
-			bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.TEAL, false, false);
-			bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.TEAL, false, false);
-			bwapi.drawCircle(u.getX(), u.getY(), 9, BWColor.TEAL, false, false);
 		}
+
+		// else if (u.isStuck()) {
+		// bwapi.drawCircle(u.getX(), u.getY(), 12, BWColor.TEAL, false, false);
+		// bwapi.drawCircle(u.getX(), u.getY(), 11, BWColor.TEAL, false, false);
+		// bwapi.drawCircle(u.getX(), u.getY(), 10, BWColor.TEAL, false, false);
+		// bwapi.drawCircle(u.getX(), u.getY(), 9, BWColor.TEAL, false, false);
+		// }
 
 		// ATTACKING: Display red circle around unit and paint a
 		// line to the target

@@ -18,6 +18,11 @@ public class TerranAcademy {
 		}
 		int academies = getNumberOfUnits();
 
+		// If we already have academy, then build TCS asap
+		if (xvr.isEnemyProtoss() && academies > 0 && TerranComsatStation.getNumberOfUnits() == 0) {
+			TerranComsatStation.MODE_ASAP = true;
+		}
+
 		// Build as soon as possible
 		if (TerranComsatStation.MODE_ASAP) {
 			if (academies == 0 && (TerranBunker.getNumberOfUnits() > 0 || xvr.canAfford(250))) {
@@ -27,7 +32,8 @@ public class TerranAcademy {
 
 		// Normal mode
 		else {
-			if (academies == 0 && xvr.getTimeSeconds() >= 275) {
+			int timeBonus = xvr.isEnemyProtoss() ? 30 : 0;
+			if (academies == 0 && xvr.getTimeSeconds() >= 275 - timeBonus) {
 				int barracks = TerranBarracks.getNumberOfUnitsCompleted();
 
 				if (barracks >= TerranBarracks.MAX_BARRACKS && !weAreBuilding

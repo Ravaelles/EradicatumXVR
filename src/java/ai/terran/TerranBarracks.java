@@ -143,10 +143,17 @@ public class TerranBarracks {
 		// }
 
 		// =====================================================
-		boolean criticallyFewInfantry = battleUnits < CRITICALLY_FEW_INFANTRY
-				|| UnitCounter.getNumberOfUnits(MEDIC) < MIN_MEDICS;
+
+		int infantry = UnitCounter.getNumberOfInfantryUnits();
+		int medics = UnitCounter.getNumberOfUnits(MEDIC);
+		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());
+		boolean medicAllowed = weHaveAcademy && xvr.canAfford(50, 25);
+
+		boolean criticallyFewInfantry = infantry < CRITICALLY_FEW_INFANTRY
+				|| (medicAllowed && medics < MIN_MEDICS);
 		boolean notEnoughInfantry = (xvr.canAfford(100) && UnitCounter.getNumberOfBattleUnits() <= MIN_UNITS_FOR_DIFF_BUILDING);
 		boolean shouldAlwaysBuild = criticallyFewInfantry || notEnoughInfantry;
+
 		if (shouldAlwaysBuild || buildingQueueDetails == null || freeMinerals >= 100
 				|| UnitCounter.getNumberOfUnits(MEDIC) == 0) {
 			if (barracks.getTrainingQueueSize() == 0) {
@@ -227,7 +234,7 @@ public class TerranBarracks {
 		// ===========================================================
 		UnitTypes typeToBuild = MARINE;
 
-		if (marines >= 4 * medics && medicAllowed && medics == 0) {
+		if (medicAllowed && (marines >= 4 * medics && medics == 0 || (medics <= MIN_MEDICS - 1))) {
 			return MEDIC;
 		}
 

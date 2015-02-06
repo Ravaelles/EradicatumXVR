@@ -101,7 +101,7 @@ public class TerranSiegeTank {
 	public static Collection<Unit> getAllCompletedTanks() {
 		ArrayList<Unit> all = new ArrayList<>();
 		for (Unit unit : xvr.getBwapi().getMyUnits()) {
-			if (unit.getType().isTank()) {
+			if (unit.getType().isTank() && unit.isCompleted()) {
 				all.add(unit);
 			}
 		}

@@ -7,6 +7,7 @@ import java.util.Iterator;
 import jnibwapi.model.Unit;
 import ai.core.XVR;
 import ai.handling.units.UnitActions;
+import ai.managers.units.workers.ProfessionalRepairers;
 import ai.managers.units.workers.WorkerManager;
 
 public class BuildingRepairManager {
@@ -32,7 +33,7 @@ public class BuildingRepairManager {
 
 		// =========================================================
 
-		int currentRepairers = -1;
+		// int currentRepairers = -1;
 
 		// currentRepairers = handleSpecialCaseRepairs(building);
 		handleOrdinaryRepairs(building);
@@ -66,14 +67,14 @@ public class BuildingRepairManager {
 
 				// UGLY FIX, only 1/3 workers can repair
 				if (repairer != null
-						&& (repairer.getID() % 3 == 0 || WorkerManager
+						&& (repairer.getID() % 3 == 0 || ProfessionalRepairers
 								.isProfessionalRepairer(repairer))) {
 					repairBuilding(repairer, building);
 				}
 			}
 
 			for (Unit worker : xvr.getWorkers()) {
-				if (WorkerManager.isProfessionalRepairer(worker) && !worker.isRepairing()) {
+				if (ProfessionalRepairers.isProfessionalRepairer(worker) && !worker.isRepairing()) {
 					repairBuilding(worker, building);
 				}
 			}

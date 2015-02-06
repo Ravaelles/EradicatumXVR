@@ -3,14 +3,12 @@ package ai.managers.units.workers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.Painter;
 import ai.core.XVR;
-import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitActions;
@@ -20,82 +18,24 @@ import ai.managers.units.buildings.BuildingRepairManager;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranRefinery;
-import ai.terran.TerranSiegeTank;
 import ai.utils.RUtilities;
 
 public class WorkerManager {
 
 	public static final int WORKER_INDEX_GUY_TO_CHASE_OTHERS = 1;
-	// public static final int WORKER_INDEX_PROFESSIONAL_REPAIRER = 3;
-	// public static final ArrayList<Integer> EXTRA_PROFESSIONAL_REPAIRERERS =
-	// new ArrayList<>();
-	public static int EXPLORER_INDEX = 8; // 6
+	public static int EXPLORER_INDEX = 8;
 	public static int DEFEND_BASE_RADIUS = 23;
 
-	private static XVR xvr = XVR.getInstance();
+	// =========================================================
 
-	private static int _counter;
-	// private static Unit professionalRepairer = null;
-	private static List<Integer> professionalRepairersIndices = new ArrayList<>();
-	private static List<Unit> lastProfessionalRepairers = new ArrayList<>();
+	protected static int _counterWorkerIndexInLoop;
 	private static Unit guyToChaseOthers = null;
 
-	// ======================
-
-	@SuppressWarnings("unused")
-	private static ProfessionalRepairersSettings instance = new ProfessionalRepairersSettings();
-
-	private static class ProfessionalRepairersSettings {
-
-		private ProfessionalRepairersSettings() {
-			professionalRepairersIndices.clear();
-
-			if (xvr.isEnemyProtoss()) {
-				professionalRepairersIndices.add(14);
-			} else if (xvr.isEnemyZerg()) {
-				professionalRepairersIndices.add(10);
-			} else {
-				professionalRepairersIndices.add(16);
-			}
-		}
-
-	}
-
-	private static void handleProfessionalRepairer(Unit unit) {
-		unit.setAiOrder("Bunker repairer");
-
-		Unit beHere = null;
-		// professionalRepairer = unit;
-		lastProfessionalRepairers.add(unit);
-
-		if (unit.isRepairing() || unit.isConstructing()) {
-			return;
-		}
-
-		if (TerranSiegeTank.getNumberOfUnitsCompleted() > 0) {
-			MapPoint centerPoint = MapExploration.getNearestEnemyBuilding();
-			if (centerPoint == null) {
-				centerPoint = MapExploration.getMostDistantBaseLocation(unit);
-			}
-			beHere = xvr.getNearestTankTo(centerPoint);
-		} else {
-
-			beHere = xvr.getUnitOfTypeMostFarTo(TerranBunker.getBuildingType(), xvr.getFirstBase(),
-					true);
-		}
-
-		if (unit.distanceTo(beHere) >= 3) {
-			UnitActions.moveTo(unit, beHere);
-		} else {
-			UnitActions.holdPosition(unit);
-		}
-	}
-
-	// ======================
+	// =========================================================
 
 	public static void act() {
-		lastProfessionalRepairers.clear();
-		_counter = 0;
+		ProfessionalRepairers.resetInfo();
+		_counterWorkerIndexInLoop = 0;
 
 		// ==================================
 		// Handle every worker
@@ -108,7 +48,7 @@ public class WorkerManager {
 			// or building that isn't damaged at all.
 			checkStatusOfBuildingsNeedingRepair(worker);
 
-			if (_counter == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
+			if (_counterWorkerIndexInLoop == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
 				guyToChaseOthers = worker;
 			}
 
@@ -117,14 +57,14 @@ public class WorkerManager {
 			if (!RepairAndSons.tryRepairingSomethingIfNeeded(worker)) {
 
 				// Unit can act as either a simple worker or as an explorer.
-				if (_counter != EXPLORER_INDEX) {
+				if (_counterWorkerIndexInLoop != EXPLORER_INDEX) {
 					WorkerManager.act(worker);
 				} else {
 					ExplorerManager.explore(worker);
 				}
 			}
 
-			_counter++;
+			_counterWorkerIndexInLoop++;
 		}
 	}
 
@@ -157,8 +97,9 @@ public class WorkerManager {
 
 		// =========================================================
 
-		if (isProfessionalRepairer(unit) && TerranBunker.getNumberOfUnits() > 0) {
-			handleProfessionalRepairer(unit);
+		if (ProfessionalRepairers.isProfessionalRepairer(unit)
+				&& TerranBunker.getNumberOfUnits() > 0) {
+			ProfessionalRepairers.handleProfessionalRepairer(unit);
 			return;
 		}
 
@@ -277,7 +218,7 @@ public class WorkerManager {
 		}
 
 		// Check for any enemy workers
-		if (_counter == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
+		if (_counterWorkerIndexInLoop == WORKER_INDEX_GUY_TO_CHASE_OTHERS) {
 			Unit enemyWorkerNearMainBase = xvr.getEnemyWorkerInRadius(38, xvr.getFirstBase());
 			UnitActions.attackEnemyUnit(worker, enemyWorkerNearMainBase);
 			return;
@@ -362,14 +303,6 @@ public class WorkerManager {
 				return;
 			}
 		}
-	}
-
-	public static boolean isProfessionalRepairer(Unit unit) {
-		return professionalRepairersIndices.contains(_counter)
-				|| lastProfessionalRepairers.contains(unit)
-				|| professionalRepairersIndices.contains(unit);
-		// return _counter == WORKER_INDEX_PROFESSIONAL_REPAIRER
-		// || (EXTRA_PROFESSIONAL_REPAIRERERS.contains(_counter));
 	}
 
 	public static void gatherResources(Unit worker, Unit nearestBase) {
@@ -542,7 +475,13 @@ public class WorkerManager {
 		while (nearestUnit == null && counter < 2) {
 			for (Unit otherUnit : xvr.getUnitsOfType(UnitManager.WORKER)) {
 				if (!otherUnit.isCompleted() || otherUnit.isRepairing()
-						|| otherUnit.isConstructing() || otherUnit.getID() % 2 == 0) {
+						|| otherUnit.isConstructing()) {
+					continue;
+				}
+
+				if (otherUnit.getID() % 3 != 0
+						&& !ProfessionalRepairers.isProfessionalRepairer(otherUnit)
+						&& otherUnit.isGathering()) {
 					continue;
 				}
 
@@ -553,6 +492,11 @@ public class WorkerManager {
 
 				// Explorer shouldn't be repairer
 				if (unit.equals(ExplorerManager.getExplorer())) {
+					continue;
+				}
+
+				// If this unit is already repairing something, skip it
+				if (RepairAndSons.getUnitAssignedToRepairBy(otherUnit) != null) {
 					continue;
 				}
 
@@ -580,5 +524,9 @@ public class WorkerManager {
 	public static Unit getGuyToChaseOthers() {
 		return guyToChaseOthers;
 	}
+
+	// =========================================================
+
+	private static XVR xvr = XVR.getInstance();
 
 }

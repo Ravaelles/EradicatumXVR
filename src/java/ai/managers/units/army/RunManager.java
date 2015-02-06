@@ -16,7 +16,7 @@ public class RunManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static final double SAFE_DIST_FROM_ENEMY = 2.7;
+	private static final double SAFE_DIST_FROM_ENEMY = 1.8;
 
 	// =========================================================
 
@@ -29,7 +29,8 @@ public class RunManager {
 			}
 		}
 
-		return runFromCloseOpponentsIfNecessary(unit, SAFE_DIST_FROM_ENEMY);
+		double safeDistance = unit.isVulture() ? 2.7 : 1.8;
+		return runFromCloseOpponentsIfNecessary(unit, safeDistance);
 	}
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit, double safeDistance) {

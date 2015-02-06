@@ -26,6 +26,7 @@ import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.buildings.FlyingBuildingManager;
+import ai.managers.units.workers.ProfessionalRepairers;
 import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranSiegeTank;
@@ -242,15 +243,15 @@ public class XVR {
 	}
 
 	public boolean isEnemyTerran() {
-		return xvr.getENEMY().isTerran();
+		return xvr.getEnemyPlayer().isTerran();
 	}
 
 	public boolean isEnemyZerg() {
-		return xvr.getENEMY().isZerg();
+		return xvr.getEnemyPlayer().isZerg();
 	}
 
 	public boolean isEnemyProtoss() {
-		return xvr.getENEMY().isProtoss();
+		return xvr.getEnemyPlayer().isProtoss();
 	}
 
 	// =========================================================
@@ -935,7 +936,7 @@ public class XVR {
 
 	public static void setEnemyRace(String enemyRaceString) {
 		xvr.ENEMY_RACE = enemyRaceString;
-		AdaptStrategy.adaptToOpponent();
+		AdaptStrategy.adaptToEnemyRaceAndBot();
 	}
 
 	public Unit getRandomWorker() {
@@ -954,7 +955,7 @@ public class XVR {
 					&& !worker.isConstructing()
 					&& !worker.isRepairing()
 					&& (getTimeSeconds() <= 100 || (getTimeSeconds() > 100
-							&& !WorkerManager.isProfessionalRepairer(worker) && !worker
+							&& !ProfessionalRepairers.isProfessionalRepairer(worker) && !worker
 								.equals(WorkerManager.getGuyToChaseOthers())))) {
 				freeWorkers.add(worker);
 			}
@@ -1205,7 +1206,7 @@ public class XVR {
 		}
 	}
 
-	public Player getENEMY() {
+	public Player getEnemyPlayer() {
 		return ENEMY;
 	}
 

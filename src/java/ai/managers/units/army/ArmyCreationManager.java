@@ -3,12 +3,9 @@ package ai.managers.units.army;
 import java.util.ArrayList;
 
 import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.units.UnitCounter;
-import ai.managers.constructing.Constructing;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.UnitManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
 import ai.terran.TerranCommandCenter;
@@ -20,9 +17,7 @@ public class ArmyCreationManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	public static int MINIMUM_UNITS = 15;
-	public static int MINIMUM_MARINES = 10;
-	public static int MAXIMUM_MARINES = 10;
+	// =========================================================
 
 	// =========================================================
 
@@ -78,50 +73,77 @@ public class ArmyCreationManager {
 	// =========================================================
 
 	public static boolean weShouldBuildBattleUnits() {
-		if (TerranFactory.getNumberOfUnitsCompleted() > 0) {
-			// if (true) {
-			return true;
-			// }
+
+		// Prioritize BUNKER
+		if (!xvr.canAfford(150) && TerranBunker.shouldBuild()) {
+			return false;
 		}
 
 		// =========================================================
 
-		if (xvr.getTimeSeconds() >= 800 && TerranCommandCenter.getNumberOfUnits() <= 1
-				&& !xvr.canAfford(560)) {
-			return false;
-		}
-
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
+		boolean isCriticallyFewUnits = battleUnits <= TerranBarracks.CRITICALLY_FEW_INFANTRY;
 
-		if (xvr.getTimeSeconds() >= 350 && TerranFactory.getNumberOfUnits() == 0
-				&& battleUnits >= 10 && !xvr.canAfford(560)) {
+		// Prioritize BASE
+		if (!isCriticallyFewUnits && !xvr.canAfford(500)
+				&& TerranCommandCenter.getNumberOfUnits() <= 1 && TerranCommandCenter.shouldBuild()
+				&& TerranCommandCenter.get_cachedNextBaseTile() != null) {
 			return false;
 		}
 
-		if (isCriticallyFewInfantry()) {
-			return true;
-		}
-
-		int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
-
-		if (battleUnits <= MINIMUM_UNITS) {
-			return true;
-		}
-		if (bases == 1
-				&& (TerranCommandCenter.shouldBuild() || Constructing
-						.weAreBuilding(UnitManager.BASE)) && !xvr.canAfford(550)) {
-			return false;
-		}
-
-		// if (!xvr.canAfford(125)) {
-		// return false;
-		// }
-		if (TerranBunker.shouldBuild() && !xvr.canAfford(200)) {
-			return false;
-		}
+		// =========================================================
+		// =========================================================
+		// =========================================================
 
 		return true;
 	}
+
+	// public static boolean weShouldBuildBattleUnits() {
+	// if (TerranFactory.getNumberOfUnitsCompleted() > 0) {
+	// // if (true) {
+	// return true;
+	// // }
+	// }
+	//
+	// // =========================================================
+	//
+	// if (xvr.getTimeSeconds() >= 800 && TerranCommandCenter.getNumberOfUnits()
+	// <= 1
+	// && !xvr.canAfford(560)) {
+	// return false;
+	// }
+	//
+	// int battleUnits = UnitCounter.getNumberOfBattleUnits();
+	//
+	// if (xvr.getTimeSeconds() >= 350 && TerranFactory.getNumberOfUnits() == 0
+	// && battleUnits >= 10 && !xvr.canAfford(560)) {
+	// return false;
+	// }
+	//
+	// if (isCriticallyFewInfantry()) {
+	// return true;
+	// }
+	//
+	// int bases = UnitCounter.getNumberOfUnits(UnitManager.BASE);
+	//
+	// if (battleUnits <= MINIMUM_UNITS) {
+	// return true;
+	// }
+	// if (bases == 1
+	// && (TerranCommandCenter.shouldBuild() || Constructing
+	// .weAreBuilding(UnitManager.BASE)) && !xvr.canAfford(550)) {
+	// return false;
+	// }
+	//
+	// // if (!xvr.canAfford(125)) {
+	// // return false;
+	// // }
+	// if (TerranBunker.shouldBuild() && !xvr.canAfford(200)) {
+	// return false;
+	// }
+	//
+	// return true;
+	// }
 
 	// =========================================================
 
@@ -141,11 +163,11 @@ public class ArmyCreationManager {
 	}
 
 	public static boolean isCriticallyFewInfantry() {
-		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) < MINIMUM_MARINES;
+		return UnitCounter.getNumberOfInfantryUnits() <= TerranBarracks.CRITICALLY_FEW_INFANTRY;
 	}
 
 	private static boolean isTooMuchInfantry() {
-		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) > MAXIMUM_MARINES;
+		return UnitCounter.getNumberOfInfantryUnits() > TerranBarracks.CRITICALLY_FEW_INFANTRY;
 	}
 
 }

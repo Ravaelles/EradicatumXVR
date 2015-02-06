@@ -23,10 +23,6 @@ public class TerranSupplyDepot {
 	// Should build?
 
 	public static boolean shouldBuild() {
-		if (getNumberOfUnits() != getNumberOfUnitsCompleted()) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		}
-
 		boolean weAreBuilding = Constructing.weAreBuilding(buildingType);
 
 		int free = xvr.getSuppliesFree();
@@ -35,6 +31,10 @@ public class TerranSupplyDepot {
 		int barracks = TerranBarracks.getNumberOfUnits();
 		int workers = UnitCounter.getNumberOfUnits(UnitManager.WORKER);
 		int engineeringBays = TerranEngineeringBay.getNumberOfUnits();
+
+		if (xvr.getSuppliesFree() >= 18 && getNumberOfUnits() != getNumberOfUnitsCompleted()) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
 
 		// =========================================================
 		// ANTI ZERG RUSH
@@ -81,8 +81,8 @@ public class TerranSupplyDepot {
 		// End EASY-WAY
 		// =========================================================
 
-		if (total > 0 && total < 200) {
-			if (free <= 3 || (total >= 39 && free <= 22)) {
+		if (total > 8 && total < 200) {
+			if (free <= 4 || (total >= 39 && free <= 18) || (total >= 65 && free <= 26)) {
 				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 		}

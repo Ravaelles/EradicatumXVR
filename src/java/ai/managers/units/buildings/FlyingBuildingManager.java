@@ -50,6 +50,7 @@ public class FlyingBuildingManager {
 		if (FlyerManager.tryAvoidingAntiAirUnits(flyingBuilding)) {
 			return;
 		}
+
 		moveBuildingToProperPlace(flyingBuilding);
 		tryRepairingIfNeeded(flyingBuilding);
 	}
@@ -74,6 +75,8 @@ public class FlyingBuildingManager {
 	// =========================================================
 
 	private static void moveBuildingToProperPlace(Unit flyingBuilding) {
+
+		// SPECIAL MODE where only tnaks are built
 		if (TerranFactory.ONLY_TANKS) {
 			if (StrategyManager.getTargetUnit() != null) {
 				UnitActions.moveTo(flyingBuilding, StrategyManager.getTargetUnit());
@@ -89,10 +92,6 @@ public class FlyingBuildingManager {
 		// =========================================================
 
 		Unit enhanceViewForUnit = ArmyRendezvousManager.getRendezvousTankForFlyers();
-		// if (enhanceViewForUnit == null) {
-		// TerranBunker.get
-		// }
-
 		if (enhanceViewForUnit != null) {
 
 			// Lift building if isn't lifted yet
@@ -104,17 +103,14 @@ public class FlyingBuildingManager {
 			boolean isNearBunker = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 12,
 					flyingBuilding, true) > 0;
 
-			// if (isNearBunker) {
-			//
-			// } else {
 			double maxDistanceAllowedFromTank = isNearBunker ? MAX_ALLOWED_DIST_FROM_TANK_IF_BUNKER_NEAR
 					: MAX_ALLOWED_DIST_FROM_TANK;
 
 			// Building is too close to our units, enhance the vision
 			if (enhanceViewForUnit.distanceTo(flyingBuilding) < maxDistanceAllowedFromTank) {
-				if (MapExploration.getNumberOfKnownEnemyBases() > 0) {
-					Unit enemyBuilding = MapExploration.getNearestEnemyBuilding();
-					UnitActions.moveTo(flyingBuilding, enemyBuilding);
+				Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
+				if (nearestEnemyBuilding != null) {
+					UnitActions.moveTo(flyingBuilding, nearestEnemyBuilding);
 				}
 			}
 
@@ -122,7 +118,6 @@ public class FlyingBuildingManager {
 			else {
 				UnitActions.moveTo(flyingBuilding, enhanceViewForUnit);
 			}
-			// }
 		}
 
 	}
@@ -166,6 +161,20 @@ public class FlyingBuildingManager {
 
 	public static Unit getFlyingBuilding2() {
 		return flyingBuilding2;
+	}
+
+	public static boolean haveFlyingBuilding() {
+		return flyingBuilding1 != null || flyingBuilding2 != null;
+	}
+
+	public static Unit getOneOfThem() {
+		if (flyingBuilding1 != null) {
+			return flyingBuilding1;
+		} else if (flyingBuilding2 != null) {
+			return flyingBuilding2;
+		} else {
+			return null;
+		}
 	}
 
 }

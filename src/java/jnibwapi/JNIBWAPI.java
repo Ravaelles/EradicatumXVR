@@ -1067,4 +1067,14 @@ public class JNIBWAPI {
 		return rightClick(unit.getID(), target.getID());
 	}
 
+	// =========================================================
+
+	public boolean isDiscovered(MapPoint point) {
+		return isExplored(point.getTx(), point.getTy());
+	}
+
+	public boolean isExplored(MapPoint point) {
+		return isExplored(point.getTx(), point.getTy());
+	}
+
 }

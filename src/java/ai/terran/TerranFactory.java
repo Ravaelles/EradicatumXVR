@@ -79,14 +79,23 @@ public class TerranFactory {
 		int factories = UnitCounter.getNumberOfUnits(buildingType);
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
-		if (!xvr.canAfford(75) || battleUnits < 4) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// =========================================================
+		// Only tanks mode - e.g. vs Ximp
+
+		if (TerranFactory.ONLY_TANKS) {
+			if (factories == 0 && xvr.canAfford(182, 92)) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			}
+
+			if (factories >= 1 && getOneNotBusy() == null && !xvr.canAfford(340, 190)
+					&& TerranSiegeTank.getNumberOfUnits() < 1) {
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+			}
 		}
 
 		// =========================================================
 
-		if (TerranFactory.ONLY_TANKS && factories >= 1 && getOneNotBusy() == null
-				&& !xvr.canAfford(340, 190) && TerranSiegeTank.getNumberOfUnits() < 1) {
+		if (!xvr.canAfford(75) || battleUnits < 4) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 

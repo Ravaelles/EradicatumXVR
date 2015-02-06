@@ -6,7 +6,6 @@ import jnibwapi.model.Unit;
 import ai.core.Painter;
 import ai.core.XVR;
 import ai.handling.army.TargetHandling;
-import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
 import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitCounter;
@@ -173,7 +172,7 @@ public class StrategyManager {
 			// Define this assault point now. It would be reasonable to relate
 			// it to a particular unit.
 			// if (!isPointWhereToAttackDefined()) {
-			StrategyManager.defineInitialAttackTarget();
+			StrategyManager.defineNextTarget();
 			// }
 		}
 
@@ -296,20 +295,20 @@ public class StrategyManager {
 		// allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
 	}
 
-	private static void defineInitialAttackTarget() {
-		// Unit buildingToAttack = MapExploration.getNearestEnemyBase();
-		Unit buildingToAttack = MapExploration.getNearestEnemyBuilding();
-
-		// We know some building of CPU that we can attack.
-		if (buildingToAttack != null) {
-			changeNextTargetTo(buildingToAttack);
-		}
-
-		// No building to attack found, safely decide not to attack.
-		else {
-			changeStateTo(STATE_PEACE);
-		}
-	}
+	// private static void defineInitialAttackTarget() {
+	// // Unit buildingToAttack = MapExploration.getNearestEnemyBase();
+	// Unit buildingToAttack = MapExploration.getNearestEnemyBuilding();
+	//
+	// // We know some building of CPU that we can attack.
+	// if (buildingToAttack != null) {
+	// changeNextTargetTo(buildingToAttack);
+	// }
+	//
+	// // No building to attack found, safely decide not to attack.
+	// else {
+	// changeStateTo(STATE_PEACE);
+	// }
+	// }
 
 	private static void changeNextTargetTo(Unit attackTarget) {
 		if (attackTarget == null) {

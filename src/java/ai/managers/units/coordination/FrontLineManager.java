@@ -8,6 +8,8 @@ import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
+import ai.managers.units.buildings.FlyingBuildingManager;
+import ai.terran.TerranFactory;
 
 public class FrontLineManager {
 
@@ -20,7 +22,7 @@ public class FrontLineManager {
 	// =========================================================
 
 	public static void actOffensively(Unit unit) {
-		int mode = defineFrontModeForUnit(unit);
+		int mode = defineModeForUnit(unit);
 
 		if (mode == MODE_VANGUARD) {
 			actInBack(unit);
@@ -61,9 +63,13 @@ public class FrontLineManager {
 
 		// =========================================================
 
+		// Tank
 		if (unit.isTank()) {
 			handleTankMoveForward(unit, offensivePoint);
-		} else {
+		}
+
+		// Non-tank
+		else {
 			handleMoveForward(unit, offensivePoint);
 		}
 
@@ -82,29 +88,33 @@ public class FrontLineManager {
 		}
 	}
 
-	private static boolean shouldWaitWithMovingForward(Unit unit) {
-		double allowedMaxDistance = StrategyManager.getAllowedDistanceFromSafePoint();
-		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
-		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
-		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 8
-				&& isFarFromSafePoint(unit)) {
-			// int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
-			// UnitTypes.Terran_Siege_Tank_Siege_Mode, maxDistToTanks, unit,
-			// true)
-			// +
-			// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
-			// maxDistToTanks, unit, true);
-
-			// (StrengthComparison.getEnemySupply() >= 35 ||
-			// xvr.getTimeSeconds() < 1000)
-			// &&
-			if (xvr.getSuppliesUsed() < 190) {
-				return true;
-			}
-		}
-
-		return false;
-	}
+	// private static boolean shouldWaitWithMovingForward(Unit unit) {
+	// double allowedMaxDistance =
+	// StrategyManager.getAllowedDistanceFromSafePoint();
+	// MapPoint defensivePoint =
+	// ArmyRendezvousManager.getDefensivePointForTanks();
+	// double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
+	// if (distanceToDefensivePoint > allowedMaxDistance &&
+	// distanceToDefensivePoint > 8
+	// && isFarFromSafePoint(unit)) {
+	// // int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
+	// // UnitTypes.Terran_Siege_Tank_Siege_Mode, maxDistToTanks, unit,
+	// // true)
+	// // +
+	// //
+	// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
+	// // maxDistToTanks, unit, true);
+	//
+	// // (StrengthComparison.getEnemySupply() >= 35 ||
+	// // xvr.getTimeSeconds() < 1000)
+	// // &&
+	// if (xvr.getSuppliesUsed() < 190) {
+	// return true;
+	// }
+	// }
+	//
+	// return false;
+	// }
 
 	// =========================================================
 
@@ -114,20 +124,35 @@ public class FrontLineManager {
 		if (!enoughTanksNearby) {
 			// Unit rendezvousTank = xvr.getNearestTankTo(unit);
 			MapPoint rendezvousTank = ArmyRendezvousManager.getRendezvousTankForGroundUnits();
-			if (rendezvousTank != null && rendezvousTank.distanceTo(unit) >= 4) {
-				UnitActions.attackTo(unit, rendezvousTank.translate(64, 40));
-				if (DISPLAY_DEBUG) {
-					unit.setAiOrder("Wait for tank");
+			if (rendezvousTank != null && !unit.isAttacking()) {
+				double distanceToTank = rendezvousTank.distanceTo(unit);
+				if (distanceToTank >= 4) {
+					UnitActions.attackTo(unit, rendezvousTank.translate(64, 40));
+					if (DISPLAY_DEBUG) {
+						unit.setAiOrder("Wait for tank");
+					}
+				} else {
+					UnitActions.moveAwayFrom(unit, rendezvousTank);
 				}
 			}
 		}
 	}
 
 	private static void handleTankMoveForward(Unit unit, MapPoint offensivePoint) {
+		if (!TerranFactory.ONLY_TANKS && shouldWaitForViewEnhancer(unit)) {
+			if (!unit.isStartingAttack() && (unit.isMoving() || unit.isAttacking())) {
+				UnitActions.holdPosition(unit);
+			}
+			return;
+		}
+
 		if (unit.isSieged() && unit.getGroundWeaponCooldown() < 1
 				&& xvr.getEnemyNearestTo(unit, true, false) == null) {
 			unit.unsiege();
+			return;
 		}
+
+		UnitActions.attackTo(unit, offensivePoint);
 	}
 
 	private static void handleMoveForward(Unit unit, MapPoint offensivePoint) {
@@ -169,6 +194,27 @@ public class FrontLineManager {
 	}
 
 	// =========================================================
+
+	private static boolean shouldWaitForViewEnhancer(Unit tank) {
+
+		// If we have flying building then let is enhance our view before we
+		// proceed
+		if (FlyingBuildingManager.haveFlyingBuilding()) {
+			Unit flyingBuilding = FlyingBuildingManager.getOneOfThem();
+			if (flyingBuilding != null) {
+				MapPoint targetPoint = StrategyManager.getTargetPoint();
+				double buildingDistToEnemy = flyingBuilding.distanceTo(targetPoint);
+				double tankDistToEnemy = tank.distanceTo(targetPoint);
+				if (tankDistToEnemy - 4 <= buildingDistToEnemy && tank.isMoving()) {
+					UnitActions.holdPosition(tank);
+					tank.setAiOrder("Wait");
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 
 	private static boolean isFarFromSafePoint(Unit unit) {
 		return unit.distanceTo(xvr.getFirstBase()) > 36
@@ -224,7 +270,7 @@ public class FrontLineManager {
 
 	// =========================================================
 
-	private static int defineFrontModeForUnit(Unit unit) {
+	private static int defineModeForUnit(Unit unit) {
 		if (unit.isTank()) {
 			return MODE_VANGUARD;
 		} else {

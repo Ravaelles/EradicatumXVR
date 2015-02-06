@@ -59,6 +59,13 @@ public class SiegeTankManager {
 		} else {
 			actWhenInNormalMode(unit);
 		}
+
+		if (!StrategyManager.isGlobalAttackActive() && TerranBunker.getNumberOfUnits() > 0) {
+			MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
+			if (defensivePoint != null && defensivePoint.distanceTo(unit) >= 8) {
+				UnitActions.attackTo(unit, defensivePoint);
+			}
+		}
 	}
 
 	// =========================================================
@@ -133,10 +140,6 @@ public class SiegeTankManager {
 	private static void actWhenSieged(Unit unit) {
 		unit.setLastTimeSieged(xvr.getTimeSeconds());
 
-		if (unit.getGroundWeaponCooldown() > 0) {
-			return;
-		}
-
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
 		double nearestEnemyDist = nearestEnemy != null ? nearestEnemy.distanceTo(unit) : -1;
 
@@ -149,6 +152,10 @@ public class SiegeTankManager {
 		if (neighborhoodDangerous && enemyVeryClose && enemiesVeryClose >= 2) {
 			// unit.setAiOrder("Unsiege: Urgent");
 			unit.unsiege();
+			return;
+		}
+
+		if (unit.getGroundWeaponCooldown() > 0) {
 			return;
 		}
 

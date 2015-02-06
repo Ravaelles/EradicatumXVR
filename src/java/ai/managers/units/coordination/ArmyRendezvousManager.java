@@ -173,7 +173,7 @@ public class ArmyRendezvousManager {
 		ArrayList<Integer> xCoordinates = new ArrayList<Integer>();
 		ArrayList<Integer> yCoordinates = new ArrayList<Integer>();
 		for (Unit armyUnit : unitsArmy) {
-			if (armyUnit.isSpiderMine()) {
+			if (armyUnit.isSpiderMine() || !armyUnit.isCompleted()) {
 				continue;
 			}
 			xCoordinates.add(armyUnit.getX());

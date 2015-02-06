@@ -10,7 +10,7 @@ import ai.terran.TerranBunker;
 
 public class AttackCloseTargets {
 
-	private static int MAX_DIST_TO_CLOSE_ATTACK = 12;
+	private static int MAX_DIST_TO_CLOSE_ATTACK = 7;
 
 	// =========================================================
 
@@ -100,6 +100,10 @@ public class AttackCloseTargets {
 
 	private static boolean isUnitAllowedToAttackCloseTargets(Unit unit) {
 		if (unit.getHPPercent() < 40 || unit.getHP() < 30) {
+			return false;
+		}
+
+		if (unit.isTank()) {
 			return false;
 		}
 

@@ -3,7 +3,6 @@ package ai.handling.enemy;
 import ai.core.XVR;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.strategy.StrategyManager;
-import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.workers.WorkerManager;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranBunker;
@@ -22,7 +21,7 @@ public class AdaptStrategy {
 
 	// =========================================================
 
-	public static void adaptToOpponent() {
+	public static void adaptToEnemyRaceAndBot() {
 		if (!_adapted) {
 			adaptToRace();
 			adaptToBot();
@@ -88,7 +87,7 @@ public class AdaptStrategy {
 	private static void adaptToRace() {
 		if (xvr.isEnemyProtoss()) {
 			AdaptStrategy.adaptRace_protoss();
-		} else if (xvr.isEnemyTerran()) {
+		} else if (xvr.isEnemyZerg()) {
 			AdaptStrategy.adaptRace_zerg();
 		} else if (xvr.isEnemyTerran()) {
 			AdaptStrategy.adaptRace_terran();
@@ -117,7 +116,7 @@ public class AdaptStrategy {
 	private static void adaptRace_zerg() {
 
 		// BUNKER
-		TerranBunker.GLOBAL_MAX_BUNKERS = 1;
+		TerranBunker.GLOBAL_MAX_BUNKERS = 2;
 
 		// BARRACKS
 		TerranBarracks.CRITICALLY_FEW_INFANTRY = 14;
@@ -135,11 +134,8 @@ public class AdaptStrategy {
 		TerranBunker.GLOBAL_MAX_BUNKERS = 1;
 
 		// BARRACKS
+		TerranBarracks.CRITICALLY_FEW_INFANTRY = 5;
 		TerranBarracks.MAX_BARRACKS = 1;
-
-		// UNITS
-		ArmyCreationManager.MINIMUM_MARINES = 4;
-		ArmyCreationManager.MAXIMUM_MARINES = 4;
 	}
 
 }

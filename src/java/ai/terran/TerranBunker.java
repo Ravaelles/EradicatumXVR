@@ -170,7 +170,7 @@ public class TerranBunker {
 		tile = Constructing.getLegitTileToBuildNear(TerranBunker.buildingType, basePoint, 2, 20);
 		// }
 
-		System.out.println(tile);
+		// System.out.println(tile);
 
 		return tile;
 	}
@@ -344,7 +344,9 @@ public class TerranBunker {
 				minimumDistance = 3;
 			}
 		}
-		int maximumDistance = minimumDistance + (10 / Math.max(1, numberOfBunkersNearby));
+		// int maximumDistance = minimumDistance + (10 / Math.max(1,
+		// numberOfBunkersNearby));
+		int maximumDistance = 25;
 
 		// ================================
 		// Find proper build tile
@@ -391,7 +393,7 @@ public class TerranBunker {
 
 		MapPoint properBuildTile = null;
 
-		int maximumDistance = 100;
+		int maximumDistance = 25;
 		Unit nearBunker = xvr.getUnitOfTypeNearestTo(buildingType, location, true);
 		if (getNumberOfUnits() == 1) {
 			ArrayList<Unit> unitsOfType = xvr.getUnitsOfType(buildingType);

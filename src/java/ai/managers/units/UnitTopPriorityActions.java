@@ -81,14 +81,26 @@ public class UnitTopPriorityActions {
 		}
 
 		// =========================================================
+		// Handle tanks
+
+		if (unit.isTank()) {
+			if (!StrategyManager.isSomethingToAttackDefined() && xvr.getSuppliesFree() <= 2) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		// =========================================================
 		// Anti-stuck code
 
 		// If there's a tank in radius of 2 tiles, spread
-		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 2) > 0) {
-			return true;
-		}
+		// if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 2) > 0) {
+		// return true;
+		// }
 
-		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 1.8) >= 4) {
+		if (!unit.isTank() && xvr.countTanksOurInRadius(unit, 1.8) >= 3
+				&& xvr.countTanksOurInRadius(unit, 3) >= 7) {
 			return true;
 		}
 
@@ -110,14 +122,14 @@ public class UnitTopPriorityActions {
 			}
 		}
 
-		Unit targetUnit = StrategyManager.getTargetUnit();
-		if (targetUnit != null) {
-			return false;
-		}
-
-		if (StrategyManager.isSomethingToAttackDefined()) {
-			return false;
-		}
+		// Unit targetUnit = StrategyManager.getTargetUnit();
+		// if (targetUnit != null) {
+		// return false;
+		// }
+		//
+		// if (StrategyManager.isSomethingToAttackDefined()) {
+		// return false;
+		// }
 
 		return false;
 	}

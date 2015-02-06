@@ -36,6 +36,7 @@ public class TerranCommandCenter {
 	private static MapPoint _secondBase = null;
 	private static MapPoint _cachedNextBaseTile = null;
 	private static int _lastTimeCalculatedTileForBase = -1;
+	public static int _lastFail = -1;
 
 	public static int EXPAND_ONLY_IF_TANKS_MORE_THAN = -1;
 
@@ -50,6 +51,11 @@ public class TerranCommandCenter {
 		}
 
 		int bases = UnitCounter.getNumberOfUnits(buildingType);
+
+		if (bases >= 2) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		int factories = UnitCounter.getNumberOfUnits(buildingType);
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
@@ -417,15 +423,24 @@ public class TerranCommandCenter {
 			return null;
 		}
 
+		int now = xvr.getTimeSeconds();
+		if (_lastFail + 8 >= now) {
+			return null;
+		}
+
 		// Try to get cached value
 		boolean isVeryOldSolution = _lastTimeCalculatedTileForBase + 5 <= xvr.getTimeSeconds();
-		if (_cachedNextBaseTile != null && !forceNewSolution && !isVeryOldSolution) {
+		if (!forceNewSolution && !isVeryOldSolution) {
 			return _cachedNextBaseTile;
 		}
+		// if (_cachedNextBaseTile != null && !forceNewSolution &&
+		// !isVeryOldSolution) {
+		// return _cachedNextBaseTile;
+		// }
 
 		// Make sure you're not calculating base location all the time
 		if (forceNewSolution || isVeryOldSolution) {
-			int now = xvr.getTimeSeconds();
+
 			if (_lastTimeCalculatedTileForBase != -1 && now - _lastTimeCalculatedTileForBase <= 3) {
 				return _cachedNextBaseTile;
 			}
@@ -438,7 +453,7 @@ public class TerranCommandCenter {
 			MapPoint point = nearestFreeBaseLocation;
 
 			CodeProfiler.startMeasuring("New base");
-			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(buildingType, point, 0, 10);
+			_cachedNextBaseTile = Constructing.getLegitTileToBuildNear(buildingType, point, 0, 7);
 			CodeProfiler.endMeasuring("New base");
 		} else {
 			System.out.println("Error! No place for next base!");
@@ -653,13 +668,9 @@ public class TerranCommandCenter {
 	}
 
 	public static boolean existsBaseNear(int x, int y) {
-		for (Unit unit : xvr.getUnitsInRadius(x, y, 14)) {
+		for (Unit unit : xvr.getUnitsInRadius(x, y, 8)) {
 			if (unit.getType().isBase()) {
-				if (!unit.isEnemy() && !unit.isExists()) {
-					return false;
-				} else {
-					return true;
-				}
+				return true;
 			}
 		}
 

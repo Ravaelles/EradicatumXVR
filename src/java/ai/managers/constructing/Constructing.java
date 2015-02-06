@@ -42,7 +42,7 @@ public class Constructing {
 
 		// Check if build tile is okay.
 		if (buildTile != null && !isConstructionDuplicated(building)) {
-			Painter.message(xvr, "Construct: " + building.name());
+			// Painter.message(xvr, "Construct: " + building.name());
 			constructBuilding(building, buildTile);
 		}
 	}
@@ -205,6 +205,9 @@ public class Constructing {
 		// Base
 		else if (TerranCommandCenter.getBuildingType().ordinal() == building.ordinal()) {
 			buildTile = TerranCommandCenter.findTileForNextBase(false);
+			if (buildTile == null) {
+				TerranCommandCenter._lastFail = xvr.getTimeSeconds();
+			}
 		}
 
 		// Standard building
@@ -220,10 +223,12 @@ public class Constructing {
 			System.out.println("# No tile found for: " + building.getType().getName()
 					+ " // error: " + ConstructionPlaceFinder.lastError + " // search radius: "
 					+ ConstructionPlaceFinder.lastRadius);
-		} else {
-			System.out.println(building.name() + ": " + buildTile + " // search radius: "
-					+ ConstructionPlaceFinder.lastRadius);
 		}
+		// else {
+		// System.out.println(building.name() + ": " + buildTile +
+		// " // search radius: "
+		// + ConstructionPlaceFinder.lastRadius);
+		// }
 
 		return buildTile;
 	}

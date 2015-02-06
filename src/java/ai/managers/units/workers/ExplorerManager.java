@@ -156,6 +156,13 @@ public class ExplorerManager {
 
 	private static boolean tryScoutingNextBaseLocation() {
 
+		// Go to the next base position if it's not yet explorer
+		MapPoint nextBaseLocation = TerranCommandCenter.get_cachedNextBaseTile();
+		if (nextBaseLocation != null && !xvr.getBwapi().isExplored(nextBaseLocation)) {
+			UnitActions.moveTo(explorer, nextBaseLocation);
+			return true;
+		}
+
 		// Explore place behind our minerals
 		if (!_exploredBackOfMainBase) {
 			explorer.setAiOrder("Explore back of base");

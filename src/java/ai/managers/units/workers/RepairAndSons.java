@@ -45,9 +45,9 @@ public class RepairAndSons {
 	}
 
 	private static boolean isUnitReallyWoundedAndNotAScratch(Unit unit) {
-		double ratio = 0.4;
+		double ratio = 0.6;
 		if (unit.getType().isTank()) {
-			ratio = 0.65;
+			ratio = 0.73;
 		}
 		return unit.getHP() < unit.getMaxHP() * ratio;
 	}

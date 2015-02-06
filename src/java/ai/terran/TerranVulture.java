@@ -33,6 +33,10 @@ public class TerranVulture {
 	// =========================================================
 
 	public static boolean act(Unit unit) {
+		if (unit.isBeingRepaired()) {
+			UnitActions.holdPosition(unit);
+			return true;
+		}
 
 		// =========================================================
 		// Use mines if possible

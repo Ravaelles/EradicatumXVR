@@ -37,7 +37,7 @@ public class ConstructionPlaceFinder {
 		// boolean isDepot = type.isSupplyDepot();
 
 		boolean skipCheckingIsFreeFromUnits = false;
-		boolean skipCheckingRegion = xvr.getTimeSeconds() > 380 || isBase || type.isBunker()
+		boolean skipCheckingRegion = xvr.getTimeSeconds() > 300 || isBase || type.isBunker()
 				|| type.isMissileTurret() || type.isAddon();
 
 		// =========================================================
@@ -120,15 +120,22 @@ public class ConstructionPlaceFinder {
 	private static boolean isInAllowedRegions(MapPoint place) {
 		Region buildTileRegion = xvr.getMap().getRegion(place);
 
-		if (xvr.getFirstBase().getRegion() == null
+		Unit firstBase = xvr.getFirstBase();
+		if (buildTileRegion == null || firstBase.getRegion() == null
 				|| TerranCommandCenter.getSecondBaseLocation() == null) {
 			return true;
 		}
 
-		if (buildTileRegion.equals(xvr.getFirstBase().getRegion())
-				|| buildTileRegion.equals(TerranCommandCenter.getSecondBaseLocation().getRegion())) {
+		if (buildTileRegion.equals(xvr.getFirstBase().getRegion())) {
 			return true;
 		}
+
+		MapPoint secondBase = TerranCommandCenter.getSecondBaseLocation();
+		if (secondBase != null && secondBase.getRegion() != null
+				&& buildTileRegion.equals(secondBase.getRegion())) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -175,15 +182,15 @@ public class ConstructionPlaceFinder {
 
 		// Define buildings that are near this build tile
 		ArrayList<Unit> buildingsNearby = xvr.getUnitsInRadius(place, 8, xvr.getUnitsBuildings());
+		Unit builder = xvr.getNearestWorkerTo(place);
 
 		for (Unit otherBuilding : buildingsNearby) {
 
-			// // Allow stacking Supply Depots
-			// if (buildingType.isSupplyDepot() &&
-			// otherBuilding.isSupplyDepot()) {
-			// continue;
-			// }
-			//
+			// Allow stacking Supply Depots
+			if (buildingType.isSupplyDepot() && otherBuilding.isSupplyDepot()) {
+				continue;
+			}
+
 			// // Disallow stacking
 			// else {
 			// if (!canBuildAt(place.translateSafe(-1, -1), buildingType)) {
@@ -194,7 +201,6 @@ public class ConstructionPlaceFinder {
 			// return false;
 			// }
 			//
-			Unit builder = xvr.getNearestWorkerTo(place);
 			if (wouldNewBuildingCollideWith(place, buildingType, otherBuilding, builder)) {
 				return false;
 			}
@@ -277,9 +283,17 @@ public class ConstructionPlaceFinder {
 	private static boolean wouldNewBuildingCollideWith(MapPoint buildingPlace,
 			UnitType buildingType, Unit existingBuilding, Unit builder) {
 
-		// Consider space for add-ons
-		if (buildingType.canHaveAddOn() || existingBuilding.getType().canHaveAddOn()) {
+		// Consider space for add-ons for THIS building
+		if (buildingType.canHaveAddOn()) {
 			if (!isPhysicallyPossibleToBuildAt(builder, buildingPlace.translate(64, 0),
+					buildingType)) {
+				return true;
+			}
+		}
+
+		// Consider space for add-ons for THE OTHER building
+		if (existingBuilding.getType().canHaveAddOn()) {
+			if (!isPhysicallyPossibleToBuildAt(builder, buildingPlace.translate(-64, 0),
 					buildingType)) {
 				return true;
 			}
@@ -385,6 +399,13 @@ public class ConstructionPlaceFinder {
 		// return false;
 		// }
 		// }
+
+		if (type.canHaveAddOn() && !type.isBase()) {
+			if (!xvr.getBwapi().canBuildHere(point.getTx() + 2, point.getTy(),
+					type.getUnitTypes().getID(), checkExplored)) {
+				return false;
+			}
+		}
 
 		// builder.getID(),
 		return xvr.getBwapi().canBuildHere(point.getTx(), point.getTy(),
