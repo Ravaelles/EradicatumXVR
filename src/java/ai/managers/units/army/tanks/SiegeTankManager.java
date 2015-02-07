@@ -14,8 +14,6 @@ import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.terran.TerranBunker;
-import ai.terran.TerranSiegeTank;
-import ai.utils.RUtilities;
 
 public class SiegeTankManager {
 
@@ -204,27 +202,28 @@ public class SiegeTankManager {
 				&& unit.distanceTo(ArmyRendezvousManager.getDefensivePoint(unit)) < 7;
 	}
 
-	private static boolean tryGoingBackToMedianTankIfNeeded(Unit unit) {
-		if (TerranSiegeTank.getNumberOfUnitsCompleted() <= 1) {
-			return false;
-		}
-
-		// Define tank that is "in the center"
-		Unit medianTank = TerranSiegeTank.getMedianTank();
-
-		// If unit is too far from "median" tank, go back to it.
-		if (medianTank != null && medianTank.distanceTo(unit) > 7) {
-			UnitActions.attackTo(
-					unit,
-					medianTank.translate(-64 + RUtilities.rand(0, 128),
-							-64 + RUtilities.rand(0, 128)));
-
-			return true;
-		}
-
-		// Didn't doo anything, return false
-		return false;
-	}
+	// private static boolean tryGoingToRendezvousTankIfNeeded(Unit unit) {
+	// if (TerranSiegeTank.getNumberOfUnitsCompleted() <= 1) {
+	// return false;
+	// }
+	//
+	// // Define tank that is "in the center"
+	// // Unit medianTank = TerranSiegeTank.getMedianTank();
+	// Unit medianTank = TerranSiegeTank.getFrontTank();
+	//
+	// // If unit is too far from "median" tank, go back to it.
+	// if (medianTank != null && medianTank.distanceTo(unit) > 7) {
+	// UnitActions.attackTo(
+	// unit,
+	// medianTank.translate(-64 + RUtilities.rand(0, 128),
+	// -64 + RUtilities.rand(0, 128)));
+	//
+	// return true;
+	// }
+	//
+	// // Didn't doo anything, return false
+	// return false;
+	// }
 
 	// =========================================================
 

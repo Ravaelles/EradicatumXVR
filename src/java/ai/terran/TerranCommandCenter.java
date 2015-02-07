@@ -16,7 +16,6 @@ import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.strategy.BotStrategyManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
-import ai.managers.units.army.ArmyCreationManager;
 import ai.managers.units.buildings.BuildingManager;
 import ai.managers.units.workers.WorkerManager;
 import ai.utils.CodeProfiler;
@@ -96,7 +95,7 @@ public class TerranCommandCenter {
 		// =========================================================
 
 		if (bases <= 1
-				&& (battleUnits >= ArmyCreationManager.MINIMUM_MARINES || xvr.canAfford(358))
+				&& (battleUnits >= TerranBarracks.CRITICALLY_FEW_INFANTRY || xvr.canAfford(358))
 				&& (TerranBunker.getNumberOfUnitsCompleted() >= TerranBunker.GLOBAL_MAX_BUNKERS || xvr
 						.canAfford(384)) && factoryFirstConditionOkay) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
@@ -108,7 +107,7 @@ public class TerranCommandCenter {
 
 		if (xvr.getTimeSeconds() >= 390 && bases <= 1
 				&& !Constructing.weAreBuilding(UnitManager.BASE)
-				&& battleUnits >= ArmyCreationManager.MINIMUM_MARINES) {
+				&& battleUnits >= TerranBarracks.CRITICALLY_FEW_INFANTRY) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 

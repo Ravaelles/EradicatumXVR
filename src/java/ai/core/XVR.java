@@ -103,7 +103,7 @@ public class XVR {
 			}
 
 			// Check very often for nearby activated mines
-			if (getFrames() % 4 == 0) {
+			if (getFrames() % 3 == 0) {
 				UnitManager.avoidMines();
 			}
 
@@ -140,7 +140,7 @@ public class XVR {
 
 			// Handle behavior of units and buildings.
 			// Handle units in neighborhood of army units.
-			if (getFrames() % 9 == 0) {
+			if (getFrames() % 5 == 0) {
 				CodeProfiler.startMeasuring("Army");
 				UnitManager.act();
 				CodeProfiler.endMeasuring("Army");

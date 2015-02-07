@@ -14,6 +14,7 @@ import ai.terran.TerranSiegeTank;
 
 public class StrategyManager {
 
+	public static boolean CAN_VULTURES_ROAM = true;
 	public static boolean FORCE_CRAZY_ATTACK = false;
 
 	// =========================================================

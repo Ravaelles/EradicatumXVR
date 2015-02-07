@@ -9,6 +9,7 @@ import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
+import ai.managers.units.coordination.ArmyRendezvousManager;
 
 public class TerranMedic {
 
@@ -34,7 +35,7 @@ public class TerranMedic {
 			double distance = goTo.distanceTo(unit);
 
 			// If distance is big, just go
-			if (distance > 3) {
+			if (distance > 4) {
 				UnitActions.moveTo(unit, goTo);
 			} else {
 				UnitActions.moveTo(unit, goTo);
@@ -46,7 +47,7 @@ public class TerranMedic {
 		ArrayList<Unit> possibleToHeal = xvr.getUnitsInRadius(unit, 50,
 				xvr.getUnitsPossibleToHeal());
 		for (Unit otherUnit : possibleToHeal) {
-			if (otherUnit.isWounded()) {
+			if (otherUnit.getHPPercent() < 100) {
 				xvr.getBwapi().rightClick(unit, otherUnit);
 				return;
 			}
@@ -59,22 +60,25 @@ public class TerranMedic {
 
 		// Define list of all infantry units that we could possibly follow
 		Collection<Unit> allInfantry = xvr.getUnitsOurOfTypes(UnitTypes.Terran_Marine,
-				UnitTypes.Terran_Firebat);
-		ArrayList<Unit> nearestInfantry = xvr.getUnitsInRadius(unit, 300, allInfantry);
+				UnitTypes.Terran_Firebat, UnitTypes.Terran_Medic, UnitTypes.Terran_Ghost);
+		// ArrayList<Unit> nearestInfantry = xvr.getUnitsInRadius(unit, 300,
+		// allInfantry);
 
 		// Try to go there, where's a marine/firebat not in a bunker
-		for (Unit infantry : nearestInfantry) {
+		for (Unit infantry : allInfantry) {
 			if (infantry.isCompleted() && !infantry.isLoaded()) {
 				return infantry;
 			}
 		}
 
 		// Units in bunkers will do fine...
-		for (Unit infantry : nearestInfantry) {
-			return infantry;
+		for (Unit infantry : allInfantry) {
+			if (infantry.isCompleted()) {
+				return infantry;
+			}
 		}
 
-		return TerranCommandCenter.getSecondBaseLocation();
+		return ArmyRendezvousManager.getDefensivePoint(unit);
 	}
 
 	public static int getNumberOfUnits() {

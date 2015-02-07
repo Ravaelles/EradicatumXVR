@@ -13,6 +13,8 @@ import ai.handling.map.MapPoint;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
 import ai.managers.economy.TechnologyManager;
+import ai.managers.strategy.StrategyManager;
+import ai.managers.units.UnitImportantActions;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.utils.RUtilities;
 
@@ -33,6 +35,12 @@ public class TerranVulture {
 	// =========================================================
 
 	public static boolean act(Unit unit) {
+		if (UnitImportantActions.tryAvoidingEnemyUnitsThatCanShoot(unit)) {
+			return true;
+		}
+
+		// =========================================================
+
 		if (unit.isBeingRepaired()) {
 			UnitActions.holdPosition(unit);
 			return true;
@@ -43,6 +51,13 @@ public class TerranVulture {
 
 		if (tryPlantingMines(unit)) {
 			return true;
+		}
+
+		// =========================================================
+
+		// If there's no organized fighting going on
+		if (canActIndividually(unit)) {
+			actIndividually(unit);
 		}
 
 		// =========================================================
@@ -175,6 +190,15 @@ public class TerranVulture {
 
 	// =========================================================
 
+	public static boolean canActIndividually(Unit unit) {
+		return StrategyManager.CAN_VULTURES_ROAM && !StrategyManager.isGlobalAttackInProgress()
+				&& unit.getHP() >= 40;
+	}
+
+	// =========================================================
+
+	// =========================================================
+
 	private static boolean handleExplorerVulture(Unit unit) {
 
 		// Choose random Vulture to become Vulture Explorer
@@ -223,7 +247,7 @@ public class TerranVulture {
 			if (isSafePlaceForOurUnits) {
 				boolean isPlaceInterestingChoiceForMine = isQuiteNearBunker(unit)
 						|| isQuiteNearChokePoint(unit) || isQuiteNearEnemy(unit);
-				boolean isNoEnemyNear = xvr.countUnitsEnemyInRadius(unit, 10) == 0;
+				boolean isNoEnemyNear = xvr.countUnitsEnemyInRadius(unit, 14) == 0;
 				if (isNoEnemyNear && isPlaceInterestingChoiceForMine
 						&& minesArentStackedTooMuchNear(unit)) {
 					placeSpiderMine(unit, unit);

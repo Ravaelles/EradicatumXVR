@@ -6,7 +6,6 @@ import ai.handling.units.UnitAiOrders;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.units.army.BunkerManager;
 import ai.managers.units.army.RunManager;
-import ai.managers.units.army.specialforces.SpecialForcesManager;
 import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.managers.units.workers.RepairAndSons;
 
@@ -67,14 +66,20 @@ public class UnitImportantActions {
 
 		// ===============================
 		// INIDIVIDUAL MISSIONS, SPECIAL FORCES
-		if (SpecialForcesManager.tryActingSpecialForceIfNeeded(unit)) {
-			unit.setAiOrder("Special force");
-			return true;
-		}
+		// if (SpecialForcesManager.tryActingSpecialForceIfNeeded(unit)) {
+		// unit.setAiOrder("Special force");
+		// return true;
+		// }
 
 		// =========================================================
 
 		return false;
 	}
 
+	// =========================================================
+
+	public static boolean tryAvoidingEnemyUnitsThatCanShoot(Unit unit) {
+		asdasd
+		return false;
+	}
 }

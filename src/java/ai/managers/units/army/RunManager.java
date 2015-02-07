@@ -16,8 +16,6 @@ public class RunManager {
 
 	private static XVR xvr = XVR.getInstance();
 
-	private static final double SAFE_DIST_FROM_ENEMY = 1.8;
-
 	// =========================================================
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit) {
@@ -97,12 +95,12 @@ public class RunManager {
 
 	private static boolean shouldFightInsteadOfRunning(Unit unit) {
 		boolean isRelativelyHealthy = (unit.getHPPercent() > 65 && unit.getHP() >= 30);
-		if (!isRelativelyHealthy && unit.isVulture()) {
-			isRelativelyHealthy = unit.getHP() >= 21;
-		}
 
-		if (unit.getGroundWeaponCooldown() == 0 && isRelativelyHealthy) {
+		if (isRelativelyHealthy) {
+			// if (unit.getGroundWeaponCooldown() == 0 &&
+			// xvr.countUnitsOursInRadius(unit, 3) >= 3) {
 			return true;
+			// }
 		}
 
 		return false;
