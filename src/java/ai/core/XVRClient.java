@@ -14,6 +14,7 @@ import ai.handling.map.MapExploration;
 import ai.handling.other.NukeHandling;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.tanks.EnemyTanksManager;
+import ai.managers.units.enemy.EnemyUnits;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranCommandCenter;
 import ai.terran.TerranComsatStation;
@@ -224,51 +225,13 @@ public class XVRClient implements BWAPIEventListener {
 		// UnitType unitType = UnitType.getUnitTypeByID(unit.getTypeID());
 	}
 
-	private static int distantEnemyUnitsDiscovered = 0;
-
-	private int discoverCounter = 0;
-
 	public void unitDiscover(int unitID) {
 		Unit unit = Unit.getByID(unitID);
 		if (unit == null || !unit.isEnemy()) {
 			return;
 		}
 
-		if (discoverCounter == 0) {
-			if (unit.getType().getRaceID() == RaceTypes.Protoss.getID()) {
-				XVR.setEnemyRace("Protoss");
-			} else if (unit.getType().getRaceID() == RaceTypes.Zerg.getID()) {
-				XVR.setEnemyRace("Zerg");
-			} else if (unit.getType().getRaceID() == RaceTypes.Terran.getID()) {
-				XVR.setEnemyRace("Terran");
-			}
-		}
-
-		discoverCounter++;
-
-		// Add info that we discovered enemy unit
-		MapExploration.enemyUnitDiscovered(unit);
-
-		// System.out.println("Unit discover: " + (unit != null ? unit.getName()
-		// : "null"));
-
-		if (StrategyManager.getMinBattleUnits() < 10) {
-			UnitType type = unit.getType();
-			boolean isAdvUnit = type.isDragoon() || type.isCarrier() || type.isVulture()
-					|| type.isTank() || type.isHydralisk() || type.isLurker() || type.isMutalisk();
-			if (isAdvUnit) {
-				distantEnemyUnitsDiscovered++;
-			}
-			if (distantEnemyUnitsDiscovered >= 1) {
-				StrategyManager.waitForMoreUnits();
-			}
-		}
-
-		// if (XVR.isEnemyProtoss()) {
-		// if (unit.getType().isDragoon()) {
-		// TerranAcademy.forceShouldBuild();
-		// }
-		// }
+		EnemyUnits.newUnitDiscovered(unit);
 	}
 
 	public void unitEvade(int unitID) {

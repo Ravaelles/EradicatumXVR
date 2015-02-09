@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import jnibwapi.model.ChokePoint;
 import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
@@ -177,21 +176,21 @@ public class TerranBunker {
 
 	// =========================================================
 
-	private static double calculateExistingBunkersStrength() {
-		double result = 0;
-		UnitType unitType = UnitType.getUnitTypeByUnitTypes(buildingType);
-		int maxHitPoints = unitType.getMaxHitPoints();
-
-		for (Unit cannon : xvr.getUnitsOfType(buildingType)) {
-			double cannonTotalHP = (double) (cannon.getHP()) / maxHitPoints;
-			if (!cannon.isCompleted()) {
-				cannonTotalHP = Math.sqrt(cannonTotalHP);
-			}
-			result += cannonTotalHP;
-		}
-
-		return result;
-	}
+	// private static double calculateExistingBunkersStrength() {
+	// double result = 0;
+	// UnitType unitType = UnitType.getUnitTypeByUnitTypes(buildingType);
+	// int maxHitPoints = unitType.getMaxHitPoints();
+	//
+	// for (Unit cannon : xvr.getUnitsOfType(buildingType)) {
+	// double cannonTotalHP = (double) (cannon.getHP()) / maxHitPoints;
+	// if (!cannon.isCompleted()) {
+	// cannonTotalHP = Math.sqrt(cannonTotalHP);
+	// }
+	// result += cannonTotalHP;
+	// }
+	//
+	// return result;
+	// }
 
 	private static boolean shouldBuildFor(MapPoint base) {
 		if (base == null) {
@@ -336,12 +335,12 @@ public class TerranBunker {
 
 		// ================================
 		// Define minimum and maximum distance from a choke point for a bunker
-		int minimumDistance = 5;
-		int numberOfBunkersNearby = calculateBunkersNearby(mapPoint);
+		int minimumDistance = 3;
+		// int numberOfBunkersNearby = calculateBunkersNearby(mapPoint);
 		if (mapPoint instanceof ChokePoint) {
 			ChokePoint choke = (ChokePoint) mapPoint;
 			if (choke.getRadius() / 32 >= 8) {
-				minimumDistance = 3;
+				minimumDistance = 1;
 			}
 		}
 		// int maximumDistance = minimumDistance + (10 / Math.max(1,

@@ -64,6 +64,12 @@ public class TerranSiegeTank {
 			java.util.Collections.sort(xCoordinates);
 			java.util.Collections.sort(yCoordinates);
 
+			// Ugly fix, but needed
+			if (xCoordinates.isEmpty()) {
+				medianTank = null;
+				return;
+			}
+
 			int middleIndex = xCoordinates.size() / 2;
 			MapPointInstance medianPoint = new MapPointInstance(xCoordinates.get(middleIndex),
 					yCoordinates.get(middleIndex));

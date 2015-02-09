@@ -35,7 +35,8 @@ public class TerranVulture {
 	// =========================================================
 
 	public static boolean act(Unit unit) {
-		if (UnitImportantActions.tryAvoidingEnemyUnitsThatCanShoot(unit)) {
+		if (!StrategyManager.isGlobalAttackInProgress()
+				&& UnitImportantActions.tryAvoidingEnemyUnitsThatCanShoot(unit)) {
 			return true;
 		}
 
@@ -144,49 +145,68 @@ public class TerranVulture {
 	}
 
 	private static void actIndividually(Unit unit) {
+		MapPoint target = null;
 
-		// Get base locations near enemy, or buildings and try to go there.
-		MapPoint pointToHarass = defineNeighborhoodToHarass(unit);
-		if (pointToHarass != null) {
+		target = MapExploration.getNearestEnemyBase();
+		if (target == null) {
+			target = MapExploration.getNearestEnemyBuilding();
+		}
 
-			ArrayList<MapPoint> pointForHarassmentNearEnemy = new ArrayList<>();
-			// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBasesDiscovered().values());
-			// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBuildingsDiscovered());
-			pointForHarassmentNearEnemy.addAll(MapExploration.getBaseLocationsNear(pointToHarass,
-					37));
-			// pointForHarassmentNearEnemy.addAll(MapExploration.getChokePointsNear(pointToHarass,
-			// 30));
-
-			MapPoint goTo = null;
-			if (!pointForHarassmentNearEnemy.isEmpty()) {
-
-				// Randomly choose one of them.
-				goTo = (MapPoint) RUtilities.getRandomListElement(pointForHarassmentNearEnemy);
-			}
-
-			else {
-				goTo = MapExploration.getNearestUnknownPointFor(unit.getX(), unit.getY(), true);
-				if (goTo != null
-						&& xvr.getBwapi().getMap()
-								.isConnected(unit, goTo.getX() / 32, goTo.getY() / 32)) {
-				}
-			}
-
-			MapPoint safePoint = ArmyRendezvousManager.getDefensivePoint(unit);
-
-			if (safePoint == null
-					|| (safePoint.distanceTo(unit) < 25 && xvr.countUnitsInRadius(unit, 10, true) > 0)) {
-				UnitActions.attackTo(unit, goTo);
-				unit.setAiOrder("Harass");
-			} else if (safePoint != null) {
-				UnitActions.attackTo(unit, safePoint);
-				unit.setAiOrder("Back");
-			}
-		} else {
-			UnitActions.spreadOutRandomly(unit);
-			unit.setAiOrder("Spread/harass");
+		if (target != null) {
+			UnitActions.attackTo(unit, target);
 		}
 	}
+
+	// private static void actIndividuallyOld(Unit unit) {
+	//
+	// // Get base locations near enemy, or buildings and try to go there.
+	// MapPoint pointToHarass = defineNeighborhoodToHarass(unit);
+	// if (pointToHarass != null) {
+	//
+	// ArrayList<MapPoint> pointForHarassmentNearEnemy = new ArrayList<>();
+	// //
+	// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBasesDiscovered().values());
+	// //
+	// pointForHarassmentNearEnemy.addAll(MapExploration.getEnemyBuildingsDiscovered());
+	// pointForHarassmentNearEnemy.addAll(MapExploration.getBaseLocationsNear(pointToHarass,
+	// 37));
+	// //
+	// pointForHarassmentNearEnemy.addAll(MapExploration.getChokePointsNear(pointToHarass,
+	// // 30));
+	//
+	// MapPoint goTo = null;
+	// if (!pointForHarassmentNearEnemy.isEmpty()) {
+	//
+	// // Randomly choose one of them.
+	// goTo = (MapPoint)
+	// RUtilities.getRandomListElement(pointForHarassmentNearEnemy);
+	// }
+	//
+	// else {
+	// goTo = MapExploration.getNearestUnknownPointFor(unit.getX(), unit.getY(),
+	// true);
+	// if (goTo != null
+	// && xvr.getBwapi().getMap()
+	// .isConnected(unit, goTo.getX() / 32, goTo.getY() / 32)) {
+	// }
+	// }
+	//
+	// MapPoint safePoint = ArmyRendezvousManager.getDefensivePoint(unit);
+	//
+	// if (safePoint == null
+	// || (safePoint.distanceTo(unit) < 25 && xvr.countUnitsInRadius(unit, 10,
+	// true) > 0)) {
+	// UnitActions.attackTo(unit, goTo);
+	// unit.setAiOrder("Harass");
+	// } else if (safePoint != null) {
+	// UnitActions.attackTo(unit, safePoint);
+	// unit.setAiOrder("Back");
+	// }
+	// } else {
+	// UnitActions.spreadOutRandomly(unit);
+	// unit.setAiOrder("Spread/harass");
+	// }
+	// }
 
 	// =========================================================
 

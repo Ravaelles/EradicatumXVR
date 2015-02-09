@@ -49,7 +49,9 @@ public class UnitTopPriorityActions {
 
 		// Tank
 		if (unit.isTank() || nearestTank == null) {
-			UnitActions.spreadOutRandomly(unit);
+			if (unit.getGroundWeaponCooldown() <= 0) {
+				UnitActions.spreadOutRandomly(unit);
+			}
 		}
 
 		// Not-tank

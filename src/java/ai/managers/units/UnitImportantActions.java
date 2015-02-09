@@ -1,6 +1,10 @@
 package ai.managers.units;
 
+import java.util.Collection;
+
 import jnibwapi.model.Unit;
+import ai.core.XVR;
+import ai.handling.units.MoveAway;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitAiOrders;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
@@ -10,6 +14,10 @@ import ai.managers.units.coordination.ArmyUnitBasicBehavior;
 import ai.managers.units.workers.RepairAndSons;
 
 public class UnitImportantActions {
+
+	private static final double ENEMY_RANGE_SAFE_DIST_BONUS = 2.5;
+
+	// =========================================================
 
 	protected static boolean tryImportantActions(Unit unit) {
 
@@ -79,7 +87,43 @@ public class UnitImportantActions {
 	// =========================================================
 
 	public static boolean tryAvoidingEnemyUnitsThatCanShoot(Unit unit) {
-		asdasd
+		boolean isLandUnit = !unit.getType().isFlyer();
+
+		Collection<Unit> enemyUnitsNear = xvr.getEnemyUnitsInRadius(13, unit);
+		for (Unit enemy : enemyUnitsNear) {
+			double enemyRange = -1;
+			double distToEnemy = unit.distanceTo(enemy);
+
+			// We're ground unit
+			if (isLandUnit && enemy.canAttackGroundUnits()
+					&& (enemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles()) > 1) {
+				if (distToEnemy <= enemyRange + ENEMY_RANGE_SAFE_DIST_BONUS) {
+					avoidEnemy(unit, enemy);
+					return true;
+				}
+			}
+
+			// We're air unit
+			else if (!isLandUnit && enemy.canAttackAirUnits()
+					&& (enemyRange = enemy.getType().getAirWeapon().getMaxRangeInTiles()) > 1) {
+				if (distToEnemy <= enemyRange + ENEMY_RANGE_SAFE_DIST_BONUS) {
+					avoidEnemy(unit, enemy);
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
+
+	// =========================================================
+
+	private static void avoidEnemy(Unit unit, Unit enemy) {
+		MoveAway.moveAwayFromEnemyOrEnemies(unit);
+	}
+
+	// =========================================================
+
+	private static XVR xvr = XVR.getInstance();
+
 }

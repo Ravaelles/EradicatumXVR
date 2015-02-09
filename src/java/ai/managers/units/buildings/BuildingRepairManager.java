@@ -121,7 +121,8 @@ public class BuildingRepairManager {
 	public static int countNumberOfRepairersForBuilding(Unit building) {
 		int total = 0;
 		for (Unit worker : repairersToBuildings.keySet()) {
-			if (repairersToBuildings.get(worker).equals(building)) {
+			if (repairersToBuildings.get(worker).equals(building)
+					|| worker.getTargetUnitID() == building.getID()) {
 				total++;
 			}
 		}

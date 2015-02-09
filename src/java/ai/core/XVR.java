@@ -132,7 +132,7 @@ public class XVR {
 			}
 
 			// Now let's mine minerals with your idle workers.
-			if (getFrames() % 11 == 0) {
+			if (getFrames() % 4 == 0) {
 				CodeProfiler.startMeasuring("Workers");
 				WorkerManager.act();
 				CodeProfiler.endMeasuring("Workers");

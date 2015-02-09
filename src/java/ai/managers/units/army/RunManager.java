@@ -94,9 +94,12 @@ public class RunManager {
 	}
 
 	private static boolean shouldFightInsteadOfRunning(Unit unit) {
-		boolean isRelativelyHealthy = (unit.getHPPercent() > 65 && unit.getHP() >= 30);
+		double safeDist = unit.isVulture() ? 3.1 : 1.1;
 
-		if (isRelativelyHealthy) {
+		boolean isRelativelyHealthy = (unit.getHPPercent() > 65 && unit.getHP() >= 30);
+		boolean noEnemyIsVeryVeryClose = xvr.countUnitsEnemyInRadius(unit, safeDist) == 0;
+
+		if (isRelativelyHealthy && noEnemyIsVeryVeryClose) {
 			// if (unit.getGroundWeaponCooldown() == 0 &&
 			// xvr.countUnitsOursInRadius(unit, 3) >= 3) {
 			return true;
