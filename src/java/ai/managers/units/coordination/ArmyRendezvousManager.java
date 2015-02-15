@@ -219,7 +219,7 @@ public class ArmyRendezvousManager {
 		ArrayList<Unit> bunkersNearby = xvr.getUnitsInRadius(bunkersNearestTo, 300,
 				xvr.getUnitsOfType(UnitTypes.Terran_Bunker));
 		for (Unit bunker : bunkersNearby) {
-			return bunker;
+			return bunker.translate(40, 40);
 		}
 		return null;
 

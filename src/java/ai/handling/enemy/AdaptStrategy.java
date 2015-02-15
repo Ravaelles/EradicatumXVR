@@ -103,7 +103,7 @@ public class AdaptStrategy {
 		TerranBunker.GLOBAL_MAX_BUNKERS = 1;
 
 		// BARRACKS
-		TerranBarracks.CRITICALLY_FEW_INFANTRY = 14;
+		TerranBarracks.CRITICALLY_FEW_INFANTRY = 6;
 		TerranBarracks.MIN_MEDICS = 4;
 		TerranBarracks.RATIO_MARINES_PERCENT = 55;
 		TerranBarracks.RATIO_FIREBATS_PERCENT = 25;

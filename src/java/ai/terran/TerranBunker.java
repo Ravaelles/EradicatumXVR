@@ -339,7 +339,7 @@ public class TerranBunker {
 		// int numberOfBunkersNearby = calculateBunkersNearby(mapPoint);
 		if (mapPoint instanceof ChokePoint) {
 			ChokePoint choke = (ChokePoint) mapPoint;
-			if (choke.getRadius() / 32 >= 8) {
+			if (choke.getRadius() / 32 >= 3) {
 				minimumDistance = 1;
 			}
 		}
@@ -384,7 +384,7 @@ public class TerranBunker {
 		// MapPointInstance location = new MapPointInstance(
 		// (base.getX() + 2 * choke.getX()) / 3,
 		// (base.getY() + 2 * choke.getY()) / 3);
-		MapPointInstance location = MapPointInstance.getTwoThirdPointBetween(base, choke);
+		MapPointInstance location = MapPointInstance.getPointBetween(base, choke, 82);
 
 		// Find place for bunker between choke point and the second base.
 		// return Constructing.getLegitTileToBuildNear(xvr.getRandomWorker(),

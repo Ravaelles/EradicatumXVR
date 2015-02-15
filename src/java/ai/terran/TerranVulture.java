@@ -121,28 +121,30 @@ public class TerranVulture {
 
 	// =========================================================
 
-	private static void actDefensively(Unit unit) {
-		MapPoint genericRendezvous = ArmyRendezvousManager.getDefensivePoint(unit);
-		if (genericRendezvous != null && genericRendezvous.distanceTo(unit) > 6.5) {
-			UnitActions.attackTo(unit, genericRendezvous);
-			unit.setAiOrder("Go entrench");
-		} else {
-			UnitActions.holdPosition(unit);
-			unit.setAiOrder("Entrench");
-		}
-	}
-
-	private static void actOffensively(Unit unit) {
-		// if (!StrategyManager.isAnyAttackFormPending()) {
-		// actIndividually(unit);
-		// } else {
-		// FrontLineManager.actOffensively(unit,
-		// FrontLineManager.MODE_FRONT_GUARD);
-		// }
-
-		// FrontLineManager.actOffensively(unit,
-		// FrontLineManager.MODE_FRONT_GUARD);
-	}
+	// private static void actDefensively(Unit unit) {
+	// MapPoint genericRendezvous =
+	// ArmyRendezvousManager.getDefensivePoint(unit);
+	// if (genericRendezvous != null && genericRendezvous.distanceTo(unit) >
+	// 6.5) {
+	// UnitActions.attackTo(unit, genericRendezvous);
+	// unit.setAiOrder("Go entrench");
+	// } else {
+	// UnitActions.holdPosition(unit);
+	// unit.setAiOrder("Entrench");
+	// }
+	// }
+	//
+	// private static void actOffensively(Unit unit) {
+	// // if (!StrategyManager.isAnyAttackFormPending()) {
+	// // actIndividually(unit);
+	// // } else {
+	// // FrontLineManager.actOffensively(unit,
+	// // FrontLineManager.MODE_FRONT_GUARD);
+	// // }
+	//
+	// // FrontLineManager.actOffensively(unit,
+	// // FrontLineManager.MODE_FRONT_GUARD);
+	// }
 
 	private static void actIndividually(Unit unit) {
 		MapPoint target = null;
@@ -152,8 +154,11 @@ public class TerranVulture {
 			target = MapExploration.getNearestEnemyBuilding();
 		}
 
-		if (target != null) {
+		if (target != null && target.distanceTo(unit) > 3) {
 			UnitActions.attackTo(unit, target);
+		} else {
+			MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePoint(unit);
+			UnitActions.attackTo(unit, defensivePoint);
 		}
 	}
 

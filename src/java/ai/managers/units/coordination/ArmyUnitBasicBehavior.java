@@ -2,11 +2,12 @@ package ai.managers.units.coordination;
 
 import jnibwapi.model.Unit;
 import jnibwapi.types.UnitType.UnitTypes;
-import jnibwapi.types.WeaponType;
 import ai.core.XVR;
+import ai.handling.map.MapPoint;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitActions;
 import ai.managers.economy.TechnologyManager;
+import ai.managers.units.workers.ProfessionalRepairers;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBunker;
 import ai.utils.RUtilities;
@@ -121,28 +122,9 @@ public class ArmyUnitBasicBehavior {
 
 	public static boolean tryRunningIfSeriouslyWounded(Unit unit) {
 		double ratio = 0.4;
-		// if (xvr.getTimeSeconds() < 330) {
-		// ratio = 0.4;
-		// }
 
 		if (unit.getHP() <= unit.getMaxHP() * ratio
 				|| (unit.getType().isTerranInfantry() && unit.getHP() < 25)) {
-			// // If there are tanks nearby, DON'T RUN. Rather die first!
-			// if
-			// (xvr.countUnitsEnemyOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
-			// 15,
-			// unit) > 0) {
-			// return;
-			// }
-
-			// // If there are tanks nearby, DON'T RUN. Rather die first!
-			// if (unit.distanceTo(xvr.getFirstBase()) < 17) {
-			// return;
-			// }
-
-			// if (StrategyManager.isAttackPending()) {
-			// return;
-			// }
 
 			boolean lowLife = UnitActions.actWhenLowHitPointsOrShields(unit, false);
 			if (lowLife) {
@@ -175,16 +157,11 @@ public class ArmyUnitBasicBehavior {
 
 					// Repairer is close to this unit.
 					else {
-						Unit nearEnemy = xvr.getNearestEnemyInRadius(unit, 6, true, true);
-						if (nearEnemy != null && nearEnemy.canAttack(unit)) {
-							WeaponType groundWeapon = nearEnemy.getType().getGroundWeapon();
-							if (groundWeapon != null
-									&& unit.distanceTo(nearEnemy) <= groundWeapon
-											.getMaxRangeInTiles() + 1.9) {
-								unit.setAiOrder("Should be repaired, but RUN!");
-								// UnitActions.moveAwayFromNearestEnemy(unit);
-								UnitActions.moveToSafePlace(unit);
-							}
+						MapPoint point = getSafePlace(unit);
+						if (point != null && unit.distanceTo(point) > 2) {
+							UnitActions.attackTo(unit, repairer);
+						} else {
+							UnitActions.holdPosition(unit);
 						}
 					}
 				}
@@ -193,6 +170,17 @@ public class ArmyUnitBasicBehavior {
 			return lowLife;
 		}
 		return false;
+	}
+
+	private static MapPoint getSafePlace(Unit unit) {
+		Unit nearestBunker = xvr.getUnitOfTypeNearestTo(TerranBunker.getBuildingType(), unit);
+		if (nearestBunker != null) {
+			return nearestBunker;
+		}
+
+		ProfessionalRepairers.getOne();
+
+		return null;
 	}
 
 	public static boolean tryUsingStimpacksIfNeeded(Unit unit) {

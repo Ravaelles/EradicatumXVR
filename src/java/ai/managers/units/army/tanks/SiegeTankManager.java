@@ -8,7 +8,6 @@ import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
-import ai.handling.units.TankTargeting;
 import ai.handling.units.UnitActions;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
@@ -165,7 +164,7 @@ public class SiegeTankManager {
 
 		// If tank should be here, try to attack proper target.
 		else {
-			MapPoint targetForTank = TankTargeting.defineTargetForSiegeTank(unit);
+			MapPoint targetForTank = TankFiring.defineTargetForSiegeTank(unit);
 			if (targetForTank != null) {
 				if (targetForTank instanceof Unit && ((Unit) targetForTank).isDetected()) {
 					UnitActions.attackEnemyUnit(unit, (Unit) targetForTank);

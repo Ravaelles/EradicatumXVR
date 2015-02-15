@@ -238,7 +238,7 @@ public class TerranBarracks {
 			return MEDIC;
 		}
 
-		if (marines < 8) {
+		if (marines < 4 * medics) {
 			return MARINE;
 		}
 

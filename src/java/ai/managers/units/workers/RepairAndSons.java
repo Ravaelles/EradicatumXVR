@@ -62,7 +62,7 @@ public class RepairAndSons {
 		}
 
 		// Disallow wounded workers to repair; this way we can save many lives
-		if (worker.getHP() < 45) {
+		if (worker.getHP() < 30) {
 			return false;
 		}
 

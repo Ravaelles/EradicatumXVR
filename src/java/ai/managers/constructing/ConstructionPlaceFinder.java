@@ -165,7 +165,7 @@ public class ConstructionPlaceFinder {
 			if (nextBase == null) {
 				return false;
 			} else {
-				int minDistance = type.isBunker() ? 4 : 6;
+				double minDistance = 6.5;
 				return xvr.getDistanceSimple(place, nextBase.translate(96, 0)) <= minDistance;
 			}
 		} else {

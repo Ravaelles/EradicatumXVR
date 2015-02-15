@@ -1175,11 +1175,19 @@ public class Unit extends MapPoint implements Comparable<Unit> {
 	}
 
 	public int getHPPercent() {
-		return getHP() * 100 / getMaxHP();
+		int maxHP = getMaxHP();
+		if (maxHP < 1) {
+			return 100;
+		}
+		return getHP() * 100 / maxHP;
 	}
 
 	public boolean isGathering() {
 		return gatheringGas || gatheringMinerals;
+	}
+
+	public boolean isAlive() {
+		return hitPoints > 0;
 	}
 
 	// =========================================================

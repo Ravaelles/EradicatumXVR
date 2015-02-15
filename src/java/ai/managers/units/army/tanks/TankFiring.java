@@ -1,4 +1,4 @@
-package ai.handling.units;
+package ai.managers.units.army.tanks;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,9 +9,11 @@ import jnibwapi.model.Unit;
 import ai.core.XVR;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapPoint;
+import ai.handling.units.UnitActions;
+import ai.units.SelectUnits;
 import ai.utils.RUtilities;
 
-public class TankTargeting {
+public class TankFiring {
 
 	private static XVR xvr = XVR.getInstance();
 
@@ -25,7 +27,25 @@ public class TankTargeting {
 
 	private static final int MINIMUM_OPTION_VALUE = 30;
 
-	// =====================================
+	// =========================================================
+
+	public static void act() {
+		for (Unit tank : SelectUnits.ourTanksSieged().list()) {
+			if (tank.isSieged() && tank.getGroundWeaponCooldown() < 4) {
+				act(tank);
+			}
+		}
+	}
+
+	private static void act(Unit tank) {
+		if (!tank.isStartingAttack() && !tank.isInterruptable()) {
+			MapPoint targetForSiegeTank = defineTargetForSiegeTank(tank);
+			UnitActions.attackTo(tank, targetForSiegeTank);
+			tank.setAiOrder("Aim");
+		}
+	}
+
+	// =========================================================
 
 	public static MapPoint defineTargetForSiegeTank(Unit unit) {
 		Unit target = null;

@@ -77,6 +77,12 @@ public class UnitTopPriorityActions {
 		}
 
 		// =========================================================
+
+		if (!StrategyManager.isGlobalAttackInProgress()) {
+			return false;
+		}
+
+		// =========================================================
 		// If unit is engaged in combat, don't spread out
 		if (unit.getGroundWeaponCooldown() > 0 || unit.isUnderAttack()) {
 			return false;

@@ -418,7 +418,7 @@ public class TerranCommandCenter {
 
 	/** Find building tile for new base. */
 	public static MapPoint findTileForNextBase(boolean forceNewSolution) {
-		if (xvr.getFirstBase() == null) {
+		if (xvr.getFirstBase() == null || xvr.getSuppliesUsed() < 7) {
 			return null;
 		}
 

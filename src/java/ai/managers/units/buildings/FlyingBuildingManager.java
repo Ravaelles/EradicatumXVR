@@ -17,8 +17,8 @@ import ai.terran.TerranSiegeTank;
 
 public class FlyingBuildingManager {
 
-	private static final double MAX_ALLOWED_DIST_FROM_TANK = 5.5;
-	private static final double MAX_ALLOWED_DIST_FROM_TANK_IF_BUNKER_NEAR = 9;
+	private static final double MAX_ALLOWED_DIST_FROM_TANK = 9;
+	private static final double MAX_ALLOWED_DIST_FROM_TANK_IF_BUNKER_NEAR = 10;
 	private static XVR xvr = XVR.getInstance();
 	private static Unit flyingBuilding1 = null;
 	private static Unit flyingBuilding2 = null;
@@ -64,8 +64,8 @@ public class FlyingBuildingManager {
 
 		return (UnitCounter.getNumberOfInfantryUnitsCompleted() >= 4 || TerranSiegeTank
 				.getNumberOfUnitsCompleted() >= 1)
-				&& TerranBarracks.MAX_BARRACKS >= 1
-				&& TerranBarracks.getOneNotBusy() != null;
+				&& UnitCounter.getNumberOfUnitsCompleted(UnitTypes.Terran_Medic) >= TerranBarracks.MIN_MEDICS
+				&& TerranBarracks.MAX_BARRACKS >= 1 && TerranBarracks.getOneNotBusy() != null;
 	}
 
 	private static boolean shouldHaveFlyingBuilding2() {

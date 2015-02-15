@@ -16,7 +16,8 @@ public class EnemyUnits {
 
 		// Disallow Vultures to roam on the map if enemy has tanks
 		if (StrategyManager.CAN_VULTURES_ROAM) {
-			if (unit.isTank()) {
+			if (unit.getGroundWeapon().getMaxRangeInTiles() > 1) {
+				// if (unit.isTank()) {
 				StrategyManager.CAN_VULTURES_ROAM = false;
 			}
 		}

@@ -12,6 +12,7 @@ import ai.core.XVR;
 import ai.handling.map.MapPoint;
 import ai.handling.strength.StrengthRatio;
 import ai.handling.units.UnitActions;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.RunManager;
 import ai.managers.units.buildings.BuildingRepairManager;
@@ -37,11 +38,24 @@ public class WorkerManager {
 		ProfessionalRepairers.resetInfo();
 		_counterWorkerIndexInLoop = 0;
 
+		// =========================================================
+		// Check if should add professional repairer
+		int numOfProfRepairers = ProfessionalRepairers.lastProfessionalRepairers.size();
+		boolean shouldAddRepairer = numOfProfRepairers <= 1
+				&& StrategyManager.isGlobalAttackInProgress();
+
 		// ==================================
 		// Handle every worker
 		for (Unit worker : xvr.getUnitsOfType(UnitManager.WORKER)) {
 			if (!worker.isCompleted()) {
 				continue;
+			}
+
+			// Check if make this unit repairer
+			if (shouldAddRepairer && worker.isGathering()
+					&& !ProfessionalRepairers.isProfessionalRepairer(worker)) {
+				ProfessionalRepairers.professionalRepairersIndices.add(1);
+				shouldAddRepairer = false;
 			}
 
 			// Check if worker isn't supposed to repair non-existing building
@@ -73,12 +87,18 @@ public class WorkerManager {
 		// return;
 		// }
 
-		if (unit.isIdle() && !unit.equals(ExplorerManager.getExplorer())) {
-			gatherResources(unit, xvr.getFirstBase());
-		}
-
 		if (unit.equals(ExplorerManager.getExplorer())) {
 			return;
+		}
+
+		if (ProfessionalRepairers.isProfessionalRepairer(unit)
+				&& TerranBunker.getNumberOfUnits() > 0) {
+			ProfessionalRepairers.handleProfessionalRepairer(unit);
+			return;
+		}
+
+		if (unit.isIdle()) {
+			gatherResources(unit, xvr.getFirstBase());
 		}
 
 		// Don't interrupt when REPAIRING
@@ -96,12 +116,6 @@ public class WorkerManager {
 		}
 
 		// =========================================================
-
-		if (ProfessionalRepairers.isProfessionalRepairer(unit)
-				&& TerranBunker.getNumberOfUnits() > 0) {
-			ProfessionalRepairers.handleProfessionalRepairer(unit);
-			return;
-		}
 
 		if (unit.isWounded() && RunManager.runFromCloseOpponentsIfNecessary(unit)) {
 			unit.setAiOrder("Fuck...");

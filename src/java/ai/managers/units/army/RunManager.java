@@ -27,12 +27,17 @@ public class RunManager {
 			}
 		}
 
-		double safeDistance = unit.isVulture() ? 2.7 : 1.8;
+		double safeDistance = unit.isVulture() ? 2.7 : 2;
 		return runFromCloseOpponentsIfNecessary(unit, safeDistance);
 	}
 
 	public static boolean runFromCloseOpponentsIfNecessary(Unit unit, double safeDistance) {
 		if (shouldFightInsteadOfRunning(unit)) {
+			return false;
+		}
+
+		// Units shouldn't be jamming paths if supply is max
+		if (xvr.getSuppliesFree() == 0) {
 			return false;
 		}
 
@@ -49,7 +54,7 @@ public class RunManager {
 
 				// If close unit is strong and there're many of them, include
 				// enemy range.
-				if (enemy.getHP() >= 50 && enemyUnitsInRadius.size() >= 2) {
+				if (enemy.getHP() >= 50) {
 					int enemyRange = enemy.getType().getGroundWeapon().getMaxRangeInTiles();
 					distToEnemy -= enemyRange;
 				}
@@ -61,7 +66,7 @@ public class RunManager {
 				}
 
 				// Define if enemy is real danger or maybe he's too far etc
-				boolean enemyCriticallyClose = distToEnemy > 0.1 && distToEnemy < safeDistance;
+				boolean enemyCriticallyClose = distToEnemy > 0.02 && distToEnemy < safeDistance;
 				boolean enemyCanShootAtUs = !enemyCriticallyClose
 						&& !UnitManager.isUnitSafeFromEnemyShootRange(unit, enemy);
 				boolean canConsiderRunningFromEnemy = extraCondition || enemyCriticallyClose
@@ -92,6 +97,8 @@ public class RunManager {
 		// xvr.getEnemyUnitsInRadius(11, unit));
 		//
 	}
+
+	// =========================================================
 
 	private static boolean shouldFightInsteadOfRunning(Unit unit) {
 		double safeDist = unit.isVulture() ? 3.1 : 1.1;

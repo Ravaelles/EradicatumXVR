@@ -81,8 +81,7 @@ public class FrontLineManager {
 		// =========================================================
 
 		// Keep the front line, advance step by step, but if we're forcing crazy
-		// attack,
-		// it means just attack without any unit coordination.
+		// attack, it means just attack without any unit coordination.
 		if (!StrategyManager.FORCE_CRAZY_ATTACK) {
 			handleKeepTheFrontLine(unit, offensivePoint, maxDistBonus, mode);
 		}
@@ -119,12 +118,12 @@ public class FrontLineManager {
 	// =========================================================
 
 	private static void handleDontSeparateTooMuch(Unit unit) {
-		boolean enoughTanksNearby = xvr.countTanksOurInRadius(unit, 5) >= 2
-				|| xvr.countTanksOurInRadius(unit, 6) >= 3;
+		boolean enoughTanksNearby = xvr.countTanksOurInRadius(unit, 6) >= 2
+				|| xvr.countTanksOurInRadius(unit, 7) >= 3;
 		if (!enoughTanksNearby) {
 			// Unit rendezvousTank = xvr.getNearestTankTo(unit);
 			MapPoint rendezvousTank = ArmyRendezvousManager.getRendezvousTankForGroundUnits();
-			if (rendezvousTank != null && !unit.isAttacking()) {
+			if (rendezvousTank != null && !unit.isStartingAttack()) {
 				double distanceToTank = rendezvousTank.distanceTo(unit);
 				if (distanceToTank >= 4) {
 					UnitActions.attackTo(unit, rendezvousTank.translate(64, 40));
@@ -173,6 +172,10 @@ public class FrontLineManager {
 	}
 
 	private static boolean isUnitOutOfLine(Unit unit) {
+		if (xvr.countUnitsInRadius(unit, 6, true) >= 9) {
+			return false;
+		}
+
 		double manyUnitsBonus = Math.max(3, xvr.countUnitsOursInRadius(unit, 2.8) / 1.7);
 		double maxDistToTanks = 3.3 + manyUnitsBonus;
 
@@ -242,8 +245,9 @@ public class FrontLineManager {
 			return;
 		}
 
-		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
-				.getRendezvousTankForGroundUnits();
+		// MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
+		// .getRendezvousTankForGroundUnits();
+		MapPoint tank = xvr.getNearestTankTo(unit);
 
 		double minDistToTanks = 2.5;
 		double maxDistToTanks = 5.5;
@@ -254,16 +258,16 @@ public class FrontLineManager {
 		// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Tank_Mode,
 		// maxDistToTanks, unit, true);
 
-		if (rendezvousTankForGroundUnits != null) {
+		if (tank != null) {
 
 			// Check if we're too far
-			if (unit.distanceTo(rendezvousTankForGroundUnits) > maxDistToTanks) {
-				UnitActions.attackTo(unit, rendezvousTankForGroundUnits);
+			if (unit.distanceTo(tank) > maxDistToTanks) {
+				UnitActions.attackTo(unit, tank);
 			}
 
 			// Check if we're too close
-			else if (unit.distanceTo(rendezvousTankForGroundUnits) < minDistToTanks) {
-				UnitActions.attackTo(unit, rendezvousTankForGroundUnits);
+			else if (unit.distanceTo(tank) < minDistToTanks) {
+				UnitActions.attackTo(unit, tank);
 			}
 		}
 	}

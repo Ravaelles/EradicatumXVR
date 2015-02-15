@@ -61,6 +61,7 @@ public class Painter {
 
 		Painter.xvr = xvr;
 		bwapi = XVR.getInstance().getBwapi();
+		// bwapi.drawTargets(true);
 		int oldMainMessageRowCounter = mainMessageRowCounter;
 		mainMessageRowCounter = 0;
 
@@ -86,6 +87,7 @@ public class Painter {
 		paintRenzdezvousPoints();
 		paintUnitsDetails();
 		paintValuesOverUnits();
+		paintEnemyUnits();
 		// paintTest();
 
 		// Draw choke points
@@ -970,6 +972,13 @@ public class Painter {
 					paintBuildingPosition(type.getType(), point.getX(), point.getY(), color, "");
 				}
 			}
+		}
+	}
+
+	private static void paintEnemyUnits() {
+		for (Unit enemy : xvr.getEnemyArmyUnits()) {
+			int range = enemy.getGroundWeapon().getMinRangeInTiles();
+			bwapi.drawCircle(enemy.getX(), enemy.getY(), 32 * range, BWColor.RED, false, false);
 		}
 	}
 

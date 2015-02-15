@@ -25,6 +25,7 @@ import ai.managers.enemy.HiddenEnemyUnitsManager;
 import ai.managers.strategy.StrategyManager;
 import ai.managers.units.UnitManager;
 import ai.managers.units.army.ArmyCreationManager;
+import ai.managers.units.army.tanks.TankFiring;
 import ai.managers.units.buildings.FlyingBuildingManager;
 import ai.managers.units.workers.ProfessionalRepairers;
 import ai.managers.units.workers.WorkerManager;
@@ -40,16 +41,11 @@ import ai.utils.RUtilities;
  */
 public class XVR {
 
-	/** Less = faster. */
 	public static final int GAME_SPEED = 0;
+	public static final UnitTypes BASE = UnitTypes.Terran_Command_Center;
+	public static final UnitTypes WORKER = UnitTypes.Terran_SCV;
 
-	/**
-	 * There are several methods of type like "getUnitsNear". This value is this
-	 * "near" distance, expressed in game tiles (32 pixels).
-	 */
-	private static final int WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING = 10;
-
-	private static XVR xvr;
+	// =========================================================
 
 	private Player ENEMY;
 	public int ENEMY_ID;
@@ -58,8 +54,13 @@ public class XVR {
 	public Player NEUTRAL;
 	public int SELF_ID;
 
+	// =========================================================
+
 	private XVRClient client;
 	private JNIBWAPI bwapi;
+	private static XVR xvr;
+
+	// =========================================================
 
 	private int frameCounter = 0;
 	private int secondCounter = 0;
@@ -145,6 +146,11 @@ public class XVR {
 				UnitManager.act();
 				CodeProfiler.endMeasuring("Army");
 			}
+
+			// Handle Siege Tanks target selection to limit friendly fire
+			// and maximize damage and stuff like that. This method needs
+			// to be executed each frame, to achieve max precision.
+			TankFiring.act();
 
 			// Avoid being under psionic storm, disruptive web etc.
 			if (getFrames() % 8 == 0) {
@@ -977,6 +983,12 @@ public class XVR {
 	public Unit getEnemyDetectorNear(MapPoint point) {
 		return getEnemyDetectorNear(point.getX(), point.getY());
 	}
+
+	/**
+	 * There are several methods of type like "getUnitsNear". This value is this
+	 * "near" distance, expressed in game tiles (32 pixels).
+	 */
+	private static final int WHAT_IS_NEAR_DISTANCE_TO_DEFENSIVE_BUILDING = 10;
 
 	public Unit getEnemyDetectorNear(int x, int y) {
 		ArrayList<Unit> enemiesNearby = getUnitsInRadius(new MapPointInstance(x, y),
