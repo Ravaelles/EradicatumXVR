@@ -71,15 +71,14 @@ public class ArmyRendezvousManager {
 
 	/**
 	 * 
-	 * @return Target for offensive operations e.g. closest known enemy
-	 *         building, or the expected base location if no building is known.
+	 * @return Target for offensive operations e.g. closest known enemy building, or the expected base location if no
+	 *         building is known.
 	 */
 	public static MapPoint getOffensivePoint() {
 
 		// Try to target nearest enemy building that isn't destroyed
 		Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
-		if (nearestEnemyBuilding != null && nearestEnemyBuilding.isExists()
-				&& !nearestEnemyBuilding.isOnGeyser()) {
+		if (nearestEnemyBuilding != null && nearestEnemyBuilding.isExists() && !nearestEnemyBuilding.isOnGeyser()) {
 			return nearestEnemyBuilding;
 		}
 
@@ -129,7 +128,7 @@ public class ArmyRendezvousManager {
 		if (runTo == null) {
 			return null;
 		} else {
-			return new MapPointInstance(runTo.getX(), runTo.getY()).translate(-4, 0);
+			return new MapPointInstance(runTo.getX(), runTo.getY()).translate(64, 32);
 		}
 	}
 
@@ -212,8 +211,8 @@ public class ArmyRendezvousManager {
 		}
 
 		Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
-		MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding
-				: TerranCommandCenter.getSecondBaseLocation();
+		MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding : TerranCommandCenter
+				.getSecondBaseLocation();
 
 		// Get the list of bunkers that are near to the specified point.
 		ArrayList<Unit> bunkersNearby = xvr.getUnitsInRadius(bunkersNearestTo, 300,
@@ -250,8 +249,7 @@ public class ArmyRendezvousManager {
 				break;
 			}
 		}
-		return new MapPointInstance((int) ((double) totalX / counter),
-				(int) ((double) totalY / counter));
+		return new MapPointInstance((int) ((double) totalX / counter), (int) ((double) totalY / counter));
 	}
 
 	public static MapPoint getArmyMedianPoint() {

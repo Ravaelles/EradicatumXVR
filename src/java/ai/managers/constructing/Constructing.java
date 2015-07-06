@@ -42,7 +42,7 @@ public class Constructing {
 
 		// Check if build tile is okay.
 		if (buildTile != null && !isConstructionDuplicated(building)) {
-			Painter.message(xvr, "Construct: " + building.name());
+			// Painter.message(xvr, "Construct: " + building.name());
 			constructBuilding(building, buildTile);
 		}
 	}
@@ -81,13 +81,12 @@ public class Constructing {
 	// }
 
 	private static void issueBuildOrder(Unit builder, MapPoint buildTile, UnitTypes building) {
-		xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(),
-				building.ordinal());
+		xvr.getBwapi().build(builder.getID(), buildTile.getTx(), buildTile.getTy(), building.ordinal());
 		ConstructingHelper.addInfoAboutConstruction(building, builder, buildTile);
 	}
 
-	public static MapPoint getLegitTileToBuildNear(UnitTypes buildingType, MapPoint point,
-			int minSearchRadius, int maxSearchRadius) {
+	public static MapPoint getLegitTileToBuildNear(UnitTypes buildingType, MapPoint point, int minSearchRadius,
+			int maxSearchRadius) {
 		UnitType type = buildingType.getType();
 
 		boolean isSpecialBuilding = type.isBase() || type.isBunker() || type.isRefinery();
@@ -217,12 +216,11 @@ public class Constructing {
 		}
 
 		if (buildTile == null && !disableReportOfNoPlaceFound) {
-			System.out.println("# No tile found for: " + building.getType().getName()
-					+ " // error: " + ConstructionPlaceFinder.lastError + " // search radius: "
-					+ ConstructionPlaceFinder.lastRadius);
+			System.out.println("# No tile found for: " + building.getType().getName() + " // error: "
+					+ ConstructionPlaceFinder.lastError + " // search radius: " + ConstructionPlaceFinder.lastRadius);
 		} else {
-			System.out.println(building.name() + ": " + buildTile + " // search radius: "
-					+ ConstructionPlaceFinder.lastRadius);
+			// System.out.println(building.name() + ": " + buildTile + " // search radius: "
+			// + ConstructionPlaceFinder.lastRadius);
 		}
 
 		return buildTile;
@@ -246,19 +244,16 @@ public class Constructing {
 			return null;
 		}
 
-		MapPoint tile = Constructing.getLegitTileToBuildNear(typeToBuild, base.translate(96, 0), 6,
-				MAX_SEARCH_RANGE);
+		MapPoint tile = Constructing.getLegitTileToBuildNear(typeToBuild, base.translate(96, 0), 6, MAX_SEARCH_RANGE);
 
 		return tile;
 	}
 
 	/**
-	 * @return if we need to build some building it will return non-null value,
-	 *         being int array containing three elements: first is total amount
-	 *         of minerals required all buildings that we need to build, while
-	 *         second is total amount of gas required and third returns total
-	 *         number of building types that we want to build. If we don't need
-	 *         to build anything right now it returns null
+	 * @return if we need to build some building it will return non-null value, being int array containing three
+	 *         elements: first is total amount of minerals required all buildings that we need to build, while second is
+	 *         total amount of gas required and third returns total number of building types that we want to build. If
+	 *         we don't need to build anything right now it returns null
 	 * */
 	public static int[] shouldBuildAnyBuilding() {
 		int mineralsRequired = 0;
@@ -324,13 +319,11 @@ public class Constructing {
 	}
 
 	public static MapPoint findBuildTile(int builderID, int buildingTypeID, int x, int y) {
-		MapPoint tileToBuild = findTileForStandardBuilding(UnitType
-				.getUnitTypesByID(buildingTypeID));
+		MapPoint tileToBuild = findTileForStandardBuilding(UnitType.getUnitTypesByID(buildingTypeID));
 
 		if (tileToBuild == null) {
 			JNIBWAPI bwapi = xvr.getBwapi();
-			bwapi.printText("Unable to find tile for new "
-					+ bwapi.getUnitType(buildingTypeID).getName());
+			bwapi.printText("Unable to find tile for new " + bwapi.getUnitType(buildingTypeID).getName());
 		}
 		return tileToBuild;
 	}
@@ -369,8 +362,7 @@ public class Constructing {
 	// maximumDist);
 	// }
 
-	public static boolean isBuildTileFullyBuildableFor(int builderID, int i, int j,
-			int buildingTypeID) {
+	public static boolean isBuildTileFullyBuildableFor(int builderID, int i, int j, int buildingTypeID) {
 		UnitType buildingType = UnitType.getUnitTypeByID(buildingTypeID);
 		int wHalf = buildingType.getTileWidth() / 2;
 		int hHalf = buildingType.getTileHeight() / 2;

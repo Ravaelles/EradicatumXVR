@@ -25,7 +25,7 @@ public class StrategyManager {
 	// private static final int MINIMUM_NON_INITIAL_ARMY_TO_PUSH = 25;
 	public static final int MIN_TANKS_TO_ATTACK = 10;
 	public static int MIN_BATTLE_UNITS_TO_ATTACK = 26;
-	private static final double MOVE_FORWARD_SPEED = 0.2;
+	private static final double MOVE_FORWARD_SPEED = 0.3;
 
 	// private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 20;
 	// public static final int INITIAL_MIN_UNITS = 1;
@@ -34,8 +34,7 @@ public class StrategyManager {
 	// =========================================================
 
 	/**
-	 * It means we are NOT ready to attack the enemy, because we suck pretty
-	 * badly.
+	 * It means we are NOT ready to attack the enemy, because we suck pretty badly.
 	 */
 	private static final int STATE_PEACE = 5;
 
@@ -51,25 +50,20 @@ public class StrategyManager {
 	// =====================================================
 
 	/**
-	 * Current state of attack. Only allowed values are constants of this class
-	 * that are prefixed with STATE_XXX.
+	 * Current state of attack. Only allowed values are constants of this class that are prefixed with STATE_XXX.
 	 */
 	private static int currentState = STATE_PEACE;
 
 	/**
-	 * If we are ready to attack it represents pixel coordinates of place, where
-	 * our units will move with "Attack" order. It represents place, not the
-	 * specific Unit. Units are supposed to attack the neighborhood of this
-	 * point.
+	 * If we are ready to attack it represents pixel coordinates of place, where our units will move with "Attack"
+	 * order. It represents place, not the specific Unit. Units are supposed to attack the neighborhood of this point.
 	 */
 	private static MapPoint _attackPoint;
 
 	/**
-	 * If we are ready to attack it represents the unit that is the focus of our
-	 * armies. Based upon this variable _attackPoint will be defined. If this
-	 * value is null it means that we have destroyed this unit/building and
-	 * should find next target, so basically it should be almost always
-	 * non-null.
+	 * If we are ready to attack it represents the unit that is the focus of our armies. Based upon this variable
+	 * _attackPoint will be defined. If this value is null it means that we have destroyed this unit/building and should
+	 * find next target, so basically it should be almost always non-null.
 	 */
 	private static Unit _attackTargetUnit;
 
@@ -91,8 +85,8 @@ public class StrategyManager {
 	// ====================================================
 
 	/**
-	 * Decide if full attack makes sense or if we're already attacking decide
-	 * whether to retreat, continue attack or to change target.
+	 * Decide if full attack makes sense or if we're already attacking decide whether to retreat, continue attack or to
+	 * change target.
 	 */
 	public static void evaluateMassiveAttackOptions() {
 
@@ -236,8 +230,7 @@ public class StrategyManager {
 			if (base == null) {
 				return;
 			}
-			target = xvr.getUnitFarestFromList(base.getX(), base.getY(), enemyBuildings, true,
-					false);
+			target = xvr.getUnitFarestFromList(base.getX(), base.getY(), enemyBuildings, true, false);
 			// target = xvr.getUnitNearestFromList(base.getX(), base.getY(),
 			// enemyBuildings, true,
 			// false);

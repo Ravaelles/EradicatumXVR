@@ -67,8 +67,7 @@ public class TerranFactory {
 		// 25);
 		boolean isEnoughFreeResources = freeMinerals >= 75;
 		boolean isLotOfResourcesFree = freeMinerals >= 500;
-		if (buildingQueueDetails == null || isEnoughFreeResources || isCriticallyFewVultures
-				|| isLotOfResourcesFree) {
+		if (buildingQueueDetails == null || isEnoughFreeResources || isCriticallyFewVultures || isLotOfResourcesFree) {
 			if (facility.getTrainingQueueSize() == 0 || facility.getRemainingTrainTime() <= 5) {
 				xvr.buildUnit(facility, defineUnitToBuild(freeMinerals, freeGas));
 			}
@@ -79,14 +78,18 @@ public class TerranFactory {
 		int factories = UnitCounter.getNumberOfUnits(buildingType);
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
 
+		if (!xvr.canAfford(200, 100)) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		if (!xvr.canAfford(75) || battleUnits < 4) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		// =========================================================
 
-		if (TerranFactory.ONLY_TANKS && factories >= 1 && getOneNotBusy() == null
-				&& !xvr.canAfford(340, 190) && TerranSiegeTank.getNumberOfUnits() < 1) {
+		if (TerranFactory.ONLY_TANKS && factories >= 1 && getOneNotBusy() == null && !xvr.canAfford(340, 190)
+				&& TerranSiegeTank.getNumberOfUnits() < 1) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
@@ -258,9 +261,7 @@ public class TerranFactory {
 		}
 
 		// GOLIATH
-		if (freeGas >= 50
-				&& notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage,
-						totalRatio)) {
+		if (freeGas >= 50 && notEnoughPercentOf(goliathsPercentage, totalVehicles, goliathsPercentage, totalRatio)) {
 			return GOLIATH;
 		}
 
@@ -301,8 +302,8 @@ public class TerranFactory {
 		// return null;
 	}
 
-	private static boolean notEnoughPercentOf(int vehiclesOfThisType, int totalVehicles,
-			int minPercentInArmy, int totalOfPercentage) {
+	private static boolean notEnoughPercentOf(int vehiclesOfThisType, int totalVehicles, int minPercentInArmy,
+			int totalOfPercentage) {
 		double percentOfVehicles = (double) vehiclesOfThisType / totalVehicles;
 		double minPercentOfVehicles = (double) minPercentInArmy / totalOfPercentage;
 		if (percentOfVehicles < minPercentOfVehicles) {

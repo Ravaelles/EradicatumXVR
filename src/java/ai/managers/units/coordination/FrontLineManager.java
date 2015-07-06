@@ -14,19 +14,19 @@ public class FrontLineManager {
 	public static final int MODE_FRONT_GUARD = 8;
 	public static final int MODE_VANGUARD = 15;
 
-	private static final double VANGUARD_SEPARATION_DISTANCE = 4;
+	private static final double VANGUARD_SEPARATION_DISTANCE = 4.6;
 	private static boolean DISPLAY_DEBUG = false;
 
 	// =========================================================
 
 	public static void actOffensively(Unit unit) {
-		int mode = defineFrontModeForUnit(unit);
-
-		if (mode == MODE_VANGUARD) {
-			actInBack(unit);
-		} else {
-			actInFront(unit);
-		}
+		// int mode = defineFrontModeForUnit(unit);
+		//
+		// if (mode == MODE_VANGUARD) {
+		// actInBack(unit);
+		// } else {
+		actInFront(unit);
+		// }
 	}
 
 	// =========================================================
@@ -86,8 +86,7 @@ public class FrontLineManager {
 		double allowedMaxDistance = StrategyManager.getAllowedDistanceFromSafePoint();
 		MapPoint defensivePoint = ArmyRendezvousManager.getDefensivePointForTanks();
 		double distanceToDefensivePoint = defensivePoint.distanceTo(unit);
-		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 8
-				&& isFarFromSafePoint(unit)) {
+		if (distanceToDefensivePoint > allowedMaxDistance && distanceToDefensivePoint > 8 && isFarFromSafePoint(unit)) {
 			// int tanksNear = xvr.countUnitsOfGivenTypeInRadius(
 			// UnitTypes.Terran_Siege_Tank_Siege_Mode, maxDistToTanks, unit,
 			// true)
@@ -109,8 +108,7 @@ public class FrontLineManager {
 	// =========================================================
 
 	private static void handleDontSeparateTooMuch(Unit unit) {
-		boolean enoughTanksNearby = xvr.countTanksOurInRadius(unit, 5) >= 2
-				|| xvr.countTanksOurInRadius(unit, 6) >= 3;
+		boolean enoughTanksNearby = xvr.countTanksOurInRadius(unit, 6) >= 2 || xvr.countTanksOurInRadius(unit, 7) >= 3;
 		if (!enoughTanksNearby) {
 			// Unit rendezvousTank = xvr.getNearestTankTo(unit);
 			MapPoint rendezvousTank = ArmyRendezvousManager.getRendezvousTankForGroundUnits();
@@ -124,8 +122,7 @@ public class FrontLineManager {
 	}
 
 	private static void handleTankMoveForward(Unit unit, MapPoint offensivePoint) {
-		if (unit.isSieged() && unit.getGroundWeaponCooldown() < 1
-				&& xvr.getEnemyNearestTo(unit, true, false) == null) {
+		if (unit.isSieged() && unit.getGroundWeaponCooldown() < 1 && xvr.getEnemyNearestTo(unit, true, false) == null) {
 			unit.unsiege();
 		}
 	}
@@ -137,8 +134,7 @@ public class FrontLineManager {
 		UnitActions.attackTo(unit, offensivePoint);
 	}
 
-	private static void handleKeepTheFrontLine(Unit unit, MapPoint offensivePoint,
-			double maxDistBonus, int mode) {
+	private static void handleKeepTheFrontLine(Unit unit, MapPoint offensivePoint, double maxDistBonus, int mode) {
 
 		// =========================================================
 		// Unit has advanced, but is too far behind the front line.
@@ -148,7 +144,7 @@ public class FrontLineManager {
 	}
 
 	private static boolean isUnitOutOfLine(Unit unit) {
-		double manyUnitsBonus = Math.max(3, xvr.countUnitsOursInRadius(unit, 2.8) / 1.7);
+		double manyUnitsBonus = Math.max(8, xvr.countUnitsOursInRadius(unit, 4) / 0.9);
 		double maxDistToTanks = 3.3 + manyUnitsBonus;
 
 		// =========================================================
@@ -158,7 +154,7 @@ public class FrontLineManager {
 
 			// Ensure that unit isn't foo far only because the units are very
 			// stacked
-			if (xvr.countUnitsOursInRadius(unit, 4.2) >= 9) {
+			if (xvr.countUnitsOursInRadius(unit, 5) >= 6) {
 				return false;
 			} else {
 				return true;
@@ -196,8 +192,7 @@ public class FrontLineManager {
 			return;
 		}
 
-		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager
-				.getRendezvousTankForGroundUnits();
+		MapPoint rendezvousTankForGroundUnits = ArmyRendezvousManager.getRendezvousTankForGroundUnits();
 
 		double minDistToTanks = 2.5;
 		double maxDistToTanks = 5.5;
@@ -240,8 +235,7 @@ public class FrontLineManager {
 
 	private static boolean trySpreadingOutIfNeeded(Unit unit, MapPoint offensivePoint) {
 		if (offensivePoint == null
-				|| (offensivePoint.distanceTo(unit) < 4.9 && xvr.countUnitsOursInRadius(
-						offensivePoint, 3) >= 9)) {
+				|| (offensivePoint.distanceTo(unit) < 4.9 && xvr.countUnitsOursInRadius(offensivePoint, 3) >= 9)) {
 			UnitActions.spreadOutRandomly(unit);
 			return true;
 		}

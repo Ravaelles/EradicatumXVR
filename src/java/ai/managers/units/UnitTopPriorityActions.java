@@ -18,8 +18,8 @@ public class UnitTopPriorityActions {
 	protected static boolean tryTopPriorityActions(Unit unit) {
 
 		// Disallow units to move close to the defensive buildings
-		if (!UnitManager._forceSpreadOut
-				&& ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)) {
+		if (!UnitManager._forceSpreadOut && ArmyUnitBasicBehavior.tryRunningFromCloseDefensiveBuilding(unit)
+				&& !StrategyManager.isGlobalAttackActive()) {
 			return true;
 		}
 
