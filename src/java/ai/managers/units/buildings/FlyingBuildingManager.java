@@ -15,7 +15,7 @@ import ai.terran.TerranSiegeTank;
 
 public class FlyingBuildingManager {
 
-	private static final double MAX_ALLOWED_DIST_FROM_TANK = 5.5;
+	private static final double MAX_ALLOWED_DIST_FROM_TANK = 7.5;
 	private static XVR xvr = XVR.getInstance();
 	private static Unit flyingBuilding1 = null;
 	private static Unit flyingBuilding2 = null;
@@ -54,10 +54,8 @@ public class FlyingBuildingManager {
 	// =========================================================
 
 	private static boolean shouldHaveFlyingBuilding1() {
-		return (UnitCounter.getNumberOfInfantryUnitsCompleted() >= 4 || TerranSiegeTank
-				.getNumberOfUnitsCompleted() >= 1)
-				&& TerranBarracks.MAX_BARRACKS >= 1
-				&& TerranBarracks.getOneNotBusy() != null;
+		return (UnitCounter.getNumberOfInfantryUnitsCompleted() >= 4 || TerranSiegeTank.getNumberOfUnitsCompleted() >= 1)
+				&& TerranBarracks.MAX_BARRACKS >= 1 && TerranBarracks.getOneNotBusy() != null;
 	}
 
 	private static boolean shouldHaveFlyingBuilding2() {
@@ -76,10 +74,9 @@ public class FlyingBuildingManager {
 			}
 
 			// If building is close to tank
-			double maxDistanceBonus = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 8,
-					flyingBuilding, true) > 0 ? 3 : 0;
-			if (medianTank.distanceTo(flyingBuilding) < MAX_ALLOWED_DIST_FROM_TANK
-					+ maxDistanceBonus) {
+			double maxDistanceBonus = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 8, flyingBuilding,
+					true) > 0 ? 3 : 0;
+			if (medianTank.distanceTo(flyingBuilding) < MAX_ALLOWED_DIST_FROM_TANK + maxDistanceBonus) {
 				if (MapExploration.getNumberOfKnownEnemyBases() > 0) {
 					Unit enemyBuilding = MapExploration.getNearestEnemyBuilding();
 					UnitActions.moveTo(flyingBuilding, enemyBuilding);
