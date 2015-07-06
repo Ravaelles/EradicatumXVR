@@ -67,9 +67,11 @@ public class UnitActions {
 	}
 
 	public static void repair(Unit worker, Unit unitToRepair) {
-		if (worker != null && unitToRepair != null) {
-			xvr.getBwapi().repair(worker.getID(), unitToRepair.getID());
-			worker.setAiOrder("Repair " + unitToRepair.getName());
+		if (xvr.canAfford(5)) {
+			if (worker != null && unitToRepair != null) {
+				xvr.getBwapi().repair(worker.getID(), unitToRepair.getID());
+				worker.setAiOrder("Repair " + unitToRepair.getName());
+			}
 		}
 	}
 
@@ -138,8 +140,23 @@ public class UnitActions {
 	}
 
 	public static void spreadOutRandomly(Unit unit) {
+
+		// =========================================================
+		// Vs. XIMP
+
+		// if (TerranFactory.ONLY_TANKS && xvr.getTimeSeconds() < 490) {
+		// return;
+		// }
+
+		// =========================================================
+
 		if (unit.isLoaded()) {
 			unit.unload();
+			return;
+		}
+
+		if (unit.isSieged() && unit.getGroundWeaponCooldown() < 1) {
+			unit.unsiege();
 			return;
 		}
 
@@ -151,7 +168,7 @@ public class UnitActions {
 		unit.setAiOrder("Spreading out");
 
 		// Act when enemy detector is nearby, run away
-		if (!StrategyManager.isAttackPending()
+		if (!StrategyManager.isGlobalAttackActive()
 				&& (xvr.isEnemyDetectorNear(unit.getX(), unit.getY()) || xvr
 						.isEnemyDefensiveGroundBuildingNear(unit))) {
 			Unit goTo = xvr.getLastBase();
@@ -297,7 +314,7 @@ public class UnitActions {
 
 		// If there's massive attack and unit has more than 60% of initial
 		// shields, we treat it as healthy, as there's nothing to do about it.
-		if (StrategyManager.isAttackPending()) {
+		if (StrategyManager.isGlobalAttackActive()) {
 			if (!isImportantUnit && currHP >= 0.6 * maxHP) {
 				return false;
 			}
@@ -393,9 +410,9 @@ public class UnitActions {
 	}
 
 	public static void repairThisUnit(Unit unit) {
-		if (unit.getType().isVulture()) {
-			return;
-		}
+		// if (unit.getType().isVulture()) {
+		// return;
+		// }
 
 		Unit repairer = xvr.getOptimalBuilder(unit);
 		if (unit == null || repairer == null) {

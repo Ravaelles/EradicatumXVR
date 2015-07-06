@@ -8,9 +8,9 @@ import ai.core.XVR;
 import ai.handling.army.TargetHandling;
 import ai.handling.map.MapExploration;
 import ai.handling.map.MapPoint;
+import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitCounter;
 import ai.managers.units.coordination.ArmyRendezvousManager;
-import ai.terran.TerranMedic;
 import ai.terran.TerranSiegeTank;
 
 public class StrategyManager {
@@ -23,13 +23,18 @@ public class StrategyManager {
 
 	// private static final int MINIMUM_INITIAL_ARMY_TO_PUSH_ONE_TIME = 5;
 	// private static final int MINIMUM_NON_INITIAL_ARMY_TO_PUSH = 25;
-	private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 20;
-	public static final int INITIAL_MIN_UNITS = 1;
+	public static final int MIN_TANKS_TO_ATTACK = 10;
+	public static int MIN_BATTLE_UNITS_TO_ATTACK = 26;
+	private static final double MOVE_FORWARD_SPEED = 0.3;
+
+	// private static final int MINIMUM_THRESHOLD_ARMY_TO_PUSH = 20;
+	// public static final int INITIAL_MIN_UNITS = 1;
 	// private static final int MINIMUM_ARMY_PSI_USED_THRESHOLD = 75;
 
+	// =========================================================
+
 	/**
-	 * It means we are NOT ready to attack the enemy, because we suck pretty
-	 * badly.
+	 * It means we are NOT ready to attack the enemy, because we suck pretty badly.
 	 */
 	private static final int STATE_PEACE = 5;
 
@@ -45,25 +50,20 @@ public class StrategyManager {
 	// =====================================================
 
 	/**
-	 * Current state of attack. Only allowed values are constants of this class
-	 * that are prefixed with STATE_XXX.
+	 * Current state of attack. Only allowed values are constants of this class that are prefixed with STATE_XXX.
 	 */
 	private static int currentState = STATE_PEACE;
 
 	/**
-	 * If we are ready to attack it represents pixel coordinates of place, where
-	 * our units will move with "Attack" order. It represents place, not the
-	 * specific Unit. Units are supposed to attack the neighborhood of this
-	 * point.
+	 * If we are ready to attack it represents pixel coordinates of place, where our units will move with "Attack"
+	 * order. It represents place, not the specific Unit. Units are supposed to attack the neighborhood of this point.
 	 */
 	private static MapPoint _attackPoint;
 
 	/**
-	 * If we are ready to attack it represents the unit that is the focus of our
-	 * armies. Based upon this variable _attackPoint will be defined. If this
-	 * value is null it means that we have destroyed this unit/building and
-	 * should find next target, so basically it should be almost always
-	 * non-null.
+	 * If we are ready to attack it represents the unit that is the focus of our armies. Based upon this variable
+	 * _attackPoint will be defined. If this value is null it means that we have destroyed this unit/building and should
+	 * find next target, so basically it should be almost always non-null.
 	 */
 	private static Unit _attackTargetUnit;
 
@@ -71,16 +71,13 @@ public class StrategyManager {
 	private static int retreatsCounter = 0;
 	@SuppressWarnings("unused")
 	private static final int EXTRA_UNITS_PER_RETREAT = 1;
-	private static final int MIN_MEDICS = 3;
-	private static final int MIN_TANKS = 12;
 
-	private static int _minBattleUnits = INITIAL_MIN_UNITS;
+	private static int _minBattleUnits = MIN_BATTLE_UNITS_TO_ATTACK;
 	private static int _lastTimeWaitCalled = 0;
 
 	private static double allowedDistanceFromSafePoint = 0;
 	private static int _lastTimeDistancePenalty = 0;
 
-	private static final double STEP_DISTANCE_WHEN_ATTACK_PENDING = 0.21;
 	private static final int MINIMAL_DISTANCE_FROM_SAFE_POINT = 3;
 
 	// private static boolean pushedInitially = false;
@@ -88,8 +85,8 @@ public class StrategyManager {
 	// ====================================================
 
 	/**
-	 * Decide if full attack makes sense or if we're already attacking decide
-	 * whether to retreat, continue attack or to change target.
+	 * Decide if full attack makes sense or if we're already attacking decide whether to retreat, continue attack or to
+	 * change target.
 	 */
 	public static void evaluateMassiveAttackOptions() {
 
@@ -101,49 +98,39 @@ public class StrategyManager {
 		}
 
 		// Currently we are nor attacking, nor retreating.
-		if (!isAnyAttackFormPending()) {
+		if (!isGlobalAttackInProgress()) {
 			decisionWhenNotAttacking();
 		}
 
 		// We are either attacking or retreating.
-		if (isAnyAttackFormPending()) {
-			allowedDistanceFromSafePoint += STEP_DISTANCE_WHEN_ATTACK_PENDING;
+		else {
+			allowedDistanceFromSafePoint += MOVE_FORWARD_SPEED;
 			decisionWhenAttacking();
 		}
 	}
 
 	private static boolean decideIfWeAreReadyToAttack() {
-		int battleUnits = UnitCounter.getNumberOfBattleUnitsCompleted();
-		int minUnits = calculateMinimumUnitsToAttack();
+		boolean haveEnoughTanks = TerranSiegeTank.getNumberOfUnitsCompleted() >= MIN_TANKS_TO_ATTACK;
+		boolean haveEnoughBattleUnits = UnitCounter.getNumberOfBattleUnitsCompleted() >= MIN_BATTLE_UNITS_TO_ATTACK;
 
-		if (battleUnits > minUnits) {
+		if (haveEnoughTanks || haveEnoughBattleUnits) {
 			return true;
 		}
 
-		boolean haveEnoughMedics = TerranMedic.getNumberOfUnitsCompleted() >= MIN_MEDICS;
-		boolean haveEnoughTanks = TerranSiegeTank.getNumberOfUnitsCompleted() >= MIN_TANKS;
+		// =========================================================
+		// Try fancy cases
 
-		if (haveEnoughMedics && haveEnoughTanks && battleUnits >= minUnits || _minBattleUnits <= 5) {
+		// Look if it's early game and we have decisive advantage
+		if (StrengthComparison.getEnemySupply() <= 10 && StrengthComparison.getOurSupply() >= 20) {
 			return true;
-		} else {
-			boolean weAreReady = (battleUnits >= minUnits * 0.35) && isAnyAttackFormPending();
-
-			if (battleUnits > MINIMUM_THRESHOLD_ARMY_TO_PUSH) {
-				weAreReady = true;
-			}
-
-			return weAreReady;
 		}
+
+		// =========================================================
+
+		return false;
 	}
 
 	// =========================================================
-
-	public static int calculateMinimumUnitsToAttack() {
-		return getMinBattleUnits();
-		// return getMinBattleUnits() + retreatsCounter *
-		// EXTRA_UNITS_PER_RETREAT
-		// + (retreatsCounter >= 2 ? retreatsCounter * 2 : 0);
-	}
 
 	private static void decisionWhenNotAttacking() {
 
@@ -151,10 +138,15 @@ public class StrategyManager {
 		// enemy.
 		boolean shouldAttack = decideIfWeAreReadyToAttack();
 
+		// =========================================================
+
 		// If we should attack, change the status correspondingly.
 		if (shouldAttack) {
 			changeStateTo(STATE_NEW_ATTACK);
-		} else {
+		}
+
+		// Keep defensive stance
+		else {
 			armyIsNotReadyToAttack();
 		}
 	}
@@ -180,7 +172,7 @@ public class StrategyManager {
 		}
 
 		// Attack is pending, it's quite "regular" situation.
-		if (isAttackPending()) {
+		if (isGlobalAttackInProgress()) {
 
 			// Now we surely have defined our point where to attack, but it can
 			// be so, that the unit which was the target has been destroyed
@@ -205,11 +197,7 @@ public class StrategyManager {
 		}
 	}
 
-	public static void forceRedefinitionOfNextTarget() {
-		_attackPoint = null;
-		_attackTargetUnit = null;
-		defineNextTarget();
-	}
+	// =========================================================
 
 	private static void defineNextTarget() {
 		Unit target = TargetHandling.getImportantEnemyUnitTargetIfPossibleFor(
@@ -242,8 +230,10 @@ public class StrategyManager {
 			if (base == null) {
 				return;
 			}
-			target = xvr.getUnitNearestFromList(base.getX(), base.getY(), enemyBuildings, true,
-					false);
+			target = xvr.getUnitFarestFromList(base.getX(), base.getY(), enemyBuildings, true, false);
+			// target = xvr.getUnitNearestFromList(base.getX(), base.getY(),
+			// enemyBuildings, true,
+			// false);
 		}
 
 		// Update the target.
@@ -268,35 +258,23 @@ public class StrategyManager {
 		// System.out.println();
 	}
 
+	// =========================================================
+
+	public static int calculateMinimumUnitsToAttack() {
+		return getMinBattleUnits();
+		// return getMinBattleUnits() + retreatsCounter *
+		// EXTRA_UNITS_PER_RETREAT
+		// + (retreatsCounter >= 2 ? retreatsCounter * 2 : 0);
+	}
+
+	public static void forceRedefinitionOfNextTarget() {
+		_attackPoint = null;
+		_attackTargetUnit = null;
+		defineNextTarget();
+	}
+
 	private static void updateTargetPosition() {
 		_attackPoint = _attackTargetUnit;
-	}
-
-	private static void retreat() {
-		changeStateTo(STATE_PEACE);
-	}
-
-	private static void changeStateTo(int newState) {
-		currentState = newState;
-		if (currentState == STATE_PEACE || currentState == STATE_NEW_ATTACK) {
-			armyIsNotReadyToAttack();
-		}
-	}
-
-	public static boolean isAnyAttackFormPending() {
-		return currentState != STATE_PEACE;
-	}
-
-	private static boolean isNewAttackState() {
-		return currentState == STATE_NEW_ATTACK;
-	}
-
-	public static boolean isAttackPending() {
-		return currentState == STATE_ATTACK_PENDING;
-	}
-
-	public static boolean isRetreatNecessary() {
-		return currentState == STATE_RETREAT;
 	}
 
 	public static boolean isSomethingToAttackDefined() {
@@ -396,10 +374,44 @@ public class StrategyManager {
 		if (now - _lastTimeDistancePenalty >= 2) {
 			_lastTimeDistancePenalty = now;
 
-			allowedDistanceFromSafePoint -= STEP_DISTANCE_WHEN_ATTACK_PENDING;
+			allowedDistanceFromSafePoint -= MOVE_FORWARD_SPEED;
 			if (allowedDistanceFromSafePoint < MINIMAL_DISTANCE_FROM_SAFE_POINT) {
 				allowedDistanceFromSafePoint = MINIMAL_DISTANCE_FROM_SAFE_POINT;
 			}
 		}
 	}
+
+	// =========================================================
+
+	private static void retreat() {
+		changeStateTo(STATE_PEACE);
+	}
+
+	private static void changeStateTo(int newState) {
+		currentState = newState;
+		if (currentState == STATE_PEACE || currentState == STATE_NEW_ATTACK) {
+			armyIsNotReadyToAttack();
+		}
+	}
+
+	public static boolean isGlobalAttackInProgress() {
+		return currentState != STATE_PEACE;
+	}
+
+	public static boolean isGlobalAttackActive() {
+		return currentState == STATE_ATTACK_PENDING;
+	}
+
+	// public static boolean isGlobalAttackPending() {
+	// return currentState != STATE_PEACE;
+	// }
+
+	private static boolean isNewAttackState() {
+		return currentState == STATE_NEW_ATTACK;
+	}
+
+	public static boolean isRetreatNecessary() {
+		return currentState == STATE_RETREAT;
+	}
+
 }

@@ -71,6 +71,12 @@ public class BuildingRepairManager {
 					repairBuilding(repairer, building);
 				}
 			}
+
+			for (Unit worker : xvr.getWorkers()) {
+				if (WorkerManager.isProfessionalRepairer(worker) && !worker.isRepairing()) {
+					repairBuilding(worker, building);
+				}
+			}
 		}
 	}
 

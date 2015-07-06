@@ -9,6 +9,7 @@ import ai.handling.units.UnitCounter;
 import ai.terran.TerranAcademy;
 import ai.terran.TerranArmory;
 import ai.terran.TerranCommandCenter;
+import ai.terran.TerranFactory;
 import ai.terran.TerranMachineShop;
 import ai.terran.TerranSiegeTank;
 
@@ -54,20 +55,23 @@ public class TechnologyManager {
 		boolean isPossibleSpiderResearch = isResearchPossible(SPIDER_MINES);
 
 		// Spider Mines
-		technology = SPIDER_MINES;
-		boolean spiderMinesResearchBonus = (PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE ? (xvr.canAfford(
-				170, 100)) : false);
-		if (isPossibleSpiderResearch
-				&& (!PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE || !isPossibleSiegeResearch)
-				&& (vultures >= 1 || spiderMinesResearchBonus)) {
-			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
+		if (!TechnologyManager.DISABLE_MINES) {
+			technology = SPIDER_MINES;
+			boolean spiderMinesResearchBonus = (PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE ? (xvr
+					.canAfford(170, 100)) : false);
+			if (isPossibleSpiderResearch
+					&& (!PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE || !isPossibleSiegeResearch)
+					&& (vultures >= 1 || spiderMinesResearchBonus)) {
+				tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
+			}
 		}
 
 		// Tank Siege Mode
 		technology = TANK_SIEGE_MODE;
 		if (isPossibleSiegeResearch
-				&& (PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE && !isPossibleSpiderResearch
-						|| TerranSiegeTank.getNumberOfUnits() >= 2 || DISABLE_MINES)) {
+				&& TerranSiegeTank.getNumberOfUnits() > 0
+				&& ((PRIORITY_FOR_SPIDER_MINES_OVER_SIEGE && !isPossibleSpiderResearch
+						|| TerranSiegeTank.getNumberOfUnits() >= 2 || DISABLE_MINES) || TerranFactory.ONLY_TANKS)) {
 			tryToResearch(TerranMachineShop.getOneNotBusy(), technology);
 		}
 

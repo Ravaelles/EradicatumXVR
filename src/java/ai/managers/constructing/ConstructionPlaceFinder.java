@@ -18,55 +18,99 @@ import ai.terran.TerranSupplyDepot;
 
 public class ConstructionPlaceFinder {
 
-	private static XVR xvr = XVR.getInstance();
+	private static final String SUCCESS = "SUCCESS";
+	private static final String ERROR_TOO_NEAR_MINERALS_OR_GEYSER = "TOO_NEAR_MINERALS_OR_GEYSER";
+	private static final String ERROR_NOT_ENOUGH_PLACE_TO_OTHER_BUILDINGS = "NOT_ENOUGH_PLACE_TO_OTHER_BUILDINGS";
+	private static final String ERROR_OVERLAPS_NEXT_BASE = "OVERLAPS_NEXT_BASE";
+	private static final String ERROR_TOO_CLOSE_TO_CHOKEPOINT = "TOO_CLOSE_TO_CHOKEPOINT";
+	private static final String ERROR_INVALID_REGION = "INVALID_REGION";
 
 	// =========================================================
 
-	public static MapPoint shouldBuildHere(UnitType type, int i, int j) {
+	protected static String lastError = null;
+	protected static int lastRadius = -1;
+
+	// =========================================================
+
+	public static MapPoint shouldBuildHere(UnitType type, int tileX, int tileY) {
 		boolean isBase = type.isBase();
-		boolean isDepot = type.isSupplyDepot();
+		// boolean isDepot = type.isSupplyDepot();
 
 		boolean skipCheckingIsFreeFromUnits = false;
-		boolean skipCheckingRegion = xvr.getTimeSeconds() > 250 || isBase || type.isBunker()
+		boolean skipCheckingRegion = xvr.getTimeSeconds() > 380 || isBase || type.isBunker()
 				|| type.isMissileTurret() || type.isAddon();
 
 		// =========================================================
 
-		// if (isDepot && (j % 2 != 0 || j % 6 == 0)) {
-		// continue;
-		// }
-		int x = i * 32;
-		int y = j * 32;
+		// int buildingPixelWidth = type.getDimensionLeft() +
+		// type.getDimensionRight();
+		// int buildingPixelHeight = type.getDimensionUp() +
+		// type.getDimensionDown();
+		int x = tileX * 32;
+		int y = tileY * 32;
+		// int x = tileX * 32 - buildingPixelWidth / 2;
+		// int y = tileY * 32 - buildingPixelHeight / 2;
 		MapPointInstance place = new MapPointInstance(x, y);
 
-		// Is it physically possibly to build here?
+		// Is it physically possible to build here?
 		if (canBuildAt(place, type)) {
 
 			// If it's possible to build here, now check whether it
 			// makes sense. If it's not in stupid place or colliding
 			// etc.
-			Unit builderUnit = xvr.getRandomWorker();
+			Unit builderUnit = xvr.getNearestWorkerTo(place);
 			if (builderUnit != null
-					&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(
-							builderUnit.getID(), i, j))) {
+					&& (skipCheckingIsFreeFromUnits || isBuildTileFreeFromUnits(type,
+							builderUnit.getID(), tileX, tileY))) {
+
+				// if ((isBase || !isTooNearMineralsOrGeyser(type, place))
+				// && (isBase || isEnoughPlaceToOtherBuildings(place, type))
+				// && (isBase || !isOverlappingNextBase(place, type))
+				// && (isBase || !isTooCloseToAnyChokePoint(place))
+				// && (isBase || skipCheckingRegion ||
+				// isInAllowedRegions(place))) {
+				// return place;
+				// }
 
 				// We should avoid building place:
 				// - between workers and minerals
-				// - right next to other building
+				// - right next to another building
 				// - in the place where next base should be built
 				// - too close to a chokepoint (passage problem)
 				// - that are in other region (wrong neighborhood)
-				if ((isBase || !isTooNearMineralsOrGeyser(type, place))
-						&& (isBase || isEnoughPlaceToOtherBuildings(place, type))
-						&& (isBase || !isOverlappingNextBase(place, type))
-						&& (isBase || !isTooCloseToAnyChokePoint(place)
-								&& (isBase || skipCheckingRegion || isInAllowedRegions(place)))) {
+
+				if (!isBase && !type.isBunker() && isTooNearMineralsOrGeyser(type, place)) {
+					lastError = ERROR_TOO_NEAR_MINERALS_OR_GEYSER;
+					return null;
+				}
+
+				if (!isBase && !isEnoughPlaceToOtherBuildings(place, type)) {
+					lastError = ERROR_NOT_ENOUGH_PLACE_TO_OTHER_BUILDINGS;
+					return null;
+				}
+
+				if (!isBase && isOverlappingNextBase(place, type)) {
+					lastError = ERROR_OVERLAPS_NEXT_BASE;
+					return null;
+				}
+
+				if (!isBase && isTooCloseToAnyChokePoint(place)) {
+					lastError = ERROR_TOO_CLOSE_TO_CHOKEPOINT;
+					return null;
+				}
+
+				if (!isBase && !skipCheckingRegion && !isInAllowedRegions(place)) {
+					lastError = ERROR_INVALID_REGION;
+					return null;
+				}
+
+				else {
 					return place;
 				}
 			}
 		}
 
-		// No place were found, return null.
+		// No place has been found, return null.
 		return null;
 	}
 
@@ -75,6 +119,12 @@ public class ConstructionPlaceFinder {
 
 	private static boolean isInAllowedRegions(MapPoint place) {
 		Region buildTileRegion = xvr.getMap().getRegion(place);
+
+		if (xvr.getFirstBase().getRegion() == null
+				|| TerranCommandCenter.getSecondBaseLocation() == null) {
+			return true;
+		}
+
 		if (buildTileRegion.equals(xvr.getFirstBase().getRegion())
 				|| buildTileRegion.equals(TerranCommandCenter.getSecondBaseLocation().getRegion())) {
 			return true;
@@ -108,125 +158,192 @@ public class ConstructionPlaceFinder {
 			if (nextBase == null) {
 				return false;
 			} else {
-				int minDistance = type.isBunker() ? 5 : 8;
-				return xvr.getDistanceSimple(place, nextBase.translate(64, 48)) <= minDistance;
+				int minDistance = type.isBunker() ? 4 : 6;
+				return xvr.getDistanceSimple(place, nextBase.translate(96, 0)) <= minDistance;
 			}
 		} else {
 			return false;
 		}
 	}
 
-	private static boolean isEnoughPlaceToOtherBuildings(MapPoint place, UnitType type) {
-		if (type.isBase() || type.isOnGeyser()) {
+	private static boolean isEnoughPlaceToOtherBuildings(MapPoint place, UnitType buildingType) {
+
+		// Base and refinery can be placed anywhere
+		if (buildingType.isBase() || buildingType.isOnGeyser()) {
 			return true;
 		}
-		// boolean isDepot = type.isSupplyDepot();
-
-		// ==============================
-		// Define building dimensions
-		int wHalf = type.getTileWidth();
-		int hHalf = type.getTileHeight();
-		int maxDimension = wHalf > hHalf ? wHalf : hHalf;
-
-		// ==============================
-		// Define center of the building
-		MapPoint center = new MapPointInstance(place.getX() + wHalf, place.getY() + hHalf);
 
 		// Define buildings that are near this build tile
-		ArrayList<Unit> buildingsNearby = xvr.getUnitsInRadius(center, 10, xvr.getUnitsBuildings());
+		ArrayList<Unit> buildingsNearby = xvr.getUnitsInRadius(place, 8, xvr.getUnitsBuildings());
 
-		// If this building can have an Add-On, it is essential we keep place
-		// for it.
-		int spaceBonus = 0;
-		if (type.canHaveAddOn()) {
-			// spaceBonus += 2;
-			center = center.translate(32, 0);
-		}
+		for (Unit otherBuilding : buildingsNearby) {
 
-		// For each building nearby define if it's not too close to this build
-		// tile. If so, reject this build tile.
-		for (Unit unit : buildingsNearby) {
-			if (unit.isLifted() || unit.isSupplyDepot() || !unit.isExists()) {
-				continue;
-			}
-
-			// Supply Depots can be really close to each other, but only if
-			// there're few of them
-			// if (isDepot
-			// && type.isSupplyDepot()
-			// &&
-			// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot,
-			// 5, place,
-			// true) <= 2
-			// &&
-			// xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot,
-			// 9, place,
-			// true) <= 3) {
+			// // Allow stacking Supply Depots
+			// if (buildingType.isSupplyDepot() &&
+			// otherBuilding.isSupplyDepot()) {
 			// continue;
 			// }
-
-			// Also: don't build in the place where there COULD BE Add-On for a
-			// different, already existing building
-			int dx = 0;
-			int bonus = spaceBonus;
-			UnitType unitType = unit.getType();
-			if (type.canHaveAddOn() && !unit.hasAddOn()) {
-				bonus++;
-				dx = 64;
-			}
-			if (unitType.isBase()) {
-				dx += 16;
-				bonus += 4;
-			}
-
-			// If this building is too close to our build tile, indicate this
-			// fact.
-			if (type.isBuilding() && !unit.isLifted()
-					&& unit.translate(dx, 0).distanceTo(center) <= maxDimension + bonus) {
+			//
+			// // Disallow stacking
+			// else {
+			// if (!canBuildAt(place.translateSafe(-1, -1), buildingType)) {
+			// return false;
+			// }
+			//
+			// if (!canBuildAt(place.translateSafe(1, 1), buildingType)) {
+			// return false;
+			// }
+			//
+			Unit builder = xvr.getNearestWorkerTo(place);
+			if (wouldNewBuildingCollideWith(place, buildingType, otherBuilding, builder)) {
 				return false;
 			}
+			// }
 		}
+
+		// No building collides, allow this building location
 		return true;
+
+		// if (type.isBase() || type.isOnGeyser()) {
+		// return true;
+		// }
+		//
+		// // ==============================
+		// // Define building dimensions
+		// int wHalf = type.getTileWidth() * 32;
+		// int hHalf = type.getTileHeight() * 32;
+		// int maxDimension = wHalf > hHalf ? wHalf : hHalf;
+		//
+		// // ==============================
+		// // Define center of the building
+		// MapPoint center = new MapPointInstance(place.getX() + wHalf,
+		// place.getY() + hHalf);
+		//
+		// // Define buildings that are near this build tile
+		// ArrayList<Unit> buildingsNearby = xvr.getUnitsInRadius(center, 8,
+		// xvr.getUnitsBuildings());
+		//
+		// // If this building can have an Add-On, it is essential we keep place
+		// // for it.
+		// int spaceBonus = 0;
+		// if (type.canHaveAddOn()) {
+		// spaceBonus += 1;
+		// center = center.translate(64, 0);
+		// }
+		//
+		// // For each building nearby define if it's not too close to this
+		// build
+		// // tile. If so, reject this build tile.
+		// for (Unit unit : buildingsNearby) {
+		// if (unit.isLifted() || unit.isSupplyDepot() || !unit.isExists()) {
+		// continue;
+		// }
+		//
+		// // Supply Depots can be really close to each other, but only if
+		// // there're few of them
+		// if (type.isSupplyDepot()
+		// && (xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Supply_Depot,
+		// 5, place,
+		// true) <= 2 || xvr.countUnitsOfGivenTypeInRadius(
+		// UnitTypes.Terran_Supply_Depot, 8, place, true) <= 3)) {
+		// continue;
+		// }
+		//
+		// // Also: don't build in the place where there COULD BE Add-On for a
+		// // different, already existing building
+		// int dx = 0;
+		// int bonus = spaceBonus;
+		// UnitType unitType = unit.getType();
+		// if (unitType.canHaveAddOn() && !unit.hasAddOn()) {
+		// // bonus++;
+		// dx = 64;
+		// }
+		// if (unitType.isBase()) {
+		// // dx += 96;
+		// bonus += 5;
+		// }
+		//
+		// // If this building is too close to our build tile, indicate this
+		// // fact.
+		// if (type.isBuilding() && !unit.isLifted()
+		// && unit.translate(dx, 0).distanceTo(center) <= maxDimension + bonus)
+		// {
+		// return false;
+		// }
+		// }
+		// return true;
 	}
 
-	public static boolean isTooNearMineralsOrGeyser(UnitType type, MapPoint point) {
-		int minDistBonus = type.canHaveAddOn() ? 2 : 0;
+	private static boolean wouldNewBuildingCollideWith(MapPoint buildingPlace,
+			UnitType buildingType, Unit existingBuilding, Unit builder) {
 
-		// Check if isn't too near to geyser
-		Unit nearestGeyser = xvr.getUnitNearestFromList(point, xvr.getGeysersUnits());
-		double distToGeyser = xvr.getDistanceBetween(nearestGeyser, point);
-		Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
-		if (distToGeyser <= 7 + minDistBonus) {
-			double distBaseToGeyser = xvr.getDistanceBetween(nearestBase, nearestGeyser);
-			if (distBaseToGeyser >= distToGeyser + minDistBonus) {
-				return false;
-			}
-		}
-
-		// ==================================
-		// Check if isn't too near to mineral
-		Unit nearestMineral = xvr.getUnitNearestFromList(point, xvr.getMineralsUnits());
-		double distToMineral = xvr.getDistanceBetween(nearestMineral, point);
-		if (distToMineral <= 7 + minDistBonus) {
-			return true;
-		}
-
-		if (distToMineral <= 10 + minDistBonus) {
-			if (nearestBase.distanceTo(point) <= 4 + minDistBonus) {
-				return false;
-			}
-
-			double distBaseToMineral = xvr.getDistanceBetween(nearestBase, nearestMineral);
-			if (distToMineral < distBaseToMineral + minDistBonus) {
+		// Consider space for add-ons
+		if (buildingType.canHaveAddOn() || existingBuilding.getType().canHaveAddOn()) {
+			if (!isPhysicallyPossibleToBuildAt(builder, buildingPlace.translate(64, 0),
+					buildingType)) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
-	public static boolean isBuildTileFreeFromUnits(int builderID, int tileX, int tileY) {
+	public static boolean isTooNearMineralsOrGeyser(UnitType type, MapPoint point) {
+		// if (type.canHaveAddOn()) {
+		// point = point.translate(64, 0);
+		// }
+		Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE, point);
+		double distToBase = nearestBase.distanceTo(point);
+
+		// =========================================================
+
+		if (type.isOnGeyser()) {
+			return false;
+		}
+
+		// =========================================================
+		// Check if isn't too near to geyser
+		// MapPoint nearestGeyser = xvr.getUnitNearestFromList(point,
+		// xvr.getGeysersUnits());
+		// if (nearestGeyser != null) {
+		// if (distToBase <= 6 && nearestGeyser.distanceTo(point) <= 4.9) {
+		// return true;
+		// }
+		// }
+
+		// Unit nearestBase = xvr.getUnitOfTypeNearestTo(UnitManager.BASE,
+		// point);
+		// if (distToGeyser <= 5 + minDistBonus) {
+		// double distBaseToGeyser = xvr.getDistanceBetween(nearestBase,
+		// nearestGeyser);
+		// if (distBaseToGeyser >= distToGeyser + minDistBonus) {
+		// return false;
+		// }
+		// }
+
+		// =========================================================
+		// Check if isn't too near to mineral
+		Unit nearestMineral = xvr.getUnitNearestFromList(point, xvr.getMineralsUnits());
+
+		if (nearestMineral != null) {
+			double distToMineral = nearestMineral.distanceTo(point);
+
+			if (distToMineral <= 3.7 && distToBase <= 6) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean isBuildTileFreeFromUnits(UnitType type, int builderID, int tileX,
+			int tileY) {
 		JNIBWAPI bwapi = XVR.getInstance().getBwapi();
-		MapPointInstance point = new MapPointInstance((int) (tileX + 1.5) * 32, (tileY + 1) * 32);
+		// MapPointInstance point = new MapPointInstance((int) (tileX - 1.5) *
+		// 32, (tileY - 1) * 32);
+		MapPointInstance point = new MapPointInstance((int) (tileX) * 32, (tileY) * 32);
+
+		double buildingApprxDimension = type.getTileWidth() + 0.5;
 
 		// Check if units are blocking this tile
 		boolean unitsInWay = false;
@@ -234,7 +351,7 @@ public class ConstructionPlaceFinder {
 			if (u.getID() == builderID) {
 				continue;
 			}
-			if (xvr.getDistanceBetween(u, point) <= 2.12) {
+			if (xvr.getDistanceBetween(u, point) <= buildingApprxDimension) {
 				// for (Unit unit : xvr.getUnitsInRadius(point, 4,
 				// xvr.getBwapi().getMyUnits())) {
 				// UnitActions.moveAwayFromUnitIfPossible(unit, point, 6);
@@ -242,32 +359,52 @@ public class ConstructionPlaceFinder {
 				unitsInWay = true;
 			}
 		}
-		if (!unitsInWay) {
-			return true;
-		}
 
-		return false;
+		return !unitsInWay;
 	}
 
 	// =========================================================
 	// Lo-level abstraction methods
 
-	private static boolean canBuildAt(MapPoint point, UnitType type) {
-		Unit randomWorker = xvr.getRandomWorker();
-		if (randomWorker == null || point == null) {
+	public static boolean canBuildAt(MapPoint point, UnitType type) {
+		Unit builder = xvr.getNearestWorkerTo(point);
+		if (builder == null || point == null) {
 			return false;
 		}
 
+		// boolean checkExplored = shouldCheckOnlyExplored(type);
+		boolean checkExplored = false;
+
 		// Buildings that can have an add-on, must have additional space on
 		// their right
-		if (type.canHaveAddOn() && !type.isBase()) {
-			if (!xvr.getBwapi().canBuildHere(randomWorker.getID(), point.getTx() + 2,
-					point.getTy(), type.getUnitTypes().getID(), false)) {
-				return false;
-			}
-		}
-		return xvr.getBwapi().canBuildHere(randomWorker.getID(), point.getTx(), point.getTy(),
-				type.getUnitTypes().getID(), false);
+		// if (type.canHaveAddOn() && !type.isBase()) {
+		// // builder.getID(),
+		// if (!xvr.getBwapi().canBuildHere(builder.getID(), point.getTx() + 2,
+		// point.getTy(),
+		// type.getUnitTypes().getID(), checkExplored)) {
+		// return false;
+		// }
+		// }
+
+		// builder.getID(),
+		return xvr.getBwapi().canBuildHere(point.getTx(), point.getTy(),
+				type.getUnitTypes().getID(), checkExplored);
 	}
+
+	private static boolean shouldCheckOnlyExplored(UnitType type) {
+		return !type.isBase() && !type.isBunker();
+	}
+
+	public static boolean isPhysicallyPossibleToBuildAt(Unit builder, MapPoint point, UnitType type) {
+		// boolean checkExplored = shouldCheckOnlyExplored(type);
+		boolean checkExplored = false;
+		// builder.getID(),
+		return xvr.getBwapi().canBuildHere(point.getTx(), point.getTy(),
+				type.getUnitTypes().getID(), checkExplored);
+	}
+
+	// =========================================================
+
+	private static XVR xvr = XVR.getInstance();
 
 }

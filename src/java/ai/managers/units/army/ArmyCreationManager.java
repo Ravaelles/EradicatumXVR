@@ -43,7 +43,7 @@ public class ArmyCreationManager {
 
 			// FACTORIES
 			ArrayList<Unit> factories = TerranFactory.getAllObjects();
-			if (!factories.isEmpty() && !shouldResearchSiege) {
+			if (!factories.isEmpty()) {
 				for (Unit factory : factories) {
 					TerranFactory.act(factory);
 				}
@@ -77,30 +77,15 @@ public class ArmyCreationManager {
 
 	// =========================================================
 
-	private static boolean shouldBuildInfantry(ArrayList<Unit> factories) {
-		if (!isTooMuchInfantry()) {
-			if (isCriticallyFewInfantry()) {
-				boolean factoriesHaveEnoughPriority = factories.isEmpty()
-						|| (xvr.canAfford(200) && !isTooMuchInfantry() && TerranVulture
-								.getNumberOfUnits() >= 3);
-				if (factoriesHaveEnoughPriority) {
-					return true;
-				}
-			}
+	public static boolean weShouldBuildBattleUnits() {
+		if (TerranFactory.getNumberOfUnitsCompleted() > 0) {
+			// if (true) {
+			return true;
+			// }
 		}
 
-		return false;
-	}
+		// =========================================================
 
-	public static boolean isCriticallyFewInfantry() {
-		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) < MINIMUM_MARINES;
-	}
-
-	private static boolean isTooMuchInfantry() {
-		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) > MAXIMUM_MARINES;
-	}
-
-	public static boolean weShouldBuildBattleUnits() {
 		if (xvr.getTimeSeconds() >= 800 && TerranCommandCenter.getNumberOfUnits() <= 1
 				&& !xvr.canAfford(560)) {
 			return false;
@@ -136,6 +121,31 @@ public class ArmyCreationManager {
 		}
 
 		return true;
+	}
+
+	// =========================================================
+
+	private static boolean shouldBuildInfantry(ArrayList<Unit> factories) {
+		if (!isTooMuchInfantry()) {
+			if (isCriticallyFewInfantry()) {
+				boolean factoriesHaveEnoughPriority = factories.isEmpty()
+						|| (xvr.canAfford(200) && !isTooMuchInfantry() && TerranVulture
+								.getNumberOfUnits() >= 3);
+				if (factoriesHaveEnoughPriority) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean isCriticallyFewInfantry() {
+		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) < MINIMUM_MARINES;
+	}
+
+	private static boolean isTooMuchInfantry() {
+		return UnitCounter.getNumberOfUnits(UnitTypes.Terran_Marine) > MAXIMUM_MARINES;
 	}
 
 }

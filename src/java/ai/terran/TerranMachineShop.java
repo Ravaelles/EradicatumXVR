@@ -22,7 +22,7 @@ public class TerranMachineShop {
 		int factories = TerranFactory.getNumberOfUnitsCompleted();
 		int vultures = TerranVulture.getNumberOfUnits();
 
-		if (vultures < TerranVulture.CRITICALLY_FEW_VULTURES) {
+		if (vultures < TerranVulture.CRITICALLY_FEW_VULTURES && !TerranVulture.DISABLE_VULTURES) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 

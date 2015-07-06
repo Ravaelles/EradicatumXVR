@@ -15,11 +15,8 @@ public class TerranEngineeringBay {
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
-			return;
+			Constructing.construct(buildingType);
 		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static boolean shouldBuild() {
@@ -43,9 +40,7 @@ public class TerranEngineeringBay {
 		if (BotStrategyManager.isExpandWithBarracks()) {
 			if (bays == 0 && factories >= 2 && !Constructing.weAreBuilding(buildingType)) {
 				if (UnitCounter.getNumberOfBattleUnits() >= 14) {
-					// ProtossGateway.MIN_UNITS_FOR_DIFF_BUILDING - 8) {
-					ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-					return true;
+					return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 				}
 			}
 		}
@@ -65,8 +60,7 @@ public class TerranEngineeringBay {
 		// return true;
 		// }
 
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static Unit getOneNotBusy() {

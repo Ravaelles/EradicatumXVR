@@ -17,6 +17,8 @@ import ai.handling.map.MapPoint;
 import ai.handling.map.MapPointInstance;
 import ai.handling.strength.StrengthComparison;
 import ai.handling.units.UnitCounter;
+import ai.managers.constructing.Constructing;
+import ai.managers.constructing.ConstructingDebugger;
 import ai.managers.constructing.ConstructingManager;
 import ai.managers.economy.TechnologyManager;
 import ai.managers.enemy.HiddenEnemyUnitsManager;
@@ -55,12 +57,6 @@ public class XVR {
 	public Player NEUTRAL;
 	public int SELF_ID;
 
-	protected static boolean enemyTerran = false;
-	protected static boolean enemyZerg = false;
-	protected static boolean enemyProtoss = false;
-
-	// private static boolean _gameSpeedChangeApplied = false;
-
 	private XVRClient client;
 	private JNIBWAPI bwapi;
 
@@ -94,7 +90,7 @@ public class XVR {
 
 			// Calculate numbers of units by type, so this info can be used in
 			// other methods.
-			if (getFrames() % 4 == 0) {
+			if (getFrames() % 5 == 0) {
 				UnitCounter.recalculateUnits();
 			}
 
@@ -106,7 +102,7 @@ public class XVR {
 			}
 
 			// Check very often for nearby activated mines
-			if (getFrames() % 3 == 0) {
+			if (getFrames() % 4 == 0) {
 				UnitManager.avoidMines();
 			}
 
@@ -143,7 +139,7 @@ public class XVR {
 
 			// Handle behavior of units and buildings.
 			// Handle units in neighborhood of army units.
-			if (getFrames() % 11 == 0) {
+			if (getFrames() % 9 == 0) {
 				CodeProfiler.startMeasuring("Army");
 				UnitManager.act();
 				CodeProfiler.endMeasuring("Army");
@@ -182,7 +178,15 @@ public class XVR {
 			if (getFrames() % 35 == 0) {
 				FlyingBuildingManager.act();
 			}
-		} catch (Exception e) {
+
+			// Paint places where you can build Supply Depot for debugging
+			if (Constructing.DEBUG_CONSTRUCTION_MODE) {
+				ConstructingDebugger.debug();
+			}
+		}
+
+		// Catch any exception that may occur not to crash the bot
+		catch (Exception e) {
 			Painter.errorOccured(e.getStackTrace()[0].toString());
 			System.err.println("--------------------------------------");
 			System.err.println("---------- NON CRITICAL ERROR OCCURED: ");
@@ -238,15 +242,15 @@ public class XVR {
 	}
 
 	public boolean isEnemyTerran() {
-		return enemyTerran;
+		return xvr.getENEMY().isTerran();
 	}
 
 	public boolean isEnemyZerg() {
-		return enemyZerg;
+		return xvr.getENEMY().isZerg();
 	}
 
 	public boolean isEnemyProtoss() {
-		return enemyProtoss;
+		return xvr.getENEMY().isProtoss();
 	}
 
 	// =========================================================
@@ -472,7 +476,7 @@ public class XVR {
 		ArrayList<Unit> objectsOfThisType = new ArrayList<Unit>();
 
 		for (Unit unit : bwapi.getNeutralUnits()) {
-			if (unit.getTypeID() == UnitTypes.Resource_Vespene_Geyser.ordinal()) {
+			if (unit.isOnGeyser()) {
 				objectsOfThisType.add(unit);
 			}
 		}
@@ -491,7 +495,11 @@ public class XVR {
 
 	public Unit getRandomBase() {
 		ArrayList<Unit> bases = getUnitsOfType(UnitManager.BASE.ordinal());
-		return (Unit) RUtilities.randomElement(bases);
+		if (bases.isEmpty()) {
+			return null;
+		} else {
+			return (Unit) RUtilities.randomElement(bases);
+		}
 	}
 
 	public Unit getSecondBase() {
@@ -619,7 +627,11 @@ public class XVR {
 		return countUnitsInRadius(point.getX(), point.getY(), tileRadius, onlyMyUnits);
 	}
 
-	public int countUnitsOursInRadius(MapPoint point, int tileRadius) {
+	public int countTanksOurInRadius(MapPoint point, double tileRadius) {
+		return countUnitsInRadius(point, tileRadius, TerranSiegeTank.getAllCompletedTanks());
+	}
+
+	public int countUnitsOursInRadius(MapPoint point, double tileRadius) {
 		// return countUnitsInRadius(point, tileRadius, bwapi.getMyUnits());
 		return getUnitsInRadius(point, tileRadius, bwapi.getMyUnits()).size();
 	}
@@ -724,6 +736,38 @@ public class XVR {
 		}
 
 		return nearestUnit;
+	}
+
+	public Unit getUnitFarestFromList(int x, int y, Collection<Unit> units,
+			boolean includeGroundUnits, boolean includeAirUnits) {
+		double farestDistance = 0;
+		Unit farestUnit = null;
+
+		for (Unit otherUnit : units) {
+			if (!otherUnit.isCompleted()) {
+				continue;
+			}
+
+			UnitType type = otherUnit.getType();
+			if (type.isLarvaOrEgg()) {
+				continue;
+			}
+
+			boolean isAirUnit = type.isFlyer();
+			if (isAirUnit && !includeAirUnits) {
+				continue;
+			} else if (!isAirUnit && !includeGroundUnits) {
+				continue;
+			}
+
+			double distance = getDistanceBetween(otherUnit, x, y);
+			if (distance > farestDistance) {
+				farestDistance = distance;
+				farestUnit = otherUnit;
+			}
+		}
+
+		return farestUnit;
 	}
 
 	public ArrayList<Unit> getEnemyUnitsVisible(boolean includeGroundUnits, boolean includeAirUnits) {
@@ -833,7 +877,7 @@ public class XVR {
 		ArrayList<Unit> result = new ArrayList<>();
 		result.addAll(MapExploration.getEnemyBuildingsDiscovered());
 		for (Unit enemyUnit : xvr.getBwapi().getEnemyUnits()) {
-			if (enemyUnit.getType().isBuilding()) {
+			if (enemyUnit.getType().isBuilding() && !enemyUnit.isLifted()) {
 				result.add(enemyUnit);
 			}
 		}
@@ -891,25 +935,6 @@ public class XVR {
 
 	public static void setEnemyRace(String enemyRaceString) {
 		xvr.ENEMY_RACE = enemyRaceString;
-
-		// =========================================================
-		// Protoss
-		if ("Protoss".equals(xvr.ENEMY_RACE)) {
-			enemyProtoss = true;
-		}
-
-		// =========================================================
-		// Zerg
-		else if ("Zerg".equals(xvr.ENEMY_RACE)) {
-			enemyZerg = true;
-		}
-
-		// =========================================================
-		// Terran
-		else if ("Terran".equals(xvr.ENEMY_RACE)) {
-			enemyTerran = true;
-		}
-
 		AdaptStrategy.adaptToOpponent();
 	}
 
@@ -1138,6 +1163,10 @@ public class XVR {
 
 	public Unit getNearestEnemy(MapPoint point) {
 		return getUnitNearestFromList(point, getEnemyUnitsVisible(), true, true);
+	}
+
+	public Unit getNearestWorkerTo(MapPoint point) {
+		return getUnitNearestFromList(point, getWorkers());
 	}
 
 	// private Collection<Unit> getEnemyGroundUnits() {

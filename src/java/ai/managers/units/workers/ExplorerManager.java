@@ -115,7 +115,10 @@ public class ExplorerManager {
 		}
 
 		// Gather minerals if idle
-		gatherResourcesIfIdle();
+		// gatherResourcesIfIdle();
+		if (explorer.isIdle()) {
+			scoutRandomBaseLocation();
+		}
 	}
 
 	// =========================================================

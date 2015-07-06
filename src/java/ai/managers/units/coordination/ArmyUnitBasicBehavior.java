@@ -1,20 +1,14 @@
 package ai.managers.units.coordination;
 
 import jnibwapi.model.Unit;
-import jnibwapi.types.UnitType;
 import jnibwapi.types.UnitType.UnitTypes;
 import jnibwapi.types.WeaponType;
 import ai.core.XVR;
 import ai.handling.strength.StrengthRatio;
-import ai.handling.units.CallForHelp;
 import ai.handling.units.UnitActions;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.UnitManager;
-import ai.managers.units.army.tanks.SiegeTankManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBunker;
-import ai.terran.TerranMedic;
-import ai.terran.TerranVulture;
 import ai.utils.RUtilities;
 
 public class ArmyUnitBasicBehavior {
@@ -23,80 +17,48 @@ public class ArmyUnitBasicBehavior {
 
 	// =============================================
 
-	public static void act(Unit unit) {
-		UnitType unitType = unit.getType();
-		if (unitType == null) {
-			return;
-		}
-
-		// ======================================
-		// OVERRIDE COMMANDS FOR SPECIFIC UNITS
-
-		// Vulture
-		if (unitType.isVulture()) {
-			TerranVulture.act(unit);
-			return;
-		}
-
-		// Medic
-		else if (unitType.isMedic()) {
-			TerranMedic.act(unit);
-			return;
-		}
-
-		// ======================================
-		// STANDARD ARMY UNIT COMMANDS
-		else {
-			if (tryConsideringCallForHelpMission(unit)) {
-				UnitManager.actWhenOnCallForHelpMission(unit);
-			} else {
-				ArmyRendezvousManager.act(unit);
-			}
-		}
-
-		// ======================================
-		// SPECIFIC ACTIONS for units, but DON'T FULLY OVERRIDE standard
-		// behavior
-
-		// Tank
-		if (unitType.isTank()) {
-			SiegeTankManager.act(unit);
-		}
-	}
+	// public static void act(Unit unit) {
+	// UnitType unitType = unit.getType();
+	// if (unitType == null) {
+	// return;
+	// }
+	//
+	// // ======================================
+	// // STANDARD ARMY UNIT COMMANDS
+	//
+	// }
 
 	// =========================================================
 
-	private static boolean tryConsideringCallForHelpMission(Unit unit) {
-
-		// If any call for help has been issued, decide whether to help or not
-		if (CallForHelp.isAnyCallForHelp()) {
-			UnitManager.decideWhetherToHelpSomeoneCalledForHelp(unit);
-		}
-
-		// =========================================================
-		// If unit has personalized order
-		if (unit.isOnCallForHelpMission()) {
-			return true;
-		}
-
-		return false;
-	}
+	// private static boolean tryConsideringCallForHelpMission(Unit unit) {
+	//
+	// // If any call for help has been issued, decide whether to help or not
+	// if (CallForHelp.isAnyCallForHelp()) {
+	// UnitManager.decideWhetherToHelpSomeoneCalledForHelp(unit);
+	// }
+	//
+	// // =========================================================
+	// // If unit has personalized order
+	// if (unit.isOnCallForHelpMission()) {
+	// return true;
+	// }
+	//
+	// return false;
+	// }
 
 	public static boolean tryRunningFromCloseDefensiveBuilding(Unit unit) {
 		Unit defensiveBuilding = xvr.getEnemyDefensiveGroundBuildingNear(unit);
 		if (defensiveBuilding != null) {
-			if (unit.getType().isTank()) {
-				if (unit.distanceTo(defensiveBuilding) <= 10.8) {
-					unit.siege();
-					unit.setAiOrder("Siege because building");
-				}
-				return false;
-			} else {
-				UnitActions.moveAwayFrom(unit, defensiveBuilding);
-				unit.setIsRunningFromEnemyNow(defensiveBuilding);
-				unit.setAiOrder("Avoid building");
-				return true;
-			}
+			double distanceToBuilding = unit.distanceTo(defensiveBuilding);
+
+			// if (distanceToBuilding < 10.8) {
+			UnitActions.moveAwayFrom(unit, defensiveBuilding);
+			unit.setIsRunningFromEnemyNow(defensiveBuilding);
+			// } else {
+			// UnitActions.holdPosition(unit);
+			// }
+			unit.setAiOrder("Avoid building");
+			return true;
 		} else {
 			return false;
 		}
@@ -108,8 +70,8 @@ public class ArmyUnitBasicBehavior {
 				return true;
 			}
 			unit.setAiOrder("Avoid spell !!!");
-			UnitActions.moveTo(unit, unit.getX() + 5 * 32 * (-1 * RUtilities.rand(0, 1)),
-					unit.getY() + 5 * 32 * (-1 * RUtilities.rand(0, 1)));
+			UnitActions.moveTo(unit, unit.getX() + 5 * 32 * (-1 * RUtilities.rand(0, 1)), unit.getY() + 5 * 32
+					* (-1 * RUtilities.rand(0, 1)));
 			return true;
 		}
 		return false;
@@ -124,8 +86,7 @@ public class ArmyUnitBasicBehavior {
 
 		// Check if there's any activted mine nearby and if so, get the fuck out
 		// of here.
-		for (Unit spiderMine : xvr.getUnitsOfGivenTypeInRadius(
-				UnitTypes.Terran_Vulture_Spider_Mine, 5, unit, true)) {
+		for (Unit spiderMine : xvr.getUnitsOfGivenTypeInRadius(UnitTypes.Terran_Vulture_Spider_Mine, 5, unit, true)) {
 			if (spiderMine.isMoving() || spiderMine.isAttacking()) {
 				activatedMine = spiderMine;
 				break;
@@ -150,8 +111,7 @@ public class ArmyUnitBasicBehavior {
 		// ratio = 0.4;
 		// }
 
-		if (unit.getHP() <= unit.getMaxHP() * ratio
-				|| (unit.getType().isTerranInfantry() && unit.getHP() < 25)) {
+		if (unit.getHP() <= unit.getMaxHP() * ratio || (unit.getType().isTerranInfantry() && unit.getHP() < 25)) {
 			// // If there are tanks nearby, DON'T RUN. Rather die first!
 			// if
 			// (xvr.countUnitsEnemyOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode,
@@ -204,8 +164,7 @@ public class ArmyUnitBasicBehavior {
 						if (nearEnemy != null && nearEnemy.canAttack(unit)) {
 							WeaponType groundWeapon = nearEnemy.getType().getGroundWeapon();
 							if (groundWeapon != null
-									&& unit.distanceTo(nearEnemy) <= groundWeapon
-											.getMaxRangeInTiles() + 1.9) {
+									&& unit.distanceTo(nearEnemy) <= groundWeapon.getMaxRangeInTiles() + 1.9) {
 								unit.setAiOrder("Should be repaired, but RUN!");
 								// UnitActions.moveAwayFromNearestEnemy(unit);
 								UnitActions.moveToSafePlace(unit);
@@ -220,13 +179,15 @@ public class ArmyUnitBasicBehavior {
 		return false;
 	}
 
-	public static void tryUsingStimpacksIfNeeded(Unit unit) {
-		if (unit.getType().canUseStimpacks() && TechnologyManager.isStimpacksResearched()
-				&& !unit.isStimmed()) {
+	public static boolean tryUsingStimpacksIfNeeded(Unit unit) {
+		if (unit.getType().canUseStimpacks() && TechnologyManager.isStimpacksResearched() && !unit.isStimmed()) {
 			if (!unit.isWounded() && xvr.countUnitsEnemyInRadius(unit, 8) >= 2) {
 				UnitActions.useTech(unit, TechnologyManager.STIMPACKS);
+				return true;
 			}
 		}
+
+		return false;
 	}
 
 	public static boolean tryRetreatingIfChancesNotFavorable(Unit unit) {
@@ -275,10 +236,8 @@ public class ArmyUnitBasicBehavior {
 		// If there's OUR BUNKER nearby, we should be here at all costs, because
 		// if we lose this position, then every other battle will be far tougher
 		// than fighting here, near the bunker.
-		if (!unit.isWounded()
-				&& unit.getGroundWeaponCooldown() > 0
-				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit,
-						true) > 0) {
+		if (!unit.isWounded() && unit.getGroundWeaponCooldown() > 0
+				&& xvr.countUnitsOfGivenTypeInRadius(TerranBunker.getBuildingType(), 3.5, unit, true) > 0) {
 			return false;
 		}
 

@@ -8,7 +8,6 @@ import ai.handling.map.MapPointInstance;
 import ai.handling.units.UnitCounter;
 import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ShouldBuildCache;
-import ai.managers.strategy.BotStrategyManager;
 import ai.managers.units.UnitManager;
 
 public class TerranRefinery {
@@ -21,7 +20,7 @@ public class TerranRefinery {
 
 	public static boolean shouldBuild() {
 		int supplyUsed = xvr.getSuppliesUsed();
-		int minGateways = BotStrategyManager.isExpandWithBunkers() ? 3 : 4;
+		// int minGateways = BotStrategyManager.isExpandWithBunkers() ? 3 : 4;
 		int barracks = UnitCounter.getNumberOfUnits(UnitManager.BARRACKS);
 		int refineries = UnitCounter.getNumberOfUnits(buildingType);
 		int battleUnits = UnitCounter.getNumberOfBattleUnits();
@@ -30,12 +29,21 @@ public class TerranRefinery {
 		// =========================================================
 		// Begin EASY-WAY
 
+		// If no bases are left, just quit.
+		if (TerranCommandCenter.getNumberOfUnits() == 0) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		}
+
 		int minSupply = 14;
 		if (xvr.isEnemyProtoss()) {
 			minSupply += 1;
 		}
 
-		if (refineries == 0 && supplyUsed >= minSupply) {
+		if (refineries == 0 && (supplyUsed >= minSupply || xvr.canAfford(270))) {
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+		}
+
+		if (refineries == 0 && TerranFactory.ONLY_TANKS && supplyUsed > 9) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
@@ -57,45 +65,57 @@ public class TerranRefinery {
 
 		if (UnitCounter.getNumberOfUnitsCompleted(TerranEngineeringBay.getBuildingType()) == 0
 				&& UnitCounter.getNumberOfUnits(TerranBunker.getBuildingType()) == 0) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-			return false;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
 		if (!Constructing.weAreBuilding(buildingType)
 				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
 						.getNumberOfUnitsCompleted(UnitManager.BASE) && weHaveAcademy) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
 		if (!Constructing.weAreBuilding(buildingType)
-				&& (weHaveAcademy || barracks >= minGateways || xvr.canAfford(700))
+				&& (weHaveAcademy || xvr.canAfford(200))
 				&& UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
 						.getNumberOfUnitsCompleted(UnitManager.BASE)) {
 			if (battleUnits >= TerranBarracks.MIN_UNITS_FOR_DIFF_BUILDING) {
-				ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-				return true;
+				return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 			}
 		}
 
 		if (UnitCounter.getNumberOfUnits(buildingType) < UnitCounter
 				.getNumberOfUnitsCompleted(UnitManager.BASE) && xvr.canAfford(750)) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			return true;
+			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		return false;
+		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+	}
+
+	// =========================================================
+
+	public static MapPoint findTileForRefinery() {
+		Unit nearestGeyser = xvr.getUnitNearestFromList(xvr.getFirstBase(), xvr.getGeysersUnits());
+		if (nearestGeyser != null
+				&& xvr.getUnitsOfGivenTypeInRadius(UnitManager.BASE, 15, nearestGeyser, true)
+						.isEmpty()) {
+			return null;
+		}
+
+		if (nearestGeyser != null) {
+			// return new MapPointInstance(nearestGeyser.getX(),
+			// nearestGeyser.getY());
+			return new MapPointInstance(nearestGeyser.getX() - 64, nearestGeyser.getY() - 32);
+		} else {
+			return null;
+		}
 	}
 
 	// =========================================================
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
+			Constructing.construct(buildingType);
 		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static UnitTypes getBuildingType() {
@@ -108,21 +128,6 @@ public class TerranRefinery {
 
 	public static int getNumberOfUnitsCompleted() {
 		return UnitCounter.getNumberOfUnitsCompleted(buildingType);
-	}
-
-	public static MapPoint findTileForRefinery() {
-		Unit nearestGeyser = xvr.getUnitNearestFromList(xvr.getFirstBase(), xvr.getGeysersUnits());
-		if (nearestGeyser != null
-				&& xvr.getUnitsOfGivenTypeInRadius(UnitManager.BASE, 15, nearestGeyser, true)
-						.isEmpty()) {
-			return null;
-		}
-
-		if (nearestGeyser != null) {
-			return new MapPointInstance(nearestGeyser.getX() - 64, nearestGeyser.getY() - 32);
-		} else {
-			return null;
-		}
 	}
 
 }

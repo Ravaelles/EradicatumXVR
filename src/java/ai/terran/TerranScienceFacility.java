@@ -14,11 +14,11 @@ public class TerranScienceFacility {
 
 	public static void buildIfNecessary() {
 		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.construct(xvr, buildingType);
+			Constructing.construct(buildingType);
 		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
+
+	// =========================================================
 
 	public static boolean shouldBuild() {
 		// int starports =
@@ -35,6 +35,8 @@ public class TerranScienceFacility {
 		// return false;
 		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
+
+	// =========================================================
 
 	public static Unit getOneNotBusy() {
 		for (Unit unit : xvr.getUnitsOfType(buildingType)) {

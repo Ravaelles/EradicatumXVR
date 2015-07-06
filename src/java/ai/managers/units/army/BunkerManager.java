@@ -37,10 +37,9 @@ public class BunkerManager {
 
 		boolean isUnitLoaded = unit.isLoaded();
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		double enemyIsNearThreshold = nearestEnemy != null ? Math.max(3.7, nearestEnemy.getType()
-				.getGroundWeapon().getMaxRangeInTiles() + 2.5) : 3;
-		boolean enemyIsNearby = nearestEnemy != null
-				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
+		double enemyIsNearThreshold = nearestEnemy != null ? Math.max(3.7, nearestEnemy.getType().getGroundWeapon()
+				.getMaxRangeInTiles() + 2.5) : 3;
+		boolean enemyIsNearby = nearestEnemy != null && nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
 
 		// if (StrategyManager.isAnyAttackFormPending() && !unit.isIdle() &&
 		// !enemyIsNearby) {
@@ -59,7 +58,7 @@ public class BunkerManager {
 
 		// If unit should be inside bunker, try to load it inside.
 		if (!isUnitLoaded) {
-			if (!enemyIsNearby && StrategyManager.isAnyAttackFormPending() && !unit.isIdle()) {
+			if (!enemyIsNearby && StrategyManager.isGlobalAttackInProgress() && !unit.isIdle()) {
 				return false;
 			}
 			// enemyIsNearby &&
@@ -138,8 +137,7 @@ public class BunkerManager {
 				// look for a bunker nearest to the nearest enemy building, we
 				// will make sure always the most distant bunkers are full.
 				Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
-				MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding
-						: unit;
+				MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding : unit;
 
 				// Get the list of bunkers that are near.
 				ArrayList<Unit> bunkersNearby = xvr.getUnitsInRadius(bunkersNearestTo, 300,
@@ -160,17 +158,22 @@ public class BunkerManager {
 
 	private static boolean shouldUnitUnloadFromBunker(Unit unit) {
 		Unit nearestEnemy = xvr.getNearestGroundEnemy(unit);
-		double enemyIsNearThreshold = nearestEnemy != null ? Math.max(3.7, nearestEnemy.getType()
-				.getGroundWeapon().getMaxRangeInTiles() + 2.5) : 3;
-		boolean enemyIsNearby = nearestEnemy != null
-				&& nearestEnemy.distanceTo(unit) <= enemyIsNearThreshold;
+		double enemyIsNearThreshold = nearestEnemy != null ? Math.max(3.7, nearestEnemy.getType().getGroundWeapon()
+				.getMaxRangeInTiles() + 2.5) : 3;
+		double distToEnemy = nearestEnemy != null ? nearestEnemy.distanceTo(unit) : 999;
+
+		if (distToEnemy <= 5.8) {
+			return false;
+		}
+
+		boolean enemyIsNearby = nearestEnemy != null && distToEnemy <= enemyIsNearThreshold;
 
 		if (enemyIsNearby || unit.isWounded() || xvr.getTimeSeconds() < 330) {
 			return false;
 		}
 
 		// If there's an attack pending, consider getting out of the bunker.
-		if (StrategyManager.isAnyAttackFormPending() || TerranSiegeTank.getNumberOfUnits() >= 2) {
+		if (StrategyManager.isGlobalAttackInProgress() || TerranSiegeTank.getNumberOfUnits() >= 2) {
 			// Unit bunker = unit.getBunkerThatsIsLoadedInto();
 			// if (bunker != null && bunker.getNumLoadedUnits() > 1) {
 			MapPoint safePoint = ArmyRendezvousManager.getDefensivePoint(unit);

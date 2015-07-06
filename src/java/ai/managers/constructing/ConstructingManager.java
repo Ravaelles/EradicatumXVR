@@ -39,22 +39,21 @@ public class ConstructingManager {
 
 		// Check only every N frames
 		boolean shouldBuildHQ = TerranCommandCenter.shouldBuild();
-		boolean canBuildOtherThingThanHQ = !shouldBuildHQ || xvr.canAfford(550);
+		boolean canBuildOtherThingThanHQ = !shouldBuildHQ || xvr.canAfford(420);
 
-		if (_actCounter == 0 && xvr.getFrames() % 60 == 0 && (shouldBuildHQ && !xvr.canAfford(550))) {
+		TerranBarracks.buildIfNecessary();
+		TerranBunker.buildIfNecessary();
+
+		if (_actCounter == 0 && shouldBuildHQ) {
 			TerranCommandCenter.buildIfNecessary();
-		} else if (_actCounter == 1 && canBuildOtherThingThanHQ) {
-			TerranBarracks.buildIfNecessary();
+		} else if (_actCounter < 5 && canBuildOtherThingThanHQ) {
 			TerranAcademy.buildIfNecessary();
-			TerranBunker.buildIfNecessary();
 			TerranFactory.buildIfNecessary();
 			TerranComsatStation.buildIfNecessary();
 			// TerranControlTower.buildIfNecessary();
 			TerranEngineeringBay.buildIfNecessary();
 			TerranRefinery.buildIfNecessary();
 		} else if (canBuildOtherThingThanHQ) {
-			TerranBarracks.buildIfNecessary();
-			TerranBunker.buildIfNecessary();
 			TerranMissileTurret.buildIfNecessary();
 			TerranSupplyDepot.buildIfNecessary();
 			// TerranStarport.buildIfNecessary();

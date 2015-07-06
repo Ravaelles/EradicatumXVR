@@ -26,6 +26,43 @@ public class ArmyRendezvousManager {
 		goToSafePlaceIfNotAlreadyThere(unit);
 	}
 
+	/**
+	 * @param unit
+	 * @return safe point
+	 */
+	public static MapPoint goToSafePlaceIfNotAlreadyThere(Unit unit) {
+		MapPoint safePlace = null;
+
+		if (unit.shouldFollowTanks()) {
+			if (TerranSiegeTank.getNumberOfUnitsCompleted() >= 2) {
+				// safePlace = TerranSiegeTank.getMedianTank();
+				safePlace = getRendezvousTankForGroundUnits();
+			}
+		}
+
+		if (safePlace == null) {
+			safePlace = getDefensivePoint(unit);
+			if (safePlace == null) {
+				return null;
+			}
+		}
+
+		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
+			UnitActions.moveTo(unit, safePlace);
+			return safePlace;
+			// } else {
+			// UnitActions.moveAwayFromNearestEnemy(unit);
+			// UnitActions.moveTo(unit, safePlace);
+		}
+		// else {
+		// UnitActions.moveToMainBase(unit);
+		// }
+
+		return null;
+	}
+
+	// =========================================================
+
 	public static void updateRendezvousPoints() {
 		_armyMedianPoint = defineArmyMedianPoint();
 	}
@@ -34,15 +71,14 @@ public class ArmyRendezvousManager {
 
 	/**
 	 * 
-	 * @return Target for offensive operations e.g. closest known enemy
-	 *         building, or the expected base location if no building is known.
+	 * @return Target for offensive operations e.g. closest known enemy building, or the expected base location if no
+	 *         building is known.
 	 */
 	public static MapPoint getOffensivePoint() {
 
 		// Try to target nearest enemy building that isn't destroyed
 		Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
-		if (nearestEnemyBuilding != null && nearestEnemyBuilding.isExists()
-				&& !nearestEnemyBuilding.isOnGeyser()) {
+		if (nearestEnemyBuilding != null && nearestEnemyBuilding.isExists() && !nearestEnemyBuilding.isOnGeyser()) {
 			return nearestEnemyBuilding;
 		}
 
@@ -92,7 +128,7 @@ public class ArmyRendezvousManager {
 		if (runTo == null) {
 			return null;
 		} else {
-			return new MapPointInstance(runTo.getX(), runTo.getY()).translate(-4, 0);
+			return new MapPointInstance(runTo.getX(), runTo.getY()).translate(64, 32);
 		}
 	}
 
@@ -105,7 +141,7 @@ public class ArmyRendezvousManager {
 	}
 
 	public static MapPoint getDefensivePointForTanks() {
-		if (StrategyManager.isAnyAttackFormPending()) {
+		if (StrategyManager.isGlobalAttackActive()) {
 			return getArmyMedianPoint();
 		} else {
 			if (TerranBunker.getNumberOfUnitsCompleted() > 0) {
@@ -175,8 +211,8 @@ public class ArmyRendezvousManager {
 		}
 
 		Unit nearestEnemyBuilding = MapExploration.getNearestEnemyBuilding();
-		MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding
-				: TerranCommandCenter.getSecondBaseLocation();
+		MapPoint bunkersNearestTo = nearestEnemyBuilding != null ? nearestEnemyBuilding : TerranCommandCenter
+				.getSecondBaseLocation();
 
 		// Get the list of bunkers that are near to the specified point.
 		ArrayList<Unit> bunkersNearby = xvr.getUnitsInRadius(bunkersNearestTo, 300,
@@ -201,41 +237,6 @@ public class ArmyRendezvousManager {
 		// }
 	}
 
-	/**
-	 * @param unit
-	 * @return safe point
-	 */
-	public static MapPoint goToSafePlaceIfNotAlreadyThere(Unit unit) {
-		MapPoint safePlace = null;
-
-		if (unit.shouldFollowTanks()) {
-			if (TerranSiegeTank.getNumberOfUnits() > 1) {
-				// safePlace = TerranSiegeTank.getMedianTank();
-				safePlace = getRendezvousTankForGroundUnits();
-			}
-		}
-
-		if (safePlace == null) {
-			safePlace = getDefensivePoint(unit);
-			if (safePlace == null) {
-				return null;
-			}
-		}
-
-		if (xvr.getDistanceSimple(unit, safePlace) >= 4.2) {
-			UnitActions.moveTo(unit, safePlace);
-			return safePlace;
-			// } else {
-			// UnitActions.moveAwayFromNearestEnemy(unit);
-			// UnitActions.moveTo(unit, safePlace);
-		}
-		// else {
-		// UnitActions.moveToMainBase(unit);
-		// }
-
-		return null;
-	}
-
 	public static MapPoint getArmyCenterPoint() {
 		int totalX = 0;
 		int totalY = 0;
@@ -248,8 +249,7 @@ public class ArmyRendezvousManager {
 				break;
 			}
 		}
-		return new MapPointInstance((int) ((double) totalX / counter),
-				(int) ((double) totalY / counter));
+		return new MapPointInstance((int) ((double) totalX / counter), (int) ((double) totalY / counter));
 	}
 
 	public static MapPoint getArmyMedianPoint() {

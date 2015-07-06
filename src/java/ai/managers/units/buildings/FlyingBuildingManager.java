@@ -1,20 +1,24 @@
 package ai.managers.units.buildings;
 
 import jnibwapi.model.Unit;
+import jnibwapi.types.UnitType.UnitTypes;
 import ai.core.XVR;
 import ai.handling.map.MapExploration;
 import ai.handling.units.UnitActions;
 import ai.handling.units.UnitCounter;
+import ai.managers.strategy.StrategyManager;
 import ai.managers.units.army.FlyerManager;
 import ai.managers.units.coordination.ArmyRendezvousManager;
 import ai.managers.units.workers.RepairAndSons;
 import ai.terran.TerranBarracks;
 import ai.terran.TerranEngineeringBay;
+import ai.terran.TerranFactory;
 import ai.terran.TerranSiegeTank;
 
 public class FlyingBuildingManager {
 
-	private static final double MAX_ALLOWED_DIST_FROM_TANK = 5.5;
+	private static final double MAX_ALLOWED_DIST_FROM_TANK = 7.5;
+	private static final double MAX_ALLOWED_DIST_FROM_TANK_IF_BUNKER_NEAR = 11;
 	private static XVR xvr = XVR.getInstance();
 	private static Unit flyingBuilding1 = null;
 	private static Unit flyingBuilding2 = null;
@@ -53,10 +57,12 @@ public class FlyingBuildingManager {
 	// =========================================================
 
 	private static boolean shouldHaveFlyingBuilding1() {
-		return (UnitCounter.getNumberOfInfantryUnitsCompleted() >= 4 || TerranSiegeTank
-				.getNumberOfUnitsCompleted() >= 1)
-				&& TerranBarracks.MAX_BARRACKS >= 1
-				&& TerranBarracks.getOneNotBusy() != null;
+		if (TerranFactory.ONLY_TANKS && TerranBarracks.MAX_BARRACKS >= 1) {
+			return true;
+		}
+
+		return (UnitCounter.getNumberOfInfantryUnitsCompleted() >= 4 || TerranSiegeTank.getNumberOfUnitsCompleted() >= 1)
+				&& TerranBarracks.MAX_BARRACKS >= 1 && TerranBarracks.getOneNotBusy() != null;
 	}
 
 	private static boolean shouldHaveFlyingBuilding2() {
@@ -66,8 +72,26 @@ public class FlyingBuildingManager {
 	// =========================================================
 
 	private static void moveBuildingToProperPlace(Unit flyingBuilding) {
-		Unit medianTank = ArmyRendezvousManager.getRendezvousTankForFlyers();
-		if (medianTank != null) {
+		if (TerranFactory.ONLY_TANKS) {
+			if (StrategyManager.getTargetUnit() != null) {
+				UnitActions.moveTo(flyingBuilding, StrategyManager.getTargetUnit());
+			} else if (StrategyManager.getTargetPoint() != null) {
+				UnitActions.moveTo(flyingBuilding, StrategyManager.getTargetPoint());
+			} else {
+				if (MapExploration.getNearestEnemyBase() != null) {
+					UnitActions.moveTo(flyingBuilding, MapExploration.getNearestEnemyBase());
+				}
+			}
+		}
+
+		// =========================================================
+
+		Unit enhanceViewForUnit = ArmyRendezvousManager.getRendezvousTankForFlyers();
+		// if (enhanceViewForUnit == null) {
+		// TerranBunker.get
+		// }
+
+		if (enhanceViewForUnit != null) {
 
 			// Lift building if isn't lifted yet
 			if (!flyingBuilding.isLifted()) {
@@ -75,7 +99,16 @@ public class FlyingBuildingManager {
 			}
 
 			// If building is close to tank
-			if (medianTank.distanceTo(flyingBuilding) < MAX_ALLOWED_DIST_FROM_TANK) {
+			boolean isNearBunker = xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Bunker, 12, flyingBuilding, true) > 0;
+
+			// if (isNearBunker) {
+			//
+			// } else {
+			double maxDistanceAllowedFromTank = isNearBunker ? MAX_ALLOWED_DIST_FROM_TANK_IF_BUNKER_NEAR
+					: MAX_ALLOWED_DIST_FROM_TANK;
+
+			// Building is too close to our units, enhance the vision
+			if (enhanceViewForUnit.distanceTo(flyingBuilding) < maxDistanceAllowedFromTank) {
 				if (MapExploration.getNumberOfKnownEnemyBases() > 0) {
 					Unit enemyBuilding = MapExploration.getNearestEnemyBuilding();
 					UnitActions.moveTo(flyingBuilding, enemyBuilding);
@@ -84,9 +117,11 @@ public class FlyingBuildingManager {
 
 			// Building is far from tank
 			else {
-				UnitActions.moveTo(flyingBuilding, medianTank);
+				UnitActions.moveTo(flyingBuilding, enhanceViewForUnit);
 			}
+			// }
 		}
+
 	}
 
 	private static void tryRepairingIfNeeded(Unit flyingBuilding) {

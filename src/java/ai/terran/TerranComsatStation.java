@@ -14,25 +14,16 @@ import ai.managers.constructing.ShouldBuildCache;
 
 public class TerranComsatStation {
 
-	private static final UnitTypes buildingType = UnitTypes.Terran_Comsat_Station;
-	private static XVR xvr = XVR.getInstance();
+	public static boolean MODE_ASAP = false;
 
 	private static int lastTimeScannedSecondEnemyBase = -1;
+
+	// =========================================================
 
 	public static void act(Unit unit) {
 		if (unit.getEnergy() >= 199) {
 			tryRandomScan(unit);
 		}
-	}
-
-	public static void buildIfNecessary() {
-		if (shouldBuild()) {
-			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
-			Constructing.constructAddOn(
-					AddOn.getBuildingWithNoAddOn(UnitTypes.Terran_Command_Center), buildingType);
-			return;
-		}
-		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static boolean shouldBuild() {
@@ -46,6 +37,18 @@ public class TerranComsatStation {
 			}
 		}
 		return false;
+	}
+
+	// =========================================================
+
+	public static void buildIfNecessary() {
+		if (shouldBuild()) {
+			ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
+			Constructing.constructAddOn(
+					AddOn.getBuildingWithNoAddOn(UnitTypes.Terran_Command_Center), buildingType);
+			return;
+		}
+		ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
 
 	public static Unit getOneNotBusy() {
@@ -140,5 +143,10 @@ public class TerranComsatStation {
 			tryToScanPoint(unit);
 		}
 	}
+
+	// =========================================================
+
+	private static final UnitTypes buildingType = UnitTypes.Terran_Comsat_Station;
+	private static XVR xvr = XVR.getInstance();
 
 }
