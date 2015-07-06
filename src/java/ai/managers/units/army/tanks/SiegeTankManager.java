@@ -32,8 +32,8 @@ public class SiegeTankManager {
 		static double _nearestEnemyDist;
 
 		/**
-		 * If a tank is in this map it means it is considering unsieging, but we
-		 * should wait some time before this happens.
+		 * If a tank is in this map it means it is considering unsieging, but we should wait some time before this
+		 * happens.
 		 */
 		static HashMap<Unit, Integer> unsiegeIdeasMap = new HashMap<>();
 	}
@@ -74,8 +74,7 @@ public class SiegeTankManager {
 
 		Unit nearestEnemy = xvr.getNearestEnemy(unit);
 		boolean isFalseAlert = nearestEnemy != null && nearestEnemy.isWorker()
-				&& xvr.countUnitsEnemyInRadius(unit, 12) <= 1
-				&& nearestEnemy.distanceTo(xvr.getFirstBase()) < 20;
+				&& xvr.countUnitsEnemyInRadius(unit, 12) <= 1 && nearestEnemy.distanceTo(xvr.getFirstBase()) < 20;
 
 		if (!isFalseAlert && canSiegeInThisPlace(unit)) {
 			if (shouldSiege(unit) && notTooManySiegedUnitHere(unit) && didntJustUnsiege(unit)) {
@@ -157,8 +156,7 @@ public class SiegeTankManager {
 		}
 
 		// If tank from various reasons shouldn't be here, unsiege.
-		if (!enemyAlmostInSight && !unit.isStartingAttack() && !shouldSiege(unit)
-				&& !mustSiege(unit)) {
+		if (!enemyAlmostInSight && !unit.isStartingAttack() && !shouldSiege(unit) && !mustSiege(unit)) {
 			infoTankIsConsideringUnsieging(unit);
 		}
 
@@ -257,40 +255,50 @@ public class SiegeTankManager {
 			return false;
 		}
 
-		boolean isEnemyNearShootRange = (TargettingDetails._nearestEnemyDist > 0 && TargettingDetails._nearestEnemyDist <= (TargettingDetails._nearestEnemy
-				.getType().isBuilding() ? 10.6 : 13));
+		// boolean isEnemyNearShootRange = (TargettingDetails._nearestEnemyDist > 0 &&
+		// TargettingDetails._nearestEnemyDist <= (TargettingDetails._nearestEnemy
+		// .getType().isBuilding() ? 10.6 : 13));
 		boolean isEnemyBuildingInRange = TargettingDetails._nearestEnemyBuilding != null;
 
-		// =========================================================
-		// Don't siege if there's only one enemy near the tank
-		if (isEnemyNearShootRange && !isEnemyBuildingInRange
-				&& xvr.countUnitsEnemyInRadius(unit, 14) < 2) {
-			return false;
-		}
+		// // =========================================================
+		// // Don't siege if there's only one enemy near the tank
+		// if (isEnemyNearShootRange && !isEnemyBuildingInRange
+		// && xvr.countUnitsEnemyInRadius(unit, 14) < 2) {
+		// return false;
+		// }
+		//
+		// // =========================================================
+		//
+		// // Check if should siege, based on unit proper place to be (e.g. near
+		// // the bunker), but consider the neighborhood, if it's safe etc.
+		// if (isTankWhereItShouldBe(unit) && notTooManySiegedInArea(unit) || isEnemyNearShootRange) {
+		// if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)
+		// && (!isNearMainBase(unit) || isNearBunker(unit))) {
+		// return true;
+		// }
+		// }
+		//
+		// // If there's an enemy in the range of shoot and there are some other
+		// // units around this tank, then siege.
+		// int oursNearby = xvr.countUnitsOursInRadius(unit, 7);
+		// if (isEnemyNearShootRange && oursNearby >= 5) {
+		// return true;
+		// }
 
-		// =========================================================
+		if (StrategyManager.isGlobalAttackActive()) {
 
-		// Check if should siege, based on unit proper place to be (e.g. near
-		// the bunker), but consider the neighborhood, if it's safe etc.
-		if (isTankWhereItShouldBe(unit) && notTooManySiegedInArea(unit) || isEnemyNearShootRange) {
+			// If there's enemy building in range, siege.
+			if (isEnemyBuildingInRange && TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.2) {
+				return true;
+			}
+		} else {
+
+			// Check if should siege, based on unit proper place to be (e.g. near
+			// the bunker), but consider the neighborhood, if it's safe etc.
 			if (canSiegeInThisPlace(unit) && isNeighborhoodSafeToSiege(unit)
 					&& (!isNearMainBase(unit) || isNearBunker(unit))) {
 				return true;
 			}
-		}
-
-		// If there's an enemy in the range of shoot and there are some other
-		// units around this tank, then siege.
-		int oursNearby = xvr.countUnitsOursInRadius(unit, 7);
-		if (isEnemyNearShootRange && oursNearby >= 5) {
-			return true;
-		}
-
-		// If there's enemy building in range, siege.
-		if (isEnemyBuildingInRange
-				&& TargettingDetails._nearestEnemyBuilding.distanceTo(unit) <= 10.5
-				&& oursNearby >= 2) {
-			return true;
 		}
 
 		return false;
@@ -364,8 +372,7 @@ public class SiegeTankManager {
 		boolean isNearChoke = nearChoke != null && unit.distanceToChokePoint(nearChoke) <= 3;
 
 		if (isNearBuilding || isNearChoke) {
-			return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7,
-					unit, true) <= 2;
+			return xvr.countUnitsOfGivenTypeInRadius(UnitTypes.Terran_Siege_Tank_Siege_Mode, 2.7, unit, true) <= 2;
 		} else {
 			return false;
 		}

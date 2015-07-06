@@ -10,7 +10,6 @@ import ai.managers.constructing.Constructing;
 import ai.managers.constructing.ConstructingHelper;
 import ai.managers.constructing.ShouldBuildCache;
 import ai.managers.economy.TechnologyManager;
-import ai.managers.units.UnitManager;
 
 public class TerranBarracks {
 
@@ -37,7 +36,7 @@ public class TerranBarracks {
 
 	public static boolean shouldBuild() {
 		int barracks = UnitCounter.getNumberOfUnits(buildingType);
-		int bases = UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE);
+		// int bases = UnitCounter.getNumberOfUnitsCompleted(UnitManager.BASE);
 
 		if (barracks > 0 && DONT_USE_INFANTRY) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
@@ -79,17 +78,17 @@ public class TerranBarracks {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 		}
 
-		if (TerranCommandCenter.shouldBuild() && barracks >= (2 * bases)) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		}
+		// if (TerranCommandCenter.shouldBuild() && barracks >= (2 * bases)) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
 
 		if ((TerranSupplyDepot.getNumberOfUnits() > 0 || xvr.canAfford(142)) && !enoughBarracks) {
 			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, true);
 		}
 
-		if (bases <= 1) {
-			return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
-		}
+		// if (bases <= 1) {
+		// return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
+		// }
 
 		return ShouldBuildCache.cacheShouldBuildInfo(buildingType, false);
 	}
@@ -102,9 +101,8 @@ public class TerranBarracks {
 		}
 
 		// Disallow making units if there's no bunker early
-		if (TerranBunker.getNumberOfUnits() == 0 && TerranBunker.shouldBuild()
-				&& xvr.getTimeSeconds() < 250 && !xvr.canAfford(142)
-				&& UnitCounter.getNumberOfBattleUnits() >= 1) {
+		if (TerranBunker.getNumberOfUnits() == 0 && TerranBunker.shouldBuild() && xvr.getTimeSeconds() < 250
+				&& !xvr.canAfford(142) && UnitCounter.getNumberOfBattleUnits() >= 1) {
 			return;
 		}
 
@@ -149,8 +147,7 @@ public class TerranBarracks {
 		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());
 		boolean medicAllowed = weHaveAcademy && xvr.canAfford(50, 25);
 
-		boolean criticallyFewInfantry = infantry < CRITICALLY_FEW_INFANTRY
-				|| (medicAllowed && medics < MIN_MEDICS);
+		boolean criticallyFewInfantry = infantry < CRITICALLY_FEW_INFANTRY || (medicAllowed && medics < MIN_MEDICS);
 		boolean notEnoughInfantry = (xvr.canAfford(100) && UnitCounter.getNumberOfBattleUnits() <= MIN_UNITS_FOR_DIFF_BUILDING);
 		boolean shouldAlwaysBuild = criticallyFewInfantry || notEnoughInfantry;
 
@@ -219,10 +216,8 @@ public class TerranBarracks {
 		int firebats = UnitCounter.getNumberOfUnits(FIREBAT);
 
 		boolean weHaveAcademy = UnitCounter.weHaveBuilding(TerranAcademy.getBuildingType());
-		boolean firebatAllowed = weHaveAcademy
-				&& (freeMinerals >= 50 && (freeGas - forceFreeGas) >= 25);
-		boolean medicAllowed = weHaveAcademy
-				&& (freeMinerals >= 50 && (freeGas - forceFreeGas) >= 25);
+		boolean firebatAllowed = weHaveAcademy && (freeMinerals >= 50 && (freeGas - forceFreeGas) >= 25);
+		boolean medicAllowed = weHaveAcademy && (freeMinerals >= 50 && (freeGas - forceFreeGas) >= 25);
 		boolean ghostAllowed = (UnitCounter.weHaveBuildingFinished(UnitTypes.Terran_Covert_Ops))
 				&& (freeMinerals >= 50 && (freeGas - forceFreeGas) >= 25);
 
@@ -251,7 +246,7 @@ public class TerranBarracks {
 					return FIREBAT;
 				}
 
-				double firebatPercent = (double) firebats / totalInfantry;
+				double firebatPercent = firebats / totalInfantry;
 				if (firebatPercent < RATIO_FIREBATS_PERCENT / totalRatio) {
 					return FIREBAT;
 				}
@@ -267,13 +262,12 @@ public class TerranBarracks {
 			}
 
 			// Build some HIGH Templars if there'are none.
-			if (ghostAllowed
-					&& ((medics >= 5 || RATIO_MEDICS_PERCENT < 10) && ghosts < 2 || freeGas > 1000)) {
+			if (ghostAllowed && ((medics >= 5 || RATIO_MEDICS_PERCENT < 10) && ghosts < 2 || freeGas > 1000)) {
 				return GHOST;
 			}
 
 			if (xvr.getTimeSeconds() >= 270) {
-				double medicPercent = (double) medics / totalInfantry;
+				double medicPercent = medics / totalInfantry;
 				if (medics < MIN_MEDICS || medicPercent < RATIO_MEDICS_PERCENT / totalRatio) {
 					return MEDIC;
 				}
